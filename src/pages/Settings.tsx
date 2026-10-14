@@ -3,7 +3,9 @@ import { useRef, useState, type ReactNode } from 'react';
 import { Modal } from '../components/ui';
 import { connect, disconnect, syncNow, useCloud } from '../core/cloud';
 import { COURSE_LIST } from '../content';
-import { today } from '../core/date';
+import { nowMs, today } from '../core/date';
+import { tapCount, triggerEgg } from '../core/eggs';
+import { fx, seasonOf, SEASON_LABEL } from '../core/fx';
 import { sfx } from '../core/sfx';
 import { exportSave, importSave, resetSave, updateSettings, useSave } from '../core/store';
 import { speak, useVoices, voicesFor } from '../core/tts';
@@ -141,6 +143,7 @@ export function SettingsPage() {
   const file = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
+  const season = seasonOf(new Date(nowMs()));
 
   const download = () => {
     const blob = new Blob([exportSave()], { type: 'application/json' });
@@ -242,6 +245,19 @@ export function SettingsPage() {
         <Row title="振假名" desc="在日文漢字上方標示讀音">
           <Toggle on={set.furigana} label="振假名" onChange={(v) => updateSettings({ furigana: v })} />
         </Row>
+        <Row title="特效" desc="答對的星光、連擊橫幅、煙火、畫面震動。系統開啟「減少動態效果」時會自動關閉。">
+          <Toggle
+            on={set.fx}
+            label="特效"
+            onChange={(v) => {
+              updateSettings({ fx: v });
+              if (v) setTimeout(() => fx.confetti(60), 50);
+            }}
+          />
+        </Row>
+        <Row title="季節特效" desc={season ? `首頁背景會飄${SEASON_LABEL[season]}` : '首頁背景隨季節飄落的落葉、櫻花、雪花'}>
+          <Toggle on={set.seasonal} label="季節特效" onChange={(v) => updateSettings({ seasonal: v })} />
+        </Row>
         <Row title="主題">
           <div className="seg small">
             {(['dark', 'light', 'auto'] as const).map((t) => (
@@ -275,7 +291,17 @@ export function SettingsPage() {
         {msg && <p className="set-msg">{msg}</p>}
       </section>
 
-      <p className="muted about">TriLingo 三語道場 v0.1.0</p>
+      <p className="muted about">
+        <button
+          type="button"
+          className="about-version"
+          onClick={() => {
+            if (tapCount('dev', 7, 3000)) triggerEgg('dev');
+          }}
+        >
+          TriLingo 三語道場 v0.2.0
+        </button>
+      </p>
 
       {confirmReset && (
         <Modal onClose={() => setConfirmReset(false)}>

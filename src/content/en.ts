@@ -1,6 +1,7 @@
 // 英文：以多益 TOEIC 證書顏色分級。橘 → 棕 → 綠 → 藍 → 金（最高，860–990）
 import type { Course } from '../core/types';
 import { cz, en, grammarUnit, note, qa, stage, vocabUnit } from './dsl';
+import { BROWN_UNITS } from './en-brown';
 
 // ───────── 橘色證書（10–215）：基礎起步 ─────────
 
@@ -314,7 +315,8 @@ export const EN: Course = {
       color: '#a8703a',
       group: 'main',
       style: 'cert',
-      planned: ['會議與行程', '電話應對', '電子郵件用語', '公司部門與職務', '產品與服務', 'Part 1 照片描述', 'Part 5 詞性判斷（名／動／形／副）', '進行式與完成式'],
+      units: BROWN_UNITS,
+      planned: ['Part 1 照片描述', '比較級與最高級', '動名詞與不定詞'],
     }),
     stage({
       id: 'en.green',

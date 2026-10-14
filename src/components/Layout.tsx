@@ -2,10 +2,11 @@
 import { useEffect, useState } from 'react';
 import { useCloud } from '../core/cloud';
 import { nowMs, today } from '../core/date';
+import { tapCount, triggerEgg } from '../core/eggs';
 import { useSave } from '../core/store';
 import { cx, fmtTime } from '../core/util';
 import { href, type Route } from '../router';
-import { Coin } from './ui';
+import { Coin, flameTier } from './ui';
 
 const NAV = [
   { to: '/', icon: '🏠', label: '首頁', match: (p: string[]) => p.length === 0 || p[0] === 'l' },
@@ -41,13 +42,20 @@ export function TopBar({ route }: { route: Route }) {
   return (
     <header className="topbar">
       <div className="topbar-in">
-        <a className="brand" href={href('/')}>
+        <a
+          className={cx('brand', today().endsWith('-04-01') && 'april')}
+          href={href('/')}
+          onClick={() => {
+            if (tapCount('logo', 7, 2500)) triggerEgg('logo');
+          }}
+        >
           <span className="logo" aria-hidden>
             <i />
             <i />
             <i />
           </span>
-          <b>TriLingo</b>
+          {/* 愚人節：Logo 文字倒過來 */}
+          <b>{today().endsWith('-04-01') ? 'LingoTri' : 'TriLingo'}</b>
           <span>三語道場</span>
         </a>
         <nav className="topnav">
@@ -68,10 +76,10 @@ export function TopBar({ route }: { route: Route }) {
               {cloud.status === 'error' || cloud.status === 'offline' ? '⚠️' : '☁️'}
             </a>
           )}
-          <span className={cx('stat streak', lit && 'lit')} title={lit ? '今天已完成學習' : '今天還沒學習'}>
+          <span className={cx('stat streak', lit && 'lit', flameTier(s.streak.count))} title={lit ? '今天已完成學習' : '今天還沒學習'}>
             🔥 {s.streak.count}
           </span>
-          <a className="stat" href={href('/shop')} title="金幣">
+          <a className="stat" href={href('/shop')} title="金幣" data-coin-target>
             <Coin n={s.coins} />
           </a>
           <a className="avatar" href={href('/profile')} title={s.name}>

@@ -1,4 +1,5 @@
 // 成就：value(存檔) 達到 goal 就解鎖，同時可以拿來畫進度條。
+import { EGGS } from './eggData';
 import { rankOf, TIERS } from './ranks';
 import type { Save } from './save';
 import { LANGS } from './types';
@@ -12,6 +13,9 @@ export interface Achievement {
   goal: number;
   value: (s: Save) => number;
   group: string;
+  /** 隱藏成就：解鎖前只顯示提示 */
+  hidden?: boolean;
+  hint?: string;
 }
 
 const words = (s: Save) => Object.keys(s.items).length;
@@ -19,6 +23,21 @@ const tiers = (s: Save) => LANGS.map((l) => rankOf(s.xp[l]).tier);
 const maxTier = (s: Save) => Math.max(...tiers(s));
 const minTier = (s: Save) => Math.min(...tiers(s));
 const bestBlitz = (s: Save) => Math.max(...LANGS.map((l) => s.best.blitz[l] ?? 0));
+const eggs = (s: Save) => Object.keys(s.eggs).length;
+const busiestDay = (s: Save) => Math.max(0, ...Object.values(s.days).map((d) => d.lessons));
+
+const secret = (id: string, icon: string, title: string, desc: string, hint: string, goal: number, value: (s: Save) => number, coins: number): Achievement => ({
+  group: '隱藏成就',
+  id,
+  icon,
+  title,
+  desc,
+  hint,
+  goal,
+  value,
+  coins,
+  hidden: true,
+});
 
 const a = (
   group: string,
@@ -76,4 +95,16 @@ export const ACHIEVEMENTS: Achievement[] = [
   ),
   a('段位', 'all_bronze', '🎖️', '三線發展', '三種語言都達到「銅」', 1, minTier, 60),
   a('段位', 'all_gold', '🏆', '三冠王', '三種語言都達到「金」', 3, minTier, 300),
+
+  a('彩蛋', 'egg_3', '🥚', '彩蛋新手', '發現 3 個彩蛋', 3, eggs, 30),
+  a('彩蛋', 'egg_10', '🐣', '彩蛋獵人', '發現 10 個彩蛋', 10, eggs, 100),
+  a('彩蛋', 'egg_all', '🐉', '彩蛋大師', `發現全部 ${EGGS.length} 個彩蛋`, EGGS.length, eggs, 300),
+
+  secret('perfect_run3', '🔱', '三連霸', '連續 3 堂課全對', '連續好幾堂課都不失誤', 3, (s) => s.stats.perfectRunBest, 40),
+  secret('perfect_run10', '🤖', '完美機器', '連續 10 堂課全對', '連續非常多堂課都不失誤', 10, (s) => s.stats.perfectRunBest, 150),
+  secret('speedrun', '💨', '神速', '60 秒內全對完成一堂課', '又快又準地完成一堂課', 1, (s) => s.stats.speedruns, 40),
+  secret('boss_perfect', '🛡️', '完封測驗', '單元測驗一題都沒錯', '在單元測驗裡展現實力', 1, (s) => s.stats.bossPerfect, 50),
+  secret('grit', '🌱', '永不放棄', '答對不到一半，仍然把課上完', '就算一直答錯，也堅持到最後', 1, (s) => s.stats.grit, 20),
+  secret('marathon', '🏃', '學習馬拉松', '一天內完成 10 堂課', '在同一天上很多很多課', 10, busiestDay, 80),
+  secret('lucky3', '🍀', '幸運兒', '遇到 3 次幸運星', '幸運星好像特別眷顧你', 3, (s) => s.stats.luckyStars, 60),
 ];

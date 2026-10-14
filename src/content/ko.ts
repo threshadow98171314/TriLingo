@@ -3,6 +3,7 @@ import type { Course } from '../core/types';
 import { stage } from './dsl';
 import { HANGUL_UNITS } from './ko-hangul';
 import { K1_UNITS } from './ko-k1';
+import { K2_UNITS } from './ko-k2';
 import { KO_DRAMA_UNITS, KO_TRAVEL_UNITS } from './ko-tracks';
 
 export const KO: Course = {
@@ -47,7 +48,8 @@ export const KO: Course = {
       color: '#22d3ee',
       group: 'main',
       style: 'level',
-      planned: ['未來式與推測', '連接語尾 -고・-지만・-아서／어서', '敬語 -(으)세요', '數量詞與時間', 'TOPIK 2 級單字', '聽力：日常對話'],
+      units: K2_UNITS,
+      planned: ['敬語 -(으)세요・-(으)셨어요', '能力 -(으)ㄹ 수 있다／없다', '數量詞與時間', 'TOPIK 2 級單字：購物與生活', '聽力：日常對話'],
     }),
     stage({
       id: 'ko.k3',
@@ -104,7 +106,7 @@ export const KO: Course = {
       style: 'track',
       icon: '✈️',
       units: KO_TRAVEL_UNITS,
-      planned: ['購物與退稅', '住宿', '問路與方向', '緊急狀況與就醫'],
+      planned: ['汗蒸幕與觀光景點', '打電話與預約'],
     }),
     stage({
       id: 'ko.drama',
@@ -117,7 +119,7 @@ export const KO: Course = {
       style: 'track',
       icon: '📺',
       units: KO_DRAMA_UNITS,
-      planned: ['半語（반말）與敬語（존댓말）', '語尾語氣（-잖아・-거든・-네）', '常見台詞聽力', '綜藝流行語', '職場劇用語', '方言入門（釜山腔）'],
+      planned: ['常見台詞聽力', '綜藝流行語', '職場劇用語', '方言入門（釜山腔）'],
     }),
   ],
 };

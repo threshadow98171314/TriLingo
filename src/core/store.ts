@@ -4,6 +4,8 @@ import { useSyncExternalStore } from 'react';
 import { ACHIEVEMENTS } from './achievements';
 import { celebrate, type Celebration } from './celebrate';
 import { dayNum, nowMs, today } from './date';
+import { DATE_EGGS, EGG_BY_ID, EGGS } from './eggData';
+import { setFxEnabled } from './fx';
 import { newProg, rolloverStreak, srsReview, srsTouch, touchStreak } from './logic';
 import { CHEST_COINS, questsFor } from './quests';
 import { rankOf } from './ranks';
@@ -35,6 +37,7 @@ let pending: Celebration[] = [];
 function syncPrefs() {
   setSfxEnabled(save.settings.sfx);
   setTtsPrefs({ rate: save.settings.ttsRate, voices: save.settings.voices });
+  setFxEnabled(save.settings.fx);
 }
 syncPrefs();
 
@@ -68,6 +71,26 @@ function rollDay(d: Save) {
     });
   }
   d.day = t;
+  // 日期限定彩蛋：那一天打開 App 就會發現
+  const egg = DATE_EGGS[t.slice(5)];
+  if (egg) findEgg(d, egg);
+}
+
+/** 在存檔裡記錄發現了某個彩蛋；已經發現過就不重複給獎勵 */
+function findEgg(d: Save, id: string): boolean {
+  const e = EGG_BY_ID.get(id);
+  if (!e || d.eggs[id]) return false;
+  d.eggs[id] = Date.now();
+  addCoins(d, e.coins);
+  if (id === 'logo' && !d.avatars.includes('🦖')) d.avatars.push('🦖');
+  const found = Object.keys(d.eggs).length;
+  pending.push({
+    type: 'toast',
+    icon: e.icon,
+    title: `發現彩蛋：${e.title}`,
+    text: `${e.coins ? `＋${e.coins} 金幣　` : ''}彩蛋收藏 ${found} / ${EGGS.length}`,
+  });
+  return true;
 }
 
 function unlockAchievements(d: Save) {
@@ -158,6 +181,12 @@ export interface Outcome {
   chest: number;
   /** 是否刷新個人紀錄 */
   record: boolean;
+  /** 全部第一次就答對 */
+  perfect: boolean;
+  /** 幸運星降臨（XP 加倍） */
+  lucky: boolean;
+  /** 開出黃金寶箱 */
+  golden: boolean;
 }
 
 const STREAK_MILESTONES = [3, 7, 14, 30, 50, 100, 200, 365];
@@ -199,7 +228,10 @@ function grantXp(d: Save, lang: LangId, base: number): Reward {
       pending.push({ type: 'toast', icon: '🌏', title: '三語全修！', text: '今天三種語言都練習了　＋15 金幣' });
     }
 
-    const hour = new Date(now).getHours();
+    const clock = new Date(now);
+    const hour = clock.getHours();
+    if (hour === 3) findEgg(d, 'threeam');
+    if (hour === 12 && clock.getMinutes() === 34) findEgg(d, 'clock1234');
     if (hour >= 23 || hour < 4) d.stats.night++;
     else if (hour < 7) d.stats.early++;
   }
@@ -287,7 +319,14 @@ export function finishLesson(a: { lang: LangId; unit: Unit; lesson: Lesson; stat
       if (perfect) {
         log.perfect++;
         d.stats.perfect++;
+        d.stats.perfectRun++;
+        d.stats.perfectRunBest = Math.max(d.stats.perfectRunBest, d.stats.perfectRun);
+        if (!boss && a.stats.seconds <= 60) d.stats.speedruns++;
+        if (boss) d.stats.bossPerfect++;
+      } else {
+        d.stats.perfectRun = 0;
       }
+      if (!boss && graded >= 4 && acc < 0.5) d.stats.grit++;
     }
     if (boss && passed) {
       d.stats.bosses++;
@@ -303,14 +342,30 @@ export function finishLesson(a: { lang: LangId; unit: Unit; lesson: Lesson; stat
     log.combo = Math.max(log.combo, maxCombo);
     d.stats.maxCombo = Math.max(d.stats.maxCombo, maxCombo);
 
+    // 幸運星：過關時有 5% 機率，這堂課的 XP 加倍
+    const lucky = passed && Math.random() < 0.05;
+    if (lucky) {
+      parts.push(['幸運星：XP 加倍', total(parts)]);
+      d.stats.luckyStars++;
+      findEgg(d, 'lucky');
+    }
     const reward = grantXp(d, a.lang, total(parts));
-    // 不定時掉落的寶箱：過關後有機率出現
+    // 不定時掉落的寶箱：25% 一般寶箱，3% 黃金寶箱
     let chest = 0;
-    if (passed && Math.random() < 0.25) {
-      chest = randInt(5, 20);
+    let golden = false;
+    if (passed) {
+      const r = Math.random();
+      if (r < 0.03) {
+        golden = true;
+        chest = randInt(60, 120);
+        d.stats.goldenChests++;
+        findEgg(d, 'golden');
+      } else if (r < 0.28) {
+        chest = randInt(5, 20);
+      }
       addCoins(d, chest);
     }
-    out = { reward, parts, stars, passed, first, chest, record: false };
+    out = { reward, parts, stars, passed, first, chest, record: false, perfect, lucky, golden };
   });
   return out;
 }
@@ -369,7 +424,7 @@ export function finishGame(a: {
       d.stats.maxCombo = Math.max(d.stats.maxCombo, a.maxCombo);
     }
     const reward = grantXp(d, a.lang, total(parts));
-    out = { reward, parts, stars: 0, passed: true, first: false, chest: 0, record };
+    out = { reward, parts, stars: 0, passed: true, first: false, chest: 0, record, perfect: false, lucky: false, golden: false };
   });
   return out;
 }
@@ -488,6 +543,15 @@ export function setStage(lang: LangId, stageId: string) {
   mutate((d) => {
     d.stage[lang] = stageId;
   });
+}
+
+/** 發現彩蛋（第一次才給獎勵）；回傳是否為第一次發現 */
+export function discoverEgg(id: string): boolean {
+  let got = false;
+  mutate((d) => {
+    got = findEgg(d, id);
+  });
+  return got;
 }
 
 /** 存檔每次變動後呼叫 fn；回傳取消訂閱的函式 */

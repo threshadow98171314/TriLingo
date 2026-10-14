@@ -2,6 +2,7 @@
 import type { Course } from '../core/types';
 import { stage } from './dsl';
 import { KANA_UNITS } from './ja-kana';
+import { N4_UNITS } from './ja-n4';
 import { N5_UNITS } from './ja-n5';
 import { JA_ANIME_UNITS, JA_TRAVEL_UNITS } from './ja-tracks';
 
@@ -47,7 +48,8 @@ export const JA: Course = {
       color: '#22d3ee',
       group: 'main',
       style: 'level',
-      planned: ['動詞て形・た形', '可能形・意向形', '授受表現（あげる・くれる・もらう）', '〜と思います・〜つもりです', 'N4 單字：生活與學校', 'N4 單字：工作與社會', 'N4 漢字', '聽解：日常對話'],
+      units: N4_UNITS,
+      planned: ['意向形（〜よう・〜ようと思います）', '授受表現（あげる・くれる・もらう）', '條件形（〜ば・〜たら・〜と）', 'N4 單字：社會與交際', 'N4 漢字', '聽解：日常對話'],
     }),
     stage({
       id: 'ja.n3',
@@ -93,7 +95,7 @@ export const JA: Course = {
       style: 'track',
       icon: '✈️',
       units: JA_TRAVEL_UNITS,
-      planned: ['購物與免稅', '住宿', '問路與方向', '緊急狀況與就醫'],
+      planned: ['溫泉與觀光景點', '打電話與預約'],
     }),
     stage({
       id: 'ja.anime',
@@ -106,7 +108,7 @@ export const JA: Course = {
       style: 'track',
       icon: '📺',
       units: JA_ANIME_UNITS,
-      planned: ['口語縮約形（〜てる・〜ちゃう・〜なきゃ）', '語尾語氣（〜ぜ・〜ぞ・〜わ・〜かな）', '常見台詞聽力', '校園與社團用語', '敬語與職場劇用語', '關西腔入門'],
+      planned: ['語尾語氣（〜ぜ・〜ぞ・〜わ・〜かな）', '常見台詞聽力', '校園與社團用語', '敬語與職場劇用語', '關西腔入門'],
     }),
   ],
 };

@@ -87,6 +87,7 @@ export function mergeSaves(a: Save, b: Save): Save {
     lessons: mergeRecord(a.lessons, b.lessons, pickLesson),
     items: mergeRecord(a.items, b.items, pickItem),
     ach: mergeRecord(a.ach, b.ach, Math.min),
+    eggs: mergeRecord(a.eggs, b.eggs, Math.min),
     stats: maxKeys(a.stats, b.stats),
     best: { blitz: maxKeys(a.best.blitz, b.best.blitz), match },
   };

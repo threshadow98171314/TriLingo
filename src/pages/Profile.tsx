@@ -5,6 +5,7 @@ import { Bar, Coin, LangBadge } from '../components/ui';
 import { COURSE_LIST } from '../content';
 import { ACHIEVEMENTS } from '../core/achievements';
 import { lastDays, today } from '../core/date';
+import { EGGS } from '../core/eggData';
 import { rankOf, TIERS } from '../core/ranks';
 import type { Save } from '../core/save';
 import { setProfile, useSave } from '../core/store';
@@ -91,6 +92,37 @@ function Ladder({ s }: { s: Save }) {
   );
 }
 
+/** 彩蛋收藏冊：發現過的彩蛋會亮起來，沒發現的只看得到提示 */
+function EggBook({ s }: { s: Save }) {
+  const found = EGGS.filter((e) => s.eggs[e.id]).length;
+  return (
+    <section className="card panel">
+      <header className="panel-head">
+        <h2>彩蛋收藏冊</h2>
+        <small className="muted">
+          已發現 {found} / {EGGS.length}・發現彩蛋可以拿金幣
+        </small>
+      </header>
+      <Bar v={found / EGGS.length} color="var(--gold)" />
+      <ul className="egg-grid">
+        {EGGS.map((e) => {
+          const at = s.eggs[e.id];
+          return (
+            <li key={e.id} className={cx('egg', at && 'found')}>
+              <span className="egg-icon">{at ? e.icon : '🥚'}</span>
+              <div className="grow">
+                <b>{at ? e.title : '？？？'}</b>
+                <small className="muted">{e.hint}</small>
+                {at ? <small className="egg-date">{new Date(at).toLocaleDateString('zh-TW')} 發現</small> : null}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 function Achievements({ s }: { s: Save }) {
   const groups = [...new Set(ACHIEVEMENTS.map((a) => a.group))];
   const got = ACHIEVEMENTS.filter((a) => s.ach[a.id]).length;
@@ -108,14 +140,16 @@ function Achievements({ s }: { s: Save }) {
           <ul className="ach-list">
             {ACHIEVEMENTS.filter((a) => a.group === g).map((a) => {
               const done = !!s.ach[a.id];
+              // 隱藏成就：解鎖前只顯示提示
+              const secret = a.hidden && !done;
               const v = Math.min(a.goal, a.value(s));
               return (
                 <li key={a.id} className={cx('ach', done && 'done')}>
-                  <span className="ach-icon">{done ? a.icon : '🔒'}</span>
+                  <span className="ach-icon">{done ? a.icon : secret ? '❓' : '🔒'}</span>
                   <div className="grow">
-                    <b>{a.title}</b>
-                    <small className="muted">{a.desc}</small>
-                    {!done && a.goal > 1 && (
+                    <b>{secret ? '？？？' : a.title}</b>
+                    <small className="muted">{secret ? `提示：${a.hint}` : a.desc}</small>
+                    {!done && !secret && a.goal > 1 && (
                       <div className="ach-prog">
                         <Bar v={v / a.goal} />
                         <small>
@@ -124,7 +158,7 @@ function Achievements({ s }: { s: Save }) {
                       </div>
                     )}
                   </div>
-                  <Coin n={done ? '已領' : `+${a.coins}`} />
+                  <Coin n={done ? '已領' : secret ? '？' : `+${a.coins}`} />
                 </li>
               );
             })}
@@ -199,6 +233,7 @@ export function ProfilePage() {
       <Heatmap s={s} />
       <Ladder s={s} />
       <Achievements s={s} />
+      <EggBook s={s} />
     </div>
   );
 }

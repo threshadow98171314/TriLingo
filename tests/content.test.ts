@@ -23,10 +23,11 @@ describe('課程結構', () => {
     expect(byLang('en').stages.map((s) => s.short)).toEqual(['橘色', '棕色', '綠色', '藍色', '金色']);
   });
 
-  it('日文有五十音、N5–N1 與兩條主題路線；N4 以後先建好頁面', () => {
+  it('日文有五十音、N5–N1 與兩條主題路線；N4 已開放，N3 以後先建好頁面', () => {
     const ja = byLang('ja');
     expect(ja.stages.filter((s) => s.group === 'main').map((s) => s.short)).toEqual(['五十音', 'N5', 'N4', 'N3', 'N2', 'N1']);
-    for (const short of ['N4', 'N3', 'N2', 'N1']) {
+    expect(ja.stages.find((s) => s.short === 'N4')!.units.length).toBeGreaterThan(0);
+    for (const short of ['N3', 'N2', 'N1']) {
       const st = ja.stages.find((s) => s.short === short)!;
       expect(st.units).toHaveLength(0);
       expect(st.planned.length).toBeGreaterThan(0);
@@ -35,6 +36,15 @@ describe('課程結構', () => {
 
   it('還沒有內容的關卡一定列出預定單元', () => {
     for (const c of COURSE_LIST) for (const s of c.stages) if (!s.units.length) expect(s.planned.length, s.id).toBeGreaterThan(0);
+  });
+
+  it('已經上線的單元不會還掛在「即將推出」清單裡', () => {
+    for (const c of COURSE_LIST) {
+      for (const s of c.stages) {
+        const titles = s.units.map((u) => u.title);
+        for (const p of s.planned) expect(titles.some((t) => p.startsWith(t) || t.startsWith(p)), `${s.id}：${p}`).toBe(false);
+      }
+    }
   });
 
   it('所有 id 全域唯一，而且以語言代碼開頭', () => {

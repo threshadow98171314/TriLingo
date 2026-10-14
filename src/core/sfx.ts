@@ -61,4 +61,46 @@ export const sfx = {
     [1047, 1319, 1568].forEach((f) => tone(f, 0.5, 0.7, 'sine', 0.09));
   },
   tick: () => tone(1000, 0, 0.03, 'square', 0.03),
+  /** 連擊里程碑：等級越高號角越長 */
+  combo: (level: number) => {
+    const notes = [523, 659, 784, 1047, 1319, 1568].slice(0, 3 + Math.min(3, level));
+    notes.forEach((f, i) => tone(f, i * 0.07, 0.18, 'square', 0.07));
+    tone(notes[notes.length - 1] * 2, notes.length * 0.07, 0.35, 'triangle', 0.08);
+  },
+  sparkle: () => [1568, 2093, 2637].forEach((f, i) => tone(f, i * 0.05, 0.12, 'sine', 0.05)),
+  /** 開寶箱：木箱咚一聲＋叮叮叮 */
+  chest: () => {
+    tone(140, 0, 0.18, 'triangle', 0.18, 90);
+    [1047, 1319, 1568, 2093].forEach((f, i) => tone(f, 0.18 + i * 0.08, 0.2, 'triangle', 0.09));
+  },
+  /** 發現彩蛋：上行琶音 */
+  secret: () => {
+    [523, 784, 1047, 1319, 1568, 2093].forEach((f, i) => tone(f, i * 0.06, 0.28, 'sine', 0.08));
+    tone(3136, 0.42, 0.5, 'sine', 0.04);
+  },
+  firework: () => tone(180, 0, 0.35, 'sawtooth', 0.05, 60),
+  /** 喵～：音高先升後降的鋸齒波，經過低通濾波比較像貓叫 */
+  meow: () => {
+    const a = ac();
+    if (!a) return;
+    const t0 = a.currentTime;
+    const osc = a.createOscillator();
+    const filter = a.createBiquadFilter();
+    const gain = a.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(560, t0);
+    osc.frequency.linearRampToValueAtTime(880, t0 + 0.16);
+    osc.frequency.linearRampToValueAtTime(620, t0 + 0.5);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1200, t0);
+    filter.frequency.linearRampToValueAtTime(2600, t0 + 0.18);
+    filter.frequency.linearRampToValueAtTime(900, t0 + 0.5);
+    filter.Q.value = 6;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.12, t0 + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.55);
+    osc.connect(filter).connect(gain).connect(a.destination);
+    osc.start(t0);
+    osc.stop(t0 + 0.6);
+  },
 };

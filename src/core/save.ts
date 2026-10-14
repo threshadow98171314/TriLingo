@@ -15,6 +15,10 @@ export interface Settings {
   furigana: boolean;
   theme: 'dark' | 'light' | 'auto';
   voices: Partial<Record<LangId, string>>;
+  /** 粒子特效、震動、橫幅 */
+  fx: boolean;
+  /** 背景的季節特效（落葉、櫻花、雪花…） */
+  seasonal: boolean;
 }
 
 /** 單日紀錄：熱力圖、每日目標、每日任務都從這裡計算 */
@@ -62,6 +66,16 @@ export interface Stats {
   correct: number;
   night: number;
   early: number;
+  /** 目前連續全對的課數與最佳紀錄 */
+  perfectRun: number;
+  perfectRunBest: number;
+  /** 60 秒內全對過關的次數 */
+  speedruns: number;
+  bossPerfect: number;
+  /** 答對率不到一半仍然把課上完的次數 */
+  grit: number;
+  luckyStars: number;
+  goldenChests: number;
 }
 
 export interface Save {
@@ -85,6 +99,8 @@ export interface Save {
   items: Record<string, ItemProg>;
   /** 已解鎖的成就 → 解鎖時間 */
   ach: Record<string, number>;
+  /** 已發現的彩蛋 → 發現時間 */
+  eggs: Record<string, number>;
   stats: Stats;
   best: { blitz: Record<LangId, number>; match: Partial<Record<LangId, number>> };
   /** 各語言上次停留的關卡 */
@@ -117,7 +133,7 @@ export function defaultSave(now: number): Save {
     name: '學習者',
     avatar: FREE_AVATARS[0],
     avatars: [...FREE_AVATARS],
-    settings: { dailyGoal: 50, sfx: true, autoSpeak: true, ttsRate: 1, romaji: true, furigana: true, theme: 'dark', voices: {} },
+    settings: { dailyGoal: 50, sfx: true, autoSpeak: true, ttsRate: 1, romaji: true, furigana: true, theme: 'dark', voices: {}, fx: true, seasonal: true },
     xp: { en: 0, ja: 0, ko: 0 },
     coins: 0,
     coinsEarned: 0,
@@ -127,6 +143,7 @@ export function defaultSave(now: number): Save {
     lessons: {},
     items: {},
     ach: {},
+    eggs: {},
     stats: {
       lessons: 0,
       perfect: 0,
@@ -143,6 +160,13 @@ export function defaultSave(now: number): Save {
       correct: 0,
       night: 0,
       early: 0,
+      perfectRun: 0,
+      perfectRunBest: 0,
+      speedruns: 0,
+      bossPerfect: 0,
+      grit: 0,
+      luckyStars: 0,
+      goldenChests: 0,
     },
     best: { blitz: { en: 0, ja: 0, ko: 0 }, match: {} },
     stage: {},
@@ -169,6 +193,7 @@ export function migrate(raw: unknown, now: number): Save {
     lessons: x.lessons ?? {},
     items: x.items ?? {},
     ach: x.ach ?? {},
+    eggs: x.eggs ?? {},
     stage: x.stage ?? {},
     prefsAt: x.prefsAt ?? 0,
     coinsAt: x.coinsAt ?? 0,

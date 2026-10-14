@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { COURSES } from '../content';
 import { dismissModal, dismissToast, useCelebrations, type ModalEvent } from '../core/celebrate';
-import { fireConfetti } from '../core/confetti';
+import { fx } from '../core/fx';
 import { stepName, tierOfStep, TIERS } from '../core/ranks';
 import { sfx } from '../core/sfx';
 import { RankEmblem } from './RankEmblem';
@@ -53,7 +53,19 @@ export function CelebrationHost() {
   useEffect(() => {
     if (!modal) return;
     sfx.rankUp();
-    fireConfetti(160);
+    if (modal.type === 'rank' && tierOfStep(modal.to) > tierOfStep(modal.from)) {
+      // 晉升新段位：用該段位的顏色放煙火
+      const c = TIERS[tierOfStep(modal.to)].c;
+      fx.fireworks(6, [c[0], c[1], '#ffffff']);
+      fx.flash('rgba(255,255,255,0.4)');
+    } else if (modal.type === 'streak') {
+      fx.rain('emoji', { glyphs: ['🔥'], count: 30 });
+    } else {
+      fx.confetti(140);
+    }
+    // 徽章出場時在周圍爆出光點
+    const t = setTimeout(() => fx.burstAt(document.querySelector('.rankup-emblem'), { count: 30, shapes: ['star', 'glow'], speed: 0.45 }), 650);
+    return () => clearTimeout(t);
   }, [modal]);
 
   return (

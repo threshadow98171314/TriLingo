@@ -2,6 +2,9 @@ import { useEffect, type ReactNode } from 'react';
 import { CelebrationHost } from './components/Celebrations';
 import { BottomNav, TopBar } from './components/Layout';
 import { Empty } from './components/ui';
+import { nowMs } from './core/date';
+import { setEggKeysEnabled } from './core/eggs';
+import { fx, seasonOf } from './core/fx';
 import { useSave } from './core/store';
 import { LANGS, type LangId } from './core/types';
 import { BlitzPage } from './pages/Blitz';
@@ -64,7 +67,7 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
 
 export function App() {
   const route = useRoute();
-  const { theme, furigana } = useSave().settings;
+  const { theme, furigana, seasonal, fx: fxSetting } = useSave().settings;
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -84,6 +87,12 @@ export function App() {
   }, [furigana]);
 
   const { page, focus } = resolve(route);
+
+  // 上課、玩遊戲時：不飄背景粒子，也暫停鍵盤秘技偵測（避免和作答按鍵衝突）
+  useEffect(() => {
+    setEggKeysEnabled(!focus);
+    fx.setAmbient(!focus && seasonal && fxSetting ? seasonOf(new Date(nowMs())) : null);
+  }, [focus, seasonal, fxSetting]);
   return (
     <>
       {!focus && <TopBar route={route} />}

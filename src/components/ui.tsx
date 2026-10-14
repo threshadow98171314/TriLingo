@@ -1,5 +1,7 @@
 // 共用的小元件
 import { Fragment, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { fx } from '../core/fx';
+import { sfx } from '../core/sfx';
 import { useSave } from '../core/store';
 import { canSpeak, speak, useVoices } from '../core/tts';
 import type { Course, Item, LangId } from '../core/types';
@@ -7,6 +9,21 @@ import { cx } from '../core/util';
 import { clozeFilled, headOf, isVocab, sayOf } from '../engine/exercises';
 import { furiPlain, furiSegs } from '../engine/furigana';
 import { kanaToRomaji } from '../engine/romaji';
+
+/** 連勝火焰的等級：越久越大、顏色越特別（7 天、30 天變藍、100 天變紫） */
+export function flameTier(streak: number): string {
+  return streak >= 100 ? 'f4' : streak >= 30 ? 'f3' : streak >= 7 ? 'f2' : streak >= 3 ? 'f1' : '';
+}
+
+/** 金幣從某處飛進導覽列的錢包（看不到錢包時就只在原地爆開） */
+export function flyCoins(from: { x: number; y: number }, amount: number) {
+  const target = document.querySelector('[data-coin-target]');
+  const ok = fx.coinsTo(from, target, Math.ceil(amount / 4), () => {
+    sfx.tick();
+    fx.bump(target);
+  });
+  if (!ok) fx.burst(from.x, from.y, { count: 16, shapes: ['circle', 'star'], colors: ['#ffe066', '#fbbf24', '#fff3b0'] });
+}
 
 /** 把「漢字[よみ]」標註轉成振假名顯示 */
 export function Ruby({ s }: { s: string }) {

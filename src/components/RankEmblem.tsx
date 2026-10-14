@@ -1,5 +1,8 @@
 // 段位徽章：全部用 SVG 畫出來，段位越高裝飾越多（翅膀 → 寶石 → 皇冠 → 光芒）。
-import { useId, type CSSProperties } from 'react';
+import { useId, type CSSProperties, type MouseEvent } from 'react';
+import { tapCount, triggerEgg } from '../core/eggs';
+import { fx } from '../core/fx';
+import { sfx } from '../core/sfx';
 import { rankOf, stepName, tierOfStep, TIERS, TOP_TIER } from '../core/ranks';
 import { cx } from '../core/util';
 import { Bar } from './ui';
@@ -10,7 +13,21 @@ const FEATHERS = ['M25 38 L5 27 L15 46 Z', 'M25 50 L3 45 L16 59 Z', 'M26 61 L8 6
 const CROWN = 'M35 21 L31 5 L42 13 L50 2 L58 13 L69 5 L65 21 Z';
 const GEM = 'M50 3 L59 13 L50 23 L41 13 Z';
 
-export function RankEmblem({ step, size = 64, className }: { step: number; size?: number; className?: string }) {
+/** 戳段位徽章：每戳一下抖一下，連戳十下會轉圈並發現彩蛋 */
+function poke(e: MouseEvent<SVGSVGElement>) {
+  const el = e.currentTarget;
+  sfx.tap();
+  if (tapCount('emblem', 10, 3000)) {
+    fx.bump(el, 'fx-spin');
+    fx.burstAt(el, { count: 24, shapes: ['star', 'spark'] });
+    fx.banner('別再戳了！', '徽章會痛的……', 'combo');
+    triggerEgg('poke');
+  } else {
+    fx.bump(el, 'fx-wobble');
+  }
+}
+
+export function RankEmblem({ step, size = 64, className, pokeable }: { step: number; size?: number; className?: string; pokeable?: boolean }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const tier = tierOfStep(step);
   const t = TIERS[tier];
@@ -23,7 +40,8 @@ export function RankEmblem({ step, size = 64, className }: { step: number; size?
 
   return (
     <svg
-      className={cx('emblem', `tier-${t.id}`, className)}
+      onClick={pokeable ? poke : undefined}
+      className={cx('emblem', `tier-${t.id}`, pokeable && 'pokeable', className)}
       width={size}
       height={size}
       viewBox="0 0 100 100"
@@ -118,7 +136,7 @@ export function RankLine({ xp, size = 56, compact }: { xp: number; size?: number
   const color = TIERS[r.tier].c[0];
   return (
     <div className={cx('rank-line', compact && 'compact')} style={{ '--rank': color } as CSSProperties}>
-      <RankEmblem step={r.step} size={size} />
+      <RankEmblem step={r.step} size={size} pokeable />
       <div className="rank-info">
         <div className="rank-name">
           <b>{r.name}</b>

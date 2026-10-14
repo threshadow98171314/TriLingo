@@ -1,8 +1,13 @@
 // 首頁：連勝、每日目標、三種語言的段位、每日任務、每日填字、一週紀錄
-import type { CSSProperties } from 'react';
+import { useRef, useState, type CSSProperties } from 'react';
+import { Mascot } from '../components/Mascot';
 import { RankEmblem } from '../components/RankEmblem';
-import { Bar, Coin, LangBadge } from '../components/ui';
+import { Bar, Coin, flameTier, flyCoins, LangBadge, Modal, SpeakBtn, Tx } from '../components/ui';
 import { COURSE_LIST } from '../content';
+import { PROVERBS } from '../content/proverbs';
+import { fx } from '../core/fx';
+import { hashStr } from '../core/rng';
+import { furiKana } from '../engine/furigana';
 import { lastDays, nowMs, today } from '../core/date';
 import { crosswordPool, langStats, nextUp, UNLOCK } from '../core/progress';
 import { questsFor } from '../core/quests';
@@ -10,7 +15,6 @@ import { rankOf, TIERS } from '../core/ranks';
 import { emptyDay, type Save } from '../core/save';
 import { sfx } from '../core/sfx';
 import { claimChest, claimQuest, useSave } from '../core/store';
-import { celebrate } from '../core/celebrate';
 import type { Course } from '../core/types';
 import { LANGS } from '../core/types';
 import { cx, sum } from '../core/util';
@@ -56,7 +60,7 @@ function LangCard({ course, s }: { course: Course; s: Save }) {
       </header>
 
       <div className="lang-rank">
-        <RankEmblem step={r.step} size={84} />
+        <RankEmblem step={r.step} size={84} pokeable />
         <div className="rank-info">
           <div className="rank-name">
             <b>{r.name}</b>
@@ -99,17 +103,7 @@ function QuestPanel({ s }: { s: Save }) {
   const claimed = (id: string) => !!log.claimed?.includes(id);
   const allClaimed = quests.every((q) => claimed(q.id));
 
-  const openChest = () => {
-    const r = claimChest();
-    if (!r) return;
-    sfx.coin();
-    celebrate({
-      type: 'toast',
-      icon: '🎁',
-      title: `每日寶箱：${r.coins} 金幣`,
-      text: r.freeze ? '還開出了 1 個連勝保護！' : '明天的任務全部完成，還有一箱。',
-    });
-  };
+  const [chestOpen, setChestOpen] = useState(false);
 
   return (
     <section className="card panel">
@@ -140,8 +134,12 @@ function QuestPanel({ s }: { s: Save }) {
                   type="button"
                   className="btn small gold"
                   disabled={!done}
-                  onClick={() => {
-                    if (claimQuest(q.id)) sfx.coin();
+                  onClick={(e) => {
+                    const from = e.currentTarget.getBoundingClientRect();
+                    const got = claimQuest(q.id);
+                    if (!got) return;
+                    sfx.coin();
+                    flyCoins({ x: from.left + from.width / 2, y: from.top + from.height / 2 }, got);
                   }}
                 >
                   <Coin n={`+${q.coins}`} />
@@ -151,10 +149,101 @@ function QuestPanel({ s }: { s: Save }) {
           );
         })}
       </ul>
-      <button type="button" className={cx('chest', allClaimed && !log.chest && 'ready', log.chest && 'opened')} disabled={!allClaimed || !!log.chest} onClick={openChest}>
+      <button
+        type="button"
+        className={cx('chest', allClaimed && !log.chest && 'ready', log.chest && 'opened')}
+        disabled={!allClaimed || !!log.chest}
+        onClick={() => setChestOpen(true)}
+      >
         <span className="chest-icon">{log.chest ? '📭' : '🎁'}</span>
         <span>{log.chest ? '今天的寶箱已打開，明天再來！' : allClaimed ? '點我打開每日寶箱！' : '完成並領取 3 個任務，就能打開每日寶箱'}</span>
       </button>
+      {chestOpen && <ChestModal onClose={() => setChestOpen(false)} />}
+    </section>
+  );
+}
+
+const GOLD = ['#ffe066', '#fbbf24', '#fff3b0', '#ffffff'];
+
+/** 開每日寶箱：點擊 → 搖晃 → 打開噴出金幣 */
+function ChestModal({ onClose }: { onClose: () => void }) {
+  const [stage, setStage] = useState<'idle' | 'shake' | 'open'>('idle');
+  const [res, setRes] = useState<{ coins: number; freeze: boolean } | null>(null);
+  const box = useRef<HTMLButtonElement>(null);
+
+  const open = () => {
+    if (stage !== 'idle') return;
+    setStage('shake');
+    sfx.tap();
+    setTimeout(() => {
+      setRes(claimChest());
+      setStage('open');
+      sfx.chest();
+      fx.flash('rgba(255,230,140,0.35)');
+      fx.burstAt(box.current, { count: 44, colors: GOLD, shapes: ['star', 'circle', 'glow'], speed: 0.5 });
+    }, 950);
+  };
+
+  const close = () => {
+    const r = box.current?.getBoundingClientRect();
+    if (res && r) flyCoins({ x: r.left + r.width / 2, y: r.top + r.height / 2 }, res.coins);
+    onClose();
+  };
+
+  return (
+    <Modal className="chest-modal" onClose={stage === 'shake' ? undefined : close}>
+      <p className="eyebrow">每日寶箱</p>
+      <button ref={box} type="button" className={cx('chest-big', stage)} onClick={open} aria-label="打開寶箱">
+        {stage === 'open' ? '💰' : '🎁'}
+      </button>
+      {stage === 'idle' && <p className="muted">三個任務都完成了，點寶箱打開！</p>}
+      {stage === 'shake' && <p className="muted">喀啦喀啦……</p>}
+      {stage === 'open' && res && (
+        <>
+          <h2 className="chest-reward">
+            <Coin n={`+${res.coins}`} />
+          </h2>
+          {res.freeze && <p className="chip">❄️ 還開出了 1 個連勝保護！</p>}
+          <button type="button" className="btn primary wide" autoFocus onClick={close}>
+            收下
+          </button>
+        </>
+      )}
+    </Modal>
+  );
+}
+
+/** 每日一句：三種語言的諺語，每天換一組 */
+function ProverbCard() {
+  const [shift, setShift] = useState(0);
+  const seed = hashStr(`proverb:${today()}`) + shift;
+  return (
+    <section className="card panel">
+      <header className="panel-head">
+        <h2>每日一句</h2>
+        <button type="button" className="btn small ghost" onClick={() => setShift((n) => n + 1)}>
+          換一組
+        </button>
+      </header>
+      <div className="proverb-grid">
+        {COURSE_LIST.map((c, i) => {
+          const list = PROVERBS[c.id];
+          const p = list[(seed + i * 7) % list.length];
+          return (
+            <div key={c.id} className="proverb" style={{ '--lang': c.color } as CSSProperties}>
+              <div className="proverb-top">
+                <LangBadge course={c} size="sm" />
+                <SpeakBtn text={c.id === 'ja' ? furiKana(p.text) : p.text} lang={c.id} size="sm" />
+              </div>
+              <p className="proverb-text">
+                <Tx s={p.text} lang={c.id} />
+              </p>
+              {p.rm && <small className="muted proverb-rm">{p.rm}</small>}
+              <p className="proverb-zh">{p.zh}</p>
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }
@@ -255,7 +344,7 @@ export function Home() {
             {hello}，{s.name}
           </p>
           <h1>
-            <span className={cx('flame', lit && 'lit')}>🔥</span> {title}
+            <span className={cx('flame', lit && 'lit', flameTier(s.streak.count))}>🔥</span> {title}
           </h1>
           <div className="hero-chips">
             <span className="chip">最佳紀錄 {s.streak.best} 天</span>
@@ -268,6 +357,8 @@ export function Home() {
         <GoalRing value={todayXp} goal={s.settings.dailyGoal} />
       </section>
 
+      <Mascot />
+
       <section className="lang-grid">
         {COURSE_LIST.map((c) => (
           <LangCard key={c.id} course={c} s={s} />
@@ -278,6 +369,8 @@ export function Home() {
         <QuestPanel s={s} />
         <DailyPanel s={s} />
       </div>
+
+      <ProverbCard />
 
       <WeekChart s={s} />
     </div>

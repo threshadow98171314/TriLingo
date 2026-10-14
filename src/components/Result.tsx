@@ -1,7 +1,7 @@
 // 結算畫面：課程與所有小遊戲共用。
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { COURSES } from '../content';
-import { fireConfetti } from '../core/confetti';
+import { fx } from '../core/fx';
 import { rankOf, TIERS } from '../core/ranks';
 import { sfx } from '../core/sfx';
 import type { Outcome } from '../core/store';
@@ -34,15 +34,46 @@ export function ResultScreen({ data, lang }: { data: ResultData; lang: LangId })
   const [shown, setShown] = useState(before.step === after.step ? before.progress : 0);
   const xp = useCountUp(r.xp);
 
+  const chestRef = useRef<HTMLSpanElement>(null);
+
   useEffect(() => {
-    if (o.passed) {
-      sfx.complete();
-      fireConfetti();
-    } else {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const later = (ms: number, f: () => void) => timers.push(setTimeout(f, ms));
+    if (!o.passed) {
       sfx.fail();
+    } else {
+      sfx.complete();
+      if (o.perfect) {
+        // 全對：煙火＋星星雨＋蓋上 PERFECT 印章
+        fx.fireworks(3);
+        later(350, () => fx.rain('star', { count: 45, duration: 1600 }));
+      } else {
+        fx.confetti();
+      }
+      let at = 1000;
+      if (o.lucky) {
+        later(at, () => {
+          sfx.sparkle();
+          fx.banner('幸運星降臨！', '這堂課的 XP 加倍', 'gold');
+          fx.rain('emoji', { glyphs: ['🍀', '⭐', '✨'], count: 36 });
+        });
+        at += 1600;
+      }
+      if (o.golden) {
+        later(at, () => {
+          sfx.chest();
+          fx.banner('黃金寶箱！', `+${o.chest} 金幣`, 'gold');
+          fx.rain('coin', { count: 60 });
+        });
+      } else if (o.chest > 0) {
+        later(at + 100, () => {
+          sfx.coin();
+          fx.burstAt(chestRef.current, { count: 18, colors: ['#ffe066', '#fbbf24', '#fff3b0'], shapes: ['circle', 'star'] });
+        });
+      }
     }
-    const t = setTimeout(() => setShown(after.progress), 400);
-    return () => clearTimeout(t);
+    later(400, () => setShown(after.progress));
+    return () => timers.forEach(clearTimeout);
     // 只在進入結算畫面時播一次
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -64,6 +95,7 @@ export function ResultScreen({ data, lang }: { data: ResultData; lang: LangId })
   return (
     <div className="result" style={{ '--lang': course.color } as CSSProperties}>
       <div className="result-card card">
+        {o.perfect && <div className="perfect-stamp">PERFECT</div>}
         <div className="result-emoji">{data.emoji}</div>
         <h1>{data.headline}</h1>
         {data.sub && <p className="muted">{data.sub}</p>}
@@ -111,9 +143,10 @@ export function ResultScreen({ data, lang }: { data: ResultData; lang: LangId })
         <div className="result-extras">
           {o.record && <span className="chip gold">🏅 刷新個人紀錄</span>}
           {r.streakExtended && <span className="chip fire">🔥 連續學習 {r.streak} 天</span>}
+          {o.lucky && <span className="chip gold lucky">🍀 幸運星：XP 加倍</span>}
           {o.chest > 0 && (
-            <span className="chip gold">
-              🎁 發現寶箱 <Coin n={`+${o.chest}`} />
+            <span ref={chestRef} className={o.golden ? 'chip gold golden' : 'chip gold'}>
+              {o.golden ? '👑 黃金寶箱' : '🎁 發現寶箱'} <Coin n={`+${o.chest}`} />
             </span>
           )}
           {r.coins > 0 && (

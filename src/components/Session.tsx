@@ -2,6 +2,7 @@
 // 課程、單元測驗、複習、聽力特訓都用這個元件。
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { COURSES } from '../content';
+import { fx } from '../core/fx';
 import { sfx } from '../core/sfx';
 import { recordAnswer, useSave, type AnswerMode, type SessionStats } from '../core/store';
 import { speak, stopSpeaking } from '../core/tts';
@@ -27,6 +28,17 @@ interface Feedback {
 }
 
 const PRAISE = ['答對了！', '完全正確！', '漂亮！', '太棒了！', '就是這樣！'];
+
+/** 連擊里程碑的橫幅文字 */
+const COMBO_MILESTONES: Record<number, string> = {
+  5: '手感來了！',
+  10: '勢如破竹！',
+  15: '無人能擋！',
+  20: '神乎其技！',
+  30: '傳說級連擊！',
+  50: '你真的是人類嗎？',
+};
+const MILESTONE_LEVELS = Object.keys(COMBO_MILESTONES).map(Number);
 
 export function Session({
   lang,
@@ -54,7 +66,7 @@ export function Session({
   const [combo, setCombo] = useState(0);
   const [result, setResult] = useState<ResultData | null>(null);
   const [asking, setAsking] = useState(false);
-  const st = useRef({ graded: 0, correct: 0, maxCombo: 0, start: Date.now(), answeredAt: 0, praise: PRAISE[0] });
+  const st = useRef({ graded: 0, correct: 0, maxCombo: 0, start: Date.now(), answeredAt: 0, praise: PRAISE[0], xpAnswer: false });
 
   const cur = queue[idx];
   const passive = cur.ex.t === 'teach' || cur.ex.t === 'note';
@@ -73,6 +85,7 @@ export function Session({
   const answer = (correct: boolean, picked: number | null = null) => {
     const ex = cur.ex;
     if (fb || (ex.t !== 'choice' && ex.t !== 'tiles' && ex.t !== 'type')) return;
+    st.current.xpAnswer = correct && cur.retry === 0;
     if (cur.retry === 0) {
       st.current.graded++;
       if (correct) st.current.correct++;
@@ -89,6 +102,7 @@ export function Session({
   const matchDone = (wrongIds: string[]) => {
     if (fb || cur.ex.t !== 'match') return;
     const ok = wrongIds.length === 0;
+    st.current.xpAnswer = ok;
     st.current.graded++;
     if (ok) st.current.correct++;
     for (const p of cur.ex.pairs) recordAnswer(p.itemId, !wrongIds.includes(p.itemId), mode);
@@ -106,6 +120,27 @@ export function Session({
     stopSpeaking();
     setResult(onFinish({ graded: s.graded, correct: s.correct, maxCombo: s.maxCombo, seconds: Math.round((Date.now() - s.start) / 1000) }));
   };
+
+  // 作答特效：答對在答案上爆出星光、飄出 +1 XP；連擊里程碑出現大橫幅；答錯畫面輕震
+  useEffect(() => {
+    if (!fb) return;
+    if (!fb.correct) {
+      fx.shake(1);
+      return;
+    }
+    const anchor = document.querySelector('.opt.right, .slots.right, .type-input.right, .match-grid');
+    fx.burstAt(anchor, { count: 10 + Math.min(combo, 20), speed: 0.28 + Math.min(combo, 20) * 0.01 });
+    if (st.current.xpAnswer) fx.floatAt(anchor, '+1 XP', 'xp');
+    if (COMBO_MILESTONES[combo]) {
+      const level = MILESTONE_LEVELS.indexOf(combo);
+      fx.banner(`${combo} 連擊`, COMBO_MILESTONES[combo], level >= 3 ? 'rainbow' : 'combo');
+      fx.burst(window.innerWidth / 2, window.innerHeight * 0.4, { count: 40 + level * 15, speed: 0.55, shapes: ['star', 'spark', 'glow'] });
+      if (level >= 1) fx.flash(level >= 3 ? 'rgba(180,140,255,0.35)' : 'rgba(255,170,80,0.3)');
+      sfx.combo(level);
+    }
+    // 只在回饋出現的那一刻播放
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fb]);
 
   // 「繼續」按鈕一出現就取得焦點，按 Enter 即可前進
   const contRef = useRef<HTMLButtonElement>(null);
@@ -154,7 +189,7 @@ export function Session({
           <small>{title}</small>
           <Bar v={progress} color="var(--lang)" />
         </div>
-        <div className={cx('combo', combo >= 2 && 'on', combo >= 5 && 'hot')} key={combo} title="連擊">
+        <div className={cx('combo', combo >= 2 && 'on', combo >= 5 && 'hot', combo >= 10 && 'blaze', combo >= 20 && 'inferno')} key={combo} title="連擊">
           🔥 {combo}
         </div>
       </header>
