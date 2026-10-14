@@ -1,0 +1,10 @@
+{
+  "name": "TriLingo 三語道場",
+  "short_name": "TriLingo",
+  "description": "英文（多益）、日文（JLPT）、韓文的遊戲化自學網頁",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0e1220",
+  "theme_color": "#0e1220",
+  "icons": [{ "src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
