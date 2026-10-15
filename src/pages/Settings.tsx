@@ -8,7 +8,7 @@ import { tapCount, triggerEgg } from '../core/eggs';
 import { fx, seasonOf, SEASON_LABEL } from '../core/fx';
 import { sfx } from '../core/sfx';
 import { exportSave, importSave, resetSave, updateSettings, useSave } from '../core/store';
-import { speak, useVoices, voicesFor } from '../core/tts';
+import { listenMutedUntil, speak, unmuteListening, useVoices, voicesFor } from '../core/tts';
 import type { LangId } from '../core/types';
 import { cx } from '../core/util';
 
@@ -143,6 +143,7 @@ export function SettingsPage() {
   const file = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
+  const [muteUntil, setMuteUntil] = useState(() => listenMutedUntil());
   const season = seasonOf(new Date(nowMs()));
 
   const download = () => {
@@ -189,6 +190,20 @@ export function SettingsPage() {
         >
           <Toggle on={set.jaTyping} label="日文打字題" onChange={(v) => updateSettings({ jaTyping: v })} />
         </Row>
+        {muteUntil > 0 && (
+          <Row title="聽力題暫停中" desc={`在練習中按了「現在不方便聽」，還剩約 ${Math.ceil((muteUntil - Date.now()) / 60000)} 分鐘。暫停期間聽力題會改成看文字作答。`}>
+            <button
+              type="button"
+              className="btn small"
+              onClick={() => {
+                unmuteListening();
+                setMuteUntil(0);
+              }}
+            >
+              恢復聽力題
+            </button>
+          </Row>
+        )}
       </section>
 
       <section className="card panel">

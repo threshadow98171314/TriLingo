@@ -1,24 +1,24 @@
-// 首頁：連勝、每日目標、三種語言的段位、每日任務、每日填字、一週紀錄
+// 首頁：連勝、每日目標、接續學習、三種語言的段位、每日任務、每日填字、知識補充、一週紀錄
 import { useRef, useState, type CSSProperties } from 'react';
 import { Mascot } from '../components/Mascot';
 import { RankEmblem } from '../components/RankEmblem';
-import { Bar, Coin, flameTier, flyCoins, LangBadge, Modal, SpeakBtn, Tx } from '../components/ui';
-import { META_LIST, useCourse } from '../content';
+import { Bar, Coin, flameTier, flyCoins, LangBadge, Modal, Ruby, SpeakBtn, Tx } from '../components/ui';
+import { META, META_LIST, useCourse } from '../content';
 import { PROVERBS } from '../content/proverbs';
+import { randomTip, TIPS } from '../content/tips';
 import { fx } from '../core/fx';
-import { hashStr } from '../core/rng';
 import { furiKana } from '../engine/furigana';
 import { lastDays, nowMs, today } from '../core/date';
-import { crosswordPool, langStats, nextUp, quickStats, UNLOCK } from '../core/progress';
+import { crosswordPool, lastStudiedLang, langStats, nextUp, quickStats, UNLOCK } from '../core/progress';
 import { questsFor } from '../core/quests';
 import { rankOf, TIERS } from '../core/ranks';
 import { emptyDay, type Save } from '../core/save';
 import { sfx } from '../core/sfx';
 import { claimChest, claimQuest, useSave } from '../core/store';
-import type { CourseMeta } from '../core/types';
+import type { CourseMeta, LangId } from '../core/types';
 import { LANGS } from '../core/types';
 import { cx, sum } from '../core/util';
-import { href } from '../router';
+import { href, lessonPath } from '../router';
 
 function GoalRing({ value, goal }: { value: number; goal: number }) {
   const R = 52;
@@ -88,16 +88,23 @@ function LangCard({ meta: course, s }: { meta: CourseMeta; s: Save }) {
         )}
       </div>
 
-      <a className="btn primary wide" href={href(`/l/${course.id}`)}>
-        {st.learned > 0 ? '繼續學習' : '開始學習'}
+      {/* 主要按鈕直接開始下一課；想看整條路線再點下面的連結 */}
+      <a className="btn primary wide" href={href(up ? lessonPath(course.id, up.lesson.id) : `/l/${course.id}`)}>
+        {st.learned > 0 ? '▶ 繼續學習' : '▶ 開始第一課'}
       </a>
-      {up ? (
-        <small className="next-up muted">
-          下一課：{up.stage.short} › {up.unit.title}
-        </small>
-      ) : (
-        !loaded && <small className="next-up muted">正在載入課程…</small>
-      )}
+      <a className="next-up" href={href(`/l/${course.id}`)}>
+        {up ? (
+          <>
+            {up.stage.short} › {up.unit.title}
+            {up.lesson.boss && '・單元測驗'}
+          </>
+        ) : loaded ? (
+          '全部課程都完成了！'
+        ) : (
+          '正在載入課程…'
+        )}
+        <b>學習路線 ›</b>
+      </a>
     </article>
   );
 }
@@ -219,15 +226,14 @@ function ChestModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** 每日一句：三種語言的諺語，每天換一組 */
+/** 一句話學三語：三種語言的諺語，每次打開都隨機換一組 */
 function ProverbCard() {
-  const [shift, setShift] = useState(0);
-  const seed = hashStr(`proverb:${today()}`) + shift;
+  const [seed, setSeed] = useState(() => Math.floor(Math.random() * 997));
   return (
     <section className="card panel">
       <header className="panel-head">
-        <h2>每日一句</h2>
-        <button type="button" className="btn small ghost" onClick={() => setShift((n) => n + 1)}>
+        <h2>一句話學三語</h2>
+        <button type="button" className="btn small ghost" onClick={() => setSeed((n) => n + 1)}>
           換一組
         </button>
       </header>
@@ -251,6 +257,58 @@ function ProverbCard() {
         })}
       </div>
     </section>
+  );
+}
+
+/** 知識補充站：每次打開首頁都隨機一則，盡量不重複最近看過的 */
+function TipCard() {
+  const [i, setI] = useState(() => randomTip());
+  const tip = TIPS[i];
+  const meta = tip.lang === 'all' ? null : META[tip.lang];
+  return (
+    <section className="card panel tip-card" style={meta ? ({ '--lang': meta.color } as CSSProperties) : undefined}>
+      <header className="panel-head">
+        <h2>💡 知識補充站</h2>
+        <button type="button" className="btn small ghost" onClick={() => setI(randomTip(undefined, i))}>
+          再來一則
+        </button>
+      </header>
+      <article className="tip" key={i}>
+        <div className="tip-tags">
+          {meta && <LangBadge course={meta} size="sm" />}
+          <span className="chip">{tip.cat}</span>
+        </div>
+        <h3>
+          <Ruby s={tip.title} />
+        </h3>
+        <p>
+          <Ruby s={tip.body} />
+        </p>
+      </article>
+    </section>
+  );
+}
+
+/** 首頁最上方的「接續學習」：最近在學的語言，直接進下一課 */
+function ContinueBar({ s }: { s: Save }) {
+  const lang: LangId | null = lastStudiedLang(s);
+  const course = useCourse(lang ?? 'en');
+  if (!lang) return null;
+  const meta = META[lang];
+  const up = course ? nextUp(s, course) : null;
+  const due = quickStats(s, lang).due;
+  return (
+    <div className="hero-cta" style={{ '--lang': meta.color } as CSSProperties}>
+      <a className="btn primary" href={href(up ? lessonPath(lang, up.lesson.id) : `/l/${lang}`)}>
+        ▶ 繼續{meta.name}
+        {up && <small>{up.unit.title}・{up.lesson.boss ? '單元測驗' : up.lesson.title}</small>}
+      </a>
+      {due > 0 && (
+        <a className="btn" href={href(`/l/${lang}/review`)}>
+          🧠 複習 {due} 個
+        </a>
+      )}
+    </div>
   );
 }
 
@@ -360,6 +418,7 @@ export function Home() {
           <h1>
             <span className={cx('flame', lit && 'lit', flameTier(s.streak.count))}>🔥</span> {title}
           </h1>
+          <ContinueBar s={s} />
           <div className="hero-chips">
             <span className="chip">最佳紀錄 {s.streak.best} 天</span>
             <span className="chip">❄️ 連勝保護 ×{s.streak.freezes}</span>
@@ -383,6 +442,8 @@ export function Home() {
         <QuestPanel s={s} />
         <DailyPanel s={s} />
       </div>
+
+      <TipCard />
 
       <ProverbCard />
 

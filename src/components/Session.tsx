@@ -1,14 +1,14 @@
 // 一場練習的流程控制：出題 → 作答 → 回饋 → 下一題 → 結算。
 // 課程、單元測驗、複習、聽力特訓都用這個元件。
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { META } from '../content';
 import { fx } from '../core/fx';
 import { sfx } from '../core/sfx';
 import { recordAnswer, useSave, type AnswerMode, type SessionStats } from '../core/store';
-import { speak, stopSpeaking } from '../core/tts';
+import { listenMuted, muteListening, speak, stopSpeaking } from '../core/tts';
 import type { LangId } from '../core/types';
 import { cx } from '../core/util';
-import { reshuffle, type Exercise, type Reveal } from '../engine/exercises';
+import { reshuffle, unlisten, type Exercise, type Reveal } from '../engine/exercises';
 import { furiPlain } from '../engine/furigana';
 import { checkJa } from '../engine/jaInput';
 import { nav } from '../router';
@@ -78,11 +78,21 @@ export function Session({
   const [asking, setAsking] = useState(false);
   /** 這一場不再出打字題（按了「現在不方便打字」） */
   const [noTyping, setNoTyping] = useState(false);
+  /** 現在不方便聽：聽力題改成看文字（一小時內有效，跨場次） */
+  const [noListen, setNoListen] = useState(() => listenMuted());
   const st = useRef({ graded: 0, correct: 0, maxCombo: 0, start: Date.now(), answeredAt: 0, praise: PRAISE[0], xpAnswer: false, comboBefore: 0 });
 
   const cur = queue[idx];
-  // 打字題在「不方便打字」時改出事先準備好的選擇題
-  const ex: Exercise = cur.ex.t === 'typeja' && noTyping ? cur.ex.fallback : cur.ex;
+  // 打字題在「不方便打字」時改出事先準備好的選擇題；「不方便聽」時聽力題改成看文字
+  const ex: Exercise = useMemo(() => {
+    const e = cur.ex.t === 'typeja' && noTyping ? cur.ex.fallback : cur.ex;
+    return noListen ? unlisten(e) : e;
+  }, [cur, noTyping, noListen]);
+  const mute = () => {
+    stopSpeaking();
+    muteListening();
+    setNoListen(true);
+  };
   const passive = ex.t === 'teach' || ex.t === 'note';
 
   const bump = (correct: boolean) => {
@@ -239,10 +249,12 @@ export function Session({
 
       <main className="session-body" key={cur.key}>
         {cur.retry > 0 && <span className="retry-tag">再試一次</span>}
-        {ex.t === 'choice' && <ChoiceView ex={ex} done={!!fb} picked={fb?.picked ?? null} onPick={(i) => answer(i === ex.answer, i)} />}
+        {ex.t === 'choice' && <ChoiceView ex={ex} done={!!fb} picked={fb?.picked ?? null} onPick={(i) => answer(i === ex.answer, i)} onMute={mute} />}
         {ex.t === 'tiles' && <TilesView ex={ex} done={!!fb} onSubmit={(ok) => answer(ok)} />}
         {ex.t === 'type' && <TypeView ex={ex} done={!!fb} onSubmit={(ok) => answer(ok)} />}
-        {ex.t === 'typeja' && <TypeJaView ex={ex} done={!!fb} verdict={fb ? fb.correct : null} onSubmit={answerTyped} onFallback={() => setNoTyping(true)} />}
+        {ex.t === 'typeja' && (
+          <TypeJaView ex={ex} done={!!fb} verdict={fb ? fb.correct : null} onSubmit={answerTyped} onFallback={() => setNoTyping(true)} onMute={mute} />
+        )}
         {ex.t === 'match' && <MatchView ex={ex} onDone={matchDone} />}
         {ex.t === 'teach' && <TeachView ex={ex} lang={lang} autoSpeak={autoSpeak} />}
         {ex.t === 'note' && <NoteView ex={ex} lang={lang} />}

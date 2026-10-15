@@ -174,6 +174,9 @@ export function ProfilePage() {
   const [name, setName] = useState(s.name);
   const totalXp = sum(s.xp);
   const acc = s.stats.answers ? Math.round((s.stats.correct / s.stats.answers) * 100) : 0;
+  const bestMock = Math.max(0, ...Object.values(s.mocks).map((m) => m.best));
+  const achGot = ACHIEVEMENTS.filter((a) => s.ach[a.id]).length;
+  const eggGot = EGGS.filter((e) => s.eggs[e.id]).length;
   const stats: [string, string][] = [
     ['總 XP', totalXp.toLocaleString()],
     ['學會的字詞', String(Object.keys(s.items).length)],
@@ -181,9 +184,10 @@ export function ProfilePage() {
     ['答對率', `${acc}%`],
     ['最長連勝', `${s.streak.best} 天`],
     ['最高連擊', String(s.stats.maxCombo)],
-    ['填字遊戲', `${s.stats.crosswords} 次`],
+    ['模擬考最佳', bestMock ? `${bestMock}%` : '—'],
     ['累計金幣', s.coinsEarned.toLocaleString()],
   ];
+  const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   return (
     <div className="page">
@@ -209,14 +213,33 @@ export function ProfilePage() {
         </div>
       </section>
 
-      <section className="rank-trio">
+      {/* 手機上頁面很長：提供快速跳到各區塊 */}
+      <nav className="jump-bar" aria-label="跳到">
+        <button type="button" onClick={() => jump('p-stats')}>
+          總覽
+        </button>
+        <button type="button" onClick={() => jump('p-heat')}>
+          學習紀錄
+        </button>
+        <button type="button" onClick={() => jump('p-ladder')}>
+          段位
+        </button>
+        <button type="button" onClick={() => jump('p-ach')}>
+          成就 <small>{achGot}</small>
+        </button>
+        <button type="button" onClick={() => jump('p-egg')}>
+          彩蛋 <small>{eggGot}</small>
+        </button>
+      </nav>
+
+      <section className="rank-trio" id="p-stats">
         {META_LIST.map((c) => (
           <div key={c.id} className="card rank-card" style={{ '--lang': c.color } as CSSProperties}>
             <header>
               <LangBadge course={c} size="sm" />
               <b>{c.name}</b>
             </header>
-            <RankLine xp={s.xp[c.id]} size={68} />
+            <RankLine xp={s.xp[c.id]} size={56} />
           </div>
         ))}
       </section>
@@ -230,10 +253,18 @@ export function ProfilePage() {
         ))}
       </section>
 
-      <Heatmap s={s} />
-      <Ladder s={s} />
-      <Achievements s={s} />
-      <EggBook s={s} />
+      <div id="p-heat" className="anchor">
+        <Heatmap s={s} />
+      </div>
+      <div id="p-ladder" className="anchor">
+        <Ladder s={s} />
+      </div>
+      <div id="p-ach" className="anchor">
+        <Achievements s={s} />
+      </div>
+      <div id="p-egg" className="anchor">
+        <EggBook s={s} />
+      </div>
     </div>
   );
 }

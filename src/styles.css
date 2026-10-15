@@ -966,8 +966,22 @@ rt {
   color: var(--text);
 }
 .next-up {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
   margin-top: -6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+}
+.next-up b {
+  color: var(--lang);
+  white-space: nowrap;
+}
+.next-up:hover b {
+  text-decoration: underline;
 }
 
 .emblem {
@@ -3621,4 +3635,194 @@ button.dex-tile:hover {
   margin: 0;
   font-size: 0.88rem;
   line-height: 1.6;
+}
+
+/* ───────── 首頁：接續學習、知識補充站 ───────── */
+.hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.hero-cta .btn.primary {
+  display: inline-grid;
+  justify-items: start;
+  gap: 1px;
+  padding: 10px 18px;
+  background: var(--lang);
+  border-color: var(--lang);
+  color: var(--ink);
+  text-align: left;
+}
+.hero-cta .btn.primary small {
+  font-weight: 600;
+  font-size: 0.78rem;
+  opacity: 0.8;
+}
+.hero-cta .btn:not(.primary) {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+}
+@media (max-width: 720px) {
+  .hero-cta {
+    justify-content: center;
+  }
+  .hero-cta .btn.primary {
+    justify-items: center;
+    text-align: center;
+  }
+}
+.tip-card {
+  border-left: 4px solid var(--lang, var(--accent));
+}
+.tip {
+  display: grid;
+  gap: 8px;
+  animation: fade-in 0.3s both;
+}
+.tip-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tip h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.tip p {
+  margin: 0;
+  line-height: 1.85;
+}
+.proverb-text {
+  overflow-wrap: anywhere;
+}
+.proverb-text:has(> [lang='en']),
+.proverb-text:has(> [lang='ko']) {
+  line-height: 1.45;
+}
+
+/* ───────── 語言頁：切換語言、收合完成的單元 ───────── */
+.lang-switch {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.lang-switch a {
+  flex: 1 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+.lang-switch a span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--c) 25%, var(--card-2));
+  color: var(--text);
+  font-size: 0.8rem;
+}
+.lang-switch a.on {
+  border-color: var(--c);
+  color: var(--text);
+  background: color-mix(in srgb, var(--c) 14%, var(--card));
+}
+.unit-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card-2);
+  color: var(--ok);
+  cursor: pointer;
+}
+.unit-toggle .stars {
+  font-size: 0.75rem;
+}
+.unit.folded {
+  gap: 0;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.unit.folded .unit-icon {
+  min-width: 38px;
+  height: 38px;
+}
+.result-tip {
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--card-2);
+  text-align: left;
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+.result-tip b {
+  color: var(--lang);
+}
+.result-tip p {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* ───────── 成就頁：快速跳轉 ───────── */
+.jump-bar {
+  position: sticky;
+  /* 緊貼在頂部導覽列（高 59px）下方 */
+  top: 58px;
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 6px;
+  margin: 0 -6px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-radius: 14px;
+}
+.jump-bar button {
+  flex: none;
+  padding: 7px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+.jump-bar button:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.jump-bar small {
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: var(--card-2);
+  font-size: 0.75rem;
+}
+.anchor,
+.rank-trio {
+  scroll-margin-top: 130px;
+}
+@media (max-width: 620px) {
+  .rank-card {
+    gap: 6px;
+    padding: 12px 14px;
+  }
 }

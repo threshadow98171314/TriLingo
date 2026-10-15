@@ -7,13 +7,14 @@ import { courseIndex, META } from '../content';
 import { dueItems, learnedItems, learnedVocab, UNLOCK, weakestItems } from '../core/progress';
 import { sample, shuffle } from '../core/rng';
 import { BOSS_PASS, finishGame, finishLesson, getSave, type SessionStats } from '../core/store';
-import { canSpeak, useVoices } from '../core/tts';
+import { canSpeak, listenMuted, unmuteListening, useVoices } from '../core/tts';
 import type { LangId } from '../core/types';
 import { fmtTime } from '../core/util';
 import { buildLesson, buildListening, buildReview, isVocab, LANG_NAME, typeJaEx, type Ctx, type Exercise } from '../engine/exercises';
 import { href, lessonPath, stagePath } from '../router';
 
-const ctxOf = (lang: LangId): Ctx => ({ lang, rng: Math.random, canListen: canSpeak(lang), jaTyping: lang === 'ja' && getSave().settings.jaTyping });
+// 「現在不方便聽」期間不出聽力題
+const ctxOf = (lang: LangId): Ctx => ({ lang, rng: Math.random, canListen: canSpeak(lang) && !listenMuted(), jaTyping: lang === 'ja' && getSave().settings.jaTyping });
 
 const statLines = (st: SessionStats): [string, string][] => [
   ['答對率', `${st.graded ? Math.round((st.correct / st.graded) * 100) : 100}%`],
@@ -181,7 +182,11 @@ export function ListenPage({ lang }: { lang: LangId }) {
     const idx = courseIndex(lang).items;
     return buildListening(words.length >= UNLOCK.listen ? words : vocab, (i) => idx.get(i.id)!.unit.items.filter(isVocab), ctxOf(lang), 10);
   };
-  const [{ run, exercises }, setGame] = useState(() => ({ run: 0, exercises: build() }));
+  const [{ run, exercises }, setGame] = useState(() => {
+    // 主動打開聽力特訓，代表現在可以聽：解除「現在不方便聽」
+    unmuteListening();
+    return { run: 0, exercises: build() };
+  });
   const restart = () => setGame((g) => ({ run: g.run + 1, exercises: build() }));
   // 語音清單是非同步載入的：直接開這一頁時，等語音載入後再出題
   useEffect(() => {

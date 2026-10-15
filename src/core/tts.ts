@@ -116,3 +116,36 @@ export function useVoices(): number {
     () => version,
   );
 }
+
+// ───────── 現在不方便聽：暫停聽力題 ─────────
+
+const MUTE_KEY = 'trilingo.noListenUntil';
+
+/** 聽力題暫停到什麼時候（毫秒）；沒有暫停回傳 0 */
+export function listenMutedUntil(): number {
+  try {
+    const t = Number(localStorage.getItem(MUTE_KEY) || 0);
+    return t > Date.now() ? t : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export const listenMuted = () => listenMutedUntil() > 0;
+
+/** 暫停聽力題（預設一小時）：出題時改成看文字作答 */
+export function muteListening(ms = 60 * 60 * 1000) {
+  try {
+    localStorage.setItem(MUTE_KEY, String(Date.now() + ms));
+  } catch {
+    /* 無痕模式：只在這一場有效 */
+  }
+}
+
+export function unmuteListening() {
+  try {
+    localStorage.removeItem(MUTE_KEY);
+  } catch {
+    /* 沒有 localStorage 就不用清 */
+  }
+}

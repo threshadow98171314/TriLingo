@@ -648,6 +648,21 @@ export function buildListening(items: VocabItem[], poolOf: (i: VocabItem) => Voc
   return out;
 }
 
+/** 現在不方便聽：把聽力題改成看文字作答（只改得了本來就有文字可以顯示的題目） */
+export function unlisten(ex: Exercise): Exercise {
+  if (ex.t === 'choice' && ex.audio && ex.hidePrompt) {
+    const item = ex.reveal.item;
+    // 字母的聽力題沒有文字題目：改成看羅馬拼音選字
+    const prompt = ex.prompt ?? (isVocab(item) && item.kind === 'char' ? { s: item.rm ?? item.m, lang: 'en' as const } : undefined);
+    if (!prompt) return ex;
+    return { ...ex, audio: undefined, hidePrompt: false, prompt, label: ex.label.replace(/^聽(發音|句子|問題)，/, '') };
+  }
+  if (ex.t === 'typeja' && ex.mode === 'listen' && isVocab(ex.reveal.item)) {
+    return { ...ex, mode: 'm2w', audio: undefined, prompt: zh(ex.reveal.item.m), label: '用日文打出這個意思' };
+  }
+  return ex;
+}
+
 /** 答錯重考時重新洗牌，避免靠位置記答案 */
 export function reshuffle(ex: Exercise, rng: Rng): Exercise {
   if (ex.t === 'choice') {

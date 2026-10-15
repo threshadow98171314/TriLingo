@@ -24,11 +24,14 @@ export function ChoiceView({
   done,
   picked,
   onPick,
+  onMute,
 }: {
   ex: ChoiceEx;
   done: boolean;
   picked: number | null;
   onPick: (i: number) => void;
+  /** 現在不方便聽：之後的聽力題改成看文字 */
+  onMute?: () => void;
 }) {
   const pick = useLatest(onPick);
 
@@ -66,6 +69,11 @@ export function ChoiceView({
             <SpeakBtn text={ex.audio.text} lang={ex.audio.lang} size="lg" />
             <SpeakBtn text={ex.audio.text} lang={ex.audio.lang} slow />
           </div>
+        )}
+        {ex.audio && ex.hidePrompt && onMute && !done && (
+          <button type="button" className="link-btn mute-btn" onClick={onMute}>
+            🔇 現在不方便聽
+          </button>
         )}
         {ex.prompt && ex.mode === 'cloze' ? (
           <div className="prompt-text">
@@ -225,6 +233,7 @@ export function TypeJaView({
   verdict,
   onSubmit,
   onFallback,
+  onMute,
 }: {
   ex: TypeJaEx;
   done: boolean;
@@ -233,6 +242,8 @@ export function TypeJaView({
   onSubmit: (input: string) => void;
   /** 現在不方便打字：改成選擇題 */
   onFallback: () => void;
+  /** 現在不方便聽：聽打改成看中文打 */
+  onMute?: () => void;
 }) {
   const [v, setV] = useState('');
   const [hint, setHint] = useState(false);
@@ -264,6 +275,11 @@ export function TypeJaView({
             <SpeakBtn text={ex.audio.text} lang={ex.audio.lang} size="lg" />
             <SpeakBtn text={ex.audio.text} lang={ex.audio.lang} slow />
           </div>
+        )}
+        {ex.audio && onMute && !done && (
+          <button type="button" className="link-btn mute-btn" onClick={onMute}>
+            🔇 現在不方便聽
+          </button>
         )}
         {ex.prompt && <Tx className="prompt-text" s={ex.prompt.s} lang={ex.prompt.lang} />}
       </div>

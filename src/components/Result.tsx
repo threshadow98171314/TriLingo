@@ -1,6 +1,7 @@
 // 結算畫面：課程與所有小遊戲共用。
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { META } from '../content';
+import { randomTip, TIPS } from '../content/tips';
 import { fx } from '../core/fx';
 import { rankOf, TIERS } from '../core/ranks';
 import { sfx } from '../core/sfx';
@@ -8,7 +9,7 @@ import type { Outcome } from '../core/store';
 import type { LangId } from '../core/types';
 import { nav } from '../router';
 import { RankEmblem } from './RankEmblem';
-import { Bar, Coin, Stars, useCountUp } from './ui';
+import { Bar, Coin, Ruby, Stars, useCountUp } from './ui';
 
 export interface ResultData {
   emoji: string;
@@ -35,6 +36,8 @@ export function ResultScreen({ data, lang }: { data: ResultData; lang: LangId })
   const xp = useCountUp(r.xp);
 
   const chestRef = useRef<HTMLSpanElement>(null);
+  // 結算畫面底部的小知識：這個語言或通用的學習方法
+  const [tip] = useState(() => TIPS[randomTip([lang, 'all'])]);
 
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -177,6 +180,13 @@ export function ResultScreen({ data, lang }: { data: ResultData; lang: LangId })
             </button>
           )}
         </div>
+
+        <aside className="result-tip">
+          <b>💡 你知道嗎？{tip.title}</b>
+          <p>
+            <Ruby s={tip.body} />
+          </p>
+        </aside>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { RankLine } from '../components/RankEmblem';
 import { Bar, ItemCard, LangBadge, Modal, Stars } from '../components/ui';
 import { CourseGate } from '../components/CourseGate';
 import { MockTab } from './Mock';
-import { courseIndex, META, requireCourse } from '../content';
+import { courseIndex, META, META_LIST, requireCourse } from '../content';
 import { addDays, dayNum, today } from '../core/date';
 import { mastery, MASTERY_LABEL } from '../core/logic';
 import {
@@ -56,8 +56,10 @@ function StageCard({ lang, stage, s, active }: { lang: LangId; stage: Stage; s: 
 function UnitRow({ lang, stage, ui, s, nextId }: { lang: LangId; stage: Stage; ui: number; s: Save; nextId?: string }) {
   const u = stage.units[ui];
   const st = unitState(s, stage, ui);
+  // 已完成的單元預設收起來，路線比較短、比較好找到目前的課
+  const [open, setOpen] = useState(!st.complete);
   return (
-    <section className={cx('unit card', st.complete && 'complete', !st.unlocked && !st.complete && 'locked')}>
+    <section className={cx('unit card', st.complete && 'complete', !st.unlocked && !st.complete && 'locked', !open && 'folded')}>
       <header>
         <span className="unit-icon" lang={lang}>
           {u.icon}
@@ -68,34 +70,42 @@ function UnitRow({ lang, stage, ui, s, nextId }: { lang: LangId; stage: Stage; u
             {u.subtitle}
           </small>
         </div>
-        <span className="unit-count">{st.complete ? '完成 ✓' : !st.unlocked ? '🔒 未解鎖' : `${st.done} / ${st.total}`}</span>
+        {st.complete ? (
+          <button type="button" className="unit-count unit-toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
+            完成 ✓ <Stars n={Math.round(st.stars / Math.max(1, st.total))} /> {open ? '▲' : '▼'}
+          </button>
+        ) : (
+          <span className="unit-count">{!st.unlocked ? '🔒 未解鎖' : `${st.done} / ${st.total}`}</span>
+        )}
       </header>
-      <div className="nodes">
-        {u.lessons.map((l, li) => {
-          const state = lessonState(s, stage, ui, li);
-          const label = l.boss ? (st.unlocked || st.complete ? '單元測驗' : '跳級測驗') : l.title;
-          const dot = l.boss ? '👑' : state === 'locked' ? '🔒' : state === 'done' ? '✓' : String(li + 1);
-          const cls = cx('node', state, l.boss && 'boss', l.id === nextId && 'next');
-          const inner = (
-            <>
-              <span className="node-dot">{dot}</span>
-              <span className="node-label" lang={u.kind === 'chars' && !l.boss ? lang : undefined}>
-                {label}
+      {open && (
+        <div className="nodes">
+          {u.lessons.map((l, li) => {
+            const state = lessonState(s, stage, ui, li);
+            const label = l.boss ? (st.unlocked || st.complete ? '單元測驗' : '跳級測驗') : l.title;
+            const dot = l.boss ? '👑' : state === 'locked' ? '🔒' : state === 'done' ? '✓' : String(li + 1);
+            const cls = cx('node', state, l.boss && 'boss', l.id === nextId && 'next');
+            const inner = (
+              <>
+                <span className="node-dot">{dot}</span>
+                <span className="node-label" lang={u.kind === 'chars' && !l.boss ? lang : undefined}>
+                  {label}
+                </span>
+                <Stars n={starsOf(s, l.id)} />
+              </>
+            );
+            return state === 'locked' ? (
+              <span key={l.id} className={cls} title="先完成前一課">
+                {inner}
               </span>
-              <Stars n={starsOf(s, l.id)} />
-            </>
-          );
-          return state === 'locked' ? (
-            <span key={l.id} className={cls} title="先完成前一課">
-              {inner}
-            </span>
-          ) : (
-            <a key={l.id} className={cls} href={href(lessonPath(lang, l.id))}>
-              {inner}
-            </a>
-          );
-        })}
-      </div>
+            ) : (
+              <a key={l.id} className={cls} href={href(lessonPath(lang, l.id))}>
+                {inner}
+              </a>
+            );
+          })}
+        </div>
+      )}
       {!st.unlocked && !st.complete && <p className="unit-hint muted">完成上一個單元就會解鎖。已經會了？直接挑戰「跳級測驗」，通過就算完成。</p>}
     </section>
   );
@@ -108,6 +118,14 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
 
   const ss = stageState(s, stage);
   const up = nextInStage(s, stage);
+  // 打開路線時，下一課如果在畫面下方看不到，就自動捲過去
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const el = document.querySelector('.node.next');
+      if (el && el.getBoundingClientRect().top + window.scrollY > window.innerHeight * 0.8) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 120);
+    return () => clearTimeout(t);
+  }, [stage.id]);
   const groups = [
     { label: course.pathLabel, stages: course.stages.filter((x) => x.group === 'main') },
     { label: course.trackLabel ?? '', stages: course.stages.filter((x) => x.group === 'track') },
@@ -495,8 +513,17 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
   ];
   if (lang !== 'en') tabs.push({ id: 'chart', label: lang === 'ja' ? '五十音表' : '字母表', to: `/l/${lang}/chart` });
 
+  const sameTab = (l: LangId) => (tab === 'chart' && l === 'en' ? '' : tab === 'path' ? '' : `/${tab}`);
   return (
     <div className="page" style={{ '--lang': course.color } as CSSProperties}>
+      <nav className="lang-switch" aria-label="切換語言">
+        {META_LIST.map((m) => (
+          <a key={m.id} href={href(`/l/${m.id}${sameTab(m.id)}`)} className={cx(m.id === lang && 'on')} style={{ '--c': m.color } as CSSProperties} aria-current={m.id === lang ? 'page' : undefined}>
+            <span lang={m.id}>{m.glyph}</span>
+            {m.name}
+          </a>
+        ))}
+      </nav>
       <section className="lang-head card">
         <LangBadge course={course} size="lg" />
         <div className="grow">

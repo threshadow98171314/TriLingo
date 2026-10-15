@@ -191,3 +191,16 @@ export function quickStats(s: Save, lang: LangId): { learned: number; due: numbe
 
 /** 各種遊戲需要的最少已學字數 */
 export const UNLOCK = { match: 6, blitz: 8, listen: 8, crossword: 12, typing: 8 };
+
+/** 最近在學的語言（看最後一次作答的時間）；還沒學過任何東西時回傳 null */
+export function lastStudiedLang(s: Save): LangId | null {
+  let best: LangId | null = null;
+  let t = 0;
+  for (const [id, p] of Object.entries(s.items)) {
+    if (p.t > t) {
+      t = p.t;
+      best = id.slice(0, 2) as LangId;
+    }
+  }
+  return best;
+}

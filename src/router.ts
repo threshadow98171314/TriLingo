@@ -29,7 +29,8 @@ const subs = new Set<() => void>();
 if (typeof window !== 'undefined') {
   window.addEventListener('hashchange', () => {
     current = parse(location.hash);
-    window.scrollTo(0, 0);
+    // 換頁直接回到頂端（全域的平滑捲動只用在頁內跳轉）
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     subs.forEach((f) => f());
   });
 }
