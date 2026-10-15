@@ -2,6 +2,7 @@
 import type { Unit } from '../core/types';
 import { KANA_UNITS } from './ja-kana';
 import { N2_UNITS } from './ja-n2';
+import { N2_BANK } from './ja-n2-bank';
 import { N3_UNITS } from './ja-n3';
 import { N3_BANK } from './ja-n3-bank';
 import { N4_UNITS } from './ja-n4';
@@ -14,7 +15,7 @@ export const UNITS: Record<string, Unit[]> = {
   'ja.n5': N5_UNITS,
   'ja.n4': N4_UNITS,
   'ja.n3': [...N3_UNITS, ...N3_BANK],
-  'ja.n2': N2_UNITS,
+  'ja.n2': [...N2_UNITS, ...N2_BANK],
   'ja.travel': JA_TRAVEL_UNITS,
   'ja.anime': JA_ANIME_UNITS,
 };
