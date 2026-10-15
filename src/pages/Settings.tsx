@@ -181,6 +181,18 @@ export function SettingsPage() {
 
       <section className="card panel">
         <header className="panel-head">
+          <h2>練習</h2>
+        </header>
+        <Row
+          title="日文打字題"
+          desc="看中文或聽發音，用日文輸入法打出答案，假名、漢字都可以。需要先在手機或電腦加入日文鍵盤；關掉的話會改用排字卡。"
+        >
+          <Toggle on={set.jaTyping} label="日文打字題" onChange={(v) => updateSettings({ jaTyping: v })} />
+        </Row>
+      </section>
+
+      <section className="card panel">
+        <header className="panel-head">
           <h2>聲音</h2>
         </header>
         <Row title="音效" desc="答對、答錯、升段的提示音">

@@ -19,6 +19,8 @@ export interface Settings {
   fx: boolean;
   /** 背景的季節特效（落葉、櫻花、雪花…） */
   seasonal: boolean;
+  /** 日文打字題（需要日文輸入法） */
+  jaTyping: boolean;
 }
 
 /** 單日紀錄：熱力圖、每日目標、每日任務都從這裡計算 */
@@ -76,6 +78,8 @@ export interface Stats {
   grit: number;
   luckyStars: number;
   goldenChests: number;
+  /** 完成日文打字特訓的次數 */
+  typings: number;
 }
 
 export interface Save {
@@ -133,7 +137,7 @@ export function defaultSave(now: number): Save {
     name: '學習者',
     avatar: FREE_AVATARS[0],
     avatars: [...FREE_AVATARS],
-    settings: { dailyGoal: 50, sfx: true, autoSpeak: true, ttsRate: 1, romaji: true, furigana: true, theme: 'dark', voices: {}, fx: true, seasonal: true },
+    settings: { dailyGoal: 50, sfx: true, autoSpeak: true, ttsRate: 1, romaji: true, furigana: true, theme: 'dark', voices: {}, fx: true, seasonal: true, jaTyping: true },
     xp: { en: 0, ja: 0, ko: 0 },
     coins: 0,
     coinsEarned: 0,
@@ -167,6 +171,7 @@ export function defaultSave(now: number): Save {
       grit: 0,
       luckyStars: 0,
       goldenChests: 0,
+      typings: 0,
     },
     best: { blitz: { en: 0, ja: 0, ko: 0 }, match: {} },
     stage: {},

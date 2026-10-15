@@ -1,4 +1,4 @@
-import { toHiragana } from './furigana';
+import { furiKana, toHiragana } from './furigana';
 
 const MONO: Record<string, string> = {
   あ: 'a', い: 'i', う: 'u', え: 'e', お: 'o',
@@ -59,4 +59,19 @@ export function kanaToRomaji(kana: string): string {
     out += r;
   }
   return out;
+}
+
+/** 一個詞的羅馬拼音：單獨的助詞「は」「へ」唸 wa、e */
+function tokenRomaji(t: string): string {
+  const k = toHiragana(furiKana(t)).replace(/[。、？！?!]/g, '');
+  return k === 'は' ? 'wa' : k === 'へ' ? 'e' : kanaToRomaji(k);
+}
+
+/** 單字或短句的羅馬拼音：短句一個詞一個詞轉，助詞照實際發音 */
+export function romajiOf(i: { kind: string; r?: string; tokens?: string[] }): string | undefined {
+  if (!i.r) return undefined;
+  if (i.kind === 'phrase' && i.tokens) return i.tokens.map(tokenRomaji).filter(Boolean).join(' ');
+  const r = kanaToRomaji(i.r);
+  // こんにちは、こんばんは：字尾的「は」本來是助詞，唸 wa
+  return i.kind === 'phrase' && i.r.endsWith('は') ? r.replace(/ha$/, 'wa') : r;
 }

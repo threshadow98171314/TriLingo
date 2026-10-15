@@ -8,7 +8,7 @@ import type { CourseMeta, Item, LangId } from '../core/types';
 import { cx } from '../core/util';
 import { clozeFilled, headOf, isVocab, sayOf } from '../engine/exercises';
 import { furiPlain, furiSegs } from '../engine/furigana';
-import { kanaToRomaji } from '../engine/romaji';
+import { romajiOf } from '../engine/romaji';
 
 /** 連勝火焰的等級：越久越大、顏色越特別（7 天、30 天變藍、100 天變紫） */
 export function flameTier(streak: number): string {
@@ -207,7 +207,7 @@ export function ItemCard({ item, lang, big }: { item: Item; lang: LangId; big?: 
   if (!isVocab(item)) return null;
   let sub: string | undefined;
   if (item.kind === 'char') sub = item.rm;
-  else if (lang === 'ja') sub = romaji && item.r ? kanaToRomaji(item.r) : undefined;
+  else if (lang === 'ja') sub = romaji ? romajiOf(item) : undefined;
   else if (lang === 'ko') sub = romaji ? item.rm : undefined;
 
   return (

@@ -9,8 +9,10 @@ import { speak, stopSpeaking } from '../core/tts';
 import type { LangId } from '../core/types';
 import { cx } from '../core/util';
 import { reshuffle, type Exercise, type Reveal } from '../engine/exercises';
+import { furiPlain } from '../engine/furigana';
+import { checkJa } from '../engine/jaInput';
 import { nav } from '../router';
-import { ChoiceView, MatchView, NoteView, TeachView, TilesView, TypeView } from './ExerciseViews';
+import { ChoiceView, MatchView, NoteView, TeachView, TilesView, TypeJaView, TypeView } from './ExerciseViews';
 import { ResultScreen, type ResultData } from './Result';
 import { Bar, ItemCard, Modal } from './ui';
 
@@ -25,6 +27,14 @@ interface Feedback {
   correct: boolean;
   reveal?: Reveal;
   picked: number | null;
+  /** 打字題：使用者打的答案 */
+  typed?: string;
+  /** 補充說明（例如寫法提醒） */
+  note?: string;
+  /** 打字題答錯：可以自己改判為答對（例如打了漢字寫法，題庫用的是假名） */
+  canOverride?: boolean;
+  /** 答錯時排進佇列的重考題 key（改判時要撤回） */
+  retryKey?: number;
 }
 
 const PRAISE = ['答對了！', '完全正確！', '漂亮！', '太棒了！', '就是這樣！'];
@@ -66,12 +76,17 @@ export function Session({
   const [combo, setCombo] = useState(0);
   const [result, setResult] = useState<ResultData | null>(null);
   const [asking, setAsking] = useState(false);
-  const st = useRef({ graded: 0, correct: 0, maxCombo: 0, start: Date.now(), answeredAt: 0, praise: PRAISE[0], xpAnswer: false });
+  /** 這一場不再出打字題（按了「現在不方便打字」） */
+  const [noTyping, setNoTyping] = useState(false);
+  const st = useRef({ graded: 0, correct: 0, maxCombo: 0, start: Date.now(), answeredAt: 0, praise: PRAISE[0], xpAnswer: false, comboBefore: 0 });
 
   const cur = queue[idx];
-  const passive = cur.ex.t === 'teach' || cur.ex.t === 'note';
+  // 打字題在「不方便打字」時改出事先準備好的選擇題
+  const ex: Exercise = cur.ex.t === 'typeja' && noTyping ? cur.ex.fallback : cur.ex;
+  const passive = ex.t === 'teach' || ex.t === 'note';
 
   const bump = (correct: boolean) => {
+    st.current.comboBefore = combo;
     const n = correct ? combo + 1 : 0;
     setCombo(n);
     st.current.maxCombo = Math.max(st.current.maxCombo, n);
@@ -82,9 +97,8 @@ export function Session({
   };
 
   /** 選擇、字卡、輸入題作答 */
-  const answer = (correct: boolean, picked: number | null = null) => {
-    const ex = cur.ex;
-    if (fb || (ex.t !== 'choice' && ex.t !== 'tiles' && ex.t !== 'type')) return;
+  const answer = (correct: boolean, picked: number | null = null, extra: Partial<Feedback> = {}) => {
+    if (fb || (ex.t !== 'choice' && ex.t !== 'tiles' && ex.t !== 'type' && ex.t !== 'typeja')) return;
     st.current.xpAnswer = correct && cur.retry === 0;
     if (cur.retry === 0) {
       st.current.graded++;
@@ -92,11 +106,41 @@ export function Session({
       recordAnswer(ex.itemId, correct, mode);
     }
     bump(correct);
+    let retryKey: number | undefined;
     if (!correct && retry && cur.retry < 2) {
+      retryKey = queue.length;
       setQueue((q) => [...q, { ex: reshuffle(ex, Math.random), key: q.length, retry: cur.retry + 1 }]);
     }
-    setFb({ correct, reveal: ex.reveal, picked });
+    setFb({ correct, reveal: ex.reveal, picked, retryKey, ...extra });
     if (autoSpeak && ex.reveal.speak) speak(ex.reveal.speak.text, ex.reveal.speak.lang);
+  };
+
+  /** 日文打字題：假名、漢字、混打都算對；只差平假名／片假名時算對但提醒寫法 */
+  const answerTyped = (input: string) => {
+    if (ex.t !== 'typeja') return;
+    const r = checkJa(input, ex.furi);
+    answer(r.ok, null, {
+      typed: input.trim(),
+      note: r.ok && !r.exact ? `標準寫法是「${furiPlain(ex.furi)}」，注意平假名和片假名。` : undefined,
+      canOverride: !r.ok,
+    });
+  };
+
+  /** 「我的答案也對」：改判為答對，撤回重考題、恢復連擊 */
+  const override = () => {
+    if (!fb || fb.correct || !fb.canOverride || ex.t !== 'typeja') return;
+    if (cur.retry === 0) {
+      st.current.correct++;
+      st.current.xpAnswer = true;
+      recordAnswer(ex.itemId, true, mode);
+    }
+    const key = fb.retryKey;
+    if (key !== undefined) setQueue((q) => q.filter((x) => x.key !== key));
+    const n = st.current.comboBefore + 1;
+    setCombo(n);
+    st.current.maxCombo = Math.max(st.current.maxCombo, n);
+    sfx.correct(n - 1);
+    setFb({ ...fb, correct: true, canOverride: false, retryKey: undefined, note: '已改判為答對。如果是打錯字，下次再加油！' });
   };
 
   const matchDone = (wrongIds: string[]) => {
@@ -172,7 +216,6 @@ export function Session({
   if (result) return <ResultScreen data={result} lang={lang} />;
 
   const progress = (idx + (fb ? 1 : 0)) / queue.length;
-  const ex = cur.ex;
 
   return (
     <div className={cx('session', fb && (fb.correct ? 'is-ok' : 'is-bad'))} style={{ '--lang': course.color } as CSSProperties}>
@@ -199,6 +242,7 @@ export function Session({
         {ex.t === 'choice' && <ChoiceView ex={ex} done={!!fb} picked={fb?.picked ?? null} onPick={(i) => answer(i === ex.answer, i)} />}
         {ex.t === 'tiles' && <TilesView ex={ex} done={!!fb} onSubmit={(ok) => answer(ok)} />}
         {ex.t === 'type' && <TypeView ex={ex} done={!!fb} onSubmit={(ok) => answer(ok)} />}
+        {ex.t === 'typeja' && <TypeJaView ex={ex} done={!!fb} verdict={fb ? fb.correct : null} onSubmit={answerTyped} onFallback={() => setNoTyping(true)} />}
         {ex.t === 'match' && <MatchView ex={ex} onDone={matchDone} />}
         {ex.t === 'teach' && <TeachView ex={ex} lang={lang} autoSpeak={autoSpeak} />}
         {ex.t === 'note' && <NoteView ex={ex} lang={lang} />}
@@ -214,6 +258,12 @@ export function Session({
               </div>
               {fb.reveal && <ItemCard item={fb.reveal.item} lang={lang} />}
               {fb.reveal?.explain && <p className="fb-explain">💡 {fb.reveal.explain}</p>}
+              {fb.note && <p className="fb-explain">✍️ {fb.note}</p>}
+              {fb.canOverride && fb.typed && (
+                <button type="button" className="link-btn fb-override" onClick={override}>
+                  我的答案也對（{fb.typed}）
+                </button>
+              )}
             </div>
             <button ref={contRef} type="button" className={cx('btn wide', fb.correct ? 'ok' : 'bad')} onClick={next}>
               繼續

@@ -5,8 +5,9 @@ import { sfx } from '../core/sfx';
 import { speak } from '../core/tts';
 import type { LangId } from '../core/types';
 import { cx } from '../core/util';
-import type { ChoiceEx, MatchEx, NoteEx, TeachEx, TilesEx, TypeEx } from '../engine/exercises';
+import type { ChoiceEx, MatchEx, NoteEx, TeachEx, TilesEx, TypeEx, TypeJaEx } from '../engine/exercises';
 import { isVocab, sayOf } from '../engine/exercises';
+import { kanaHint, normJa } from '../engine/jaInput';
 import { ClozeText, ItemCard, Ruby, SpeakBtn, Tx } from './ui';
 
 /** 讓鍵盤事件處理器永遠拿到最新的 callback，又不用每次重新綁定 */
@@ -211,6 +212,101 @@ export function TypeView({ ex, done, onSubmit }: { ex: TypeEx; done: boolean; on
         <button type="submit" className="btn primary wide check" disabled={!answer}>
           檢查
         </button>
+      )}
+    </form>
+  );
+}
+
+// ───────── 日文打字題（日文輸入法） ─────────
+
+export function TypeJaView({
+  ex,
+  done,
+  verdict,
+  onSubmit,
+  onFallback,
+}: {
+  ex: TypeJaEx;
+  done: boolean;
+  /** 批改結果（作答前為 null；自己改判後也會變成答對） */
+  verdict: boolean | null;
+  onSubmit: (input: string) => void;
+  /** 現在不方便打字：改成選擇題 */
+  onFallback: () => void;
+}) {
+  const [v, setV] = useState('');
+  const [hint, setHint] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
+  // 輸入法選字中按的 Enter 是「確定選字」，不能當成送出。
+  // Safari 會先結束選字再送出 Enter，所以剛結束選字的一瞬間也不算。
+  const ime = useRef({ on: false, endedAt: 0 });
+
+  useEffect(() => {
+    input.current?.focus();
+    if (ex.audio) speak(ex.audio.text, ex.audio.lang);
+  }, [ex]);
+
+  const ready = normJa(v).length > 0;
+
+  return (
+    <form
+      className="ex ex-type ex-typeja"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (done || !ready || ime.current.on || Date.now() - ime.current.endedAt < 80) return;
+        onSubmit(v);
+      }}
+    >
+      <p className="ex-label">{ex.label}</p>
+      <div className="ex-prompt">
+        {ex.audio && (
+          <div className="audio-prompt">
+            <SpeakBtn text={ex.audio.text} lang={ex.audio.lang} size="lg" />
+            <SpeakBtn text={ex.audio.text} lang={ex.audio.lang} slow />
+          </div>
+        )}
+        {ex.prompt && <Tx className="prompt-text" s={ex.prompt.s} lang={ex.prompt.lang} />}
+      </div>
+      {hint && !done && (
+        <p className="type-hint" lang="ja" aria-label="提示">
+          {kanaHint(ex.furi)}
+        </p>
+      )}
+      <input
+        ref={input}
+        className={cx('type-input ja', verdict !== null && (verdict ? 'right' : 'wrong'))}
+        value={v}
+        onChange={(e) => setV(e.target.value)}
+        onCompositionStart={() => {
+          ime.current.on = true;
+        }}
+        onCompositionEnd={() => {
+          ime.current = { on: false, endedAt: Date.now() };
+        }}
+        readOnly={done}
+        placeholder="用日文輸入法作答（假名、漢字都可以）"
+        autoCapitalize="none"
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck={false}
+        enterKeyHint="done"
+        lang="ja"
+        aria-label="輸入日文"
+      />
+      {!done && (
+        <>
+          <button type="submit" className="btn primary wide check" disabled={!ready}>
+            檢查
+          </button>
+          <div className="type-tools">
+            <button type="button" className="link-btn" onClick={() => setHint(true)} disabled={hint}>
+              💡 提示
+            </button>
+            <button type="button" className="link-btn" onClick={onFallback}>
+              ⌨️ 現在不方便打字
+            </button>
+          </div>
+        </>
       )}
     </form>
   );

@@ -370,7 +370,7 @@ export function finishLesson(a: { lang: LangId; unit: Unit; lesson: Lesson; stat
   return out;
 }
 
-export type GameId = 'review' | 'crossword' | 'match' | 'blitz' | 'listen';
+export type GameId = 'review' | 'crossword' | 'match' | 'blitz' | 'listen' | 'typing';
 
 export function finishGame(a: {
   lang: LangId;
@@ -416,6 +416,8 @@ export function finishGame(a: {
         record = d.best.blitz[a.lang] > 0;
         d.best.blitz[a.lang] = score;
       }
+    } else if (a.game === 'typing') {
+      d.stats.typings++;
     } else {
       d.stats.listens++;
     }

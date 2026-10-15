@@ -13,7 +13,7 @@ import { CrosswordPage } from './pages/Crossword';
 import { Home } from './pages/Home';
 import { LangPage } from './pages/LangPage';
 import { MatchPage } from './pages/MatchGame';
-import { LessonPage, ListenPage, ReviewPage } from './pages/Practice';
+import { LessonPage, ListenPage, ReviewPage, TypingPage } from './pages/Practice';
 import { ProfilePage } from './pages/Profile';
 import { SettingsPage } from './pages/Settings';
 import { ShopPage } from './pages/Shop';
@@ -54,6 +54,7 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
         if (p[3] === 'match') return gated(<MatchPage lang={lang} />);
         if (p[3] === 'blitz') return gated(<BlitzPage lang={lang} />);
         if (p[3] === 'listen') return gated(<ListenPage lang={lang} />);
+        if (p[3] === 'typing' && lang === 'ja') return gated(<TypingPage lang={lang} />);
     }
   }
 

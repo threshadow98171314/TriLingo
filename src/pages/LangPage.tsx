@@ -192,6 +192,7 @@ interface Game {
 function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
   useVoices();
   const vocab = learnedVocab(s, lang).length;
+  const words = learnedVocab(s, lang).filter((i) => i.kind !== 'char').length;
   const cw = crosswordPool(s, lang).length;
   const learned = learnedItems(s, lang).length;
   const due = dueItems(s, lang).length;
@@ -256,6 +257,18 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
       blocked: canSpeak(lang) ? undefined : `這個瀏覽器沒有${LANG_NAME[lang]}語音，請改用 Chrome 或 Edge。`,
     },
   ];
+  if (lang === 'ja') {
+    games.push({
+      icon: '⌨️',
+      title: '打字特訓',
+      desc: '看中文或聽發音，用日文鍵盤把單字、短句打出來。假名、漢字、混著打都可以。',
+      to: `/l/${lang}/play/typing`,
+      need: UNLOCK.typing,
+      have: words,
+      badge: s.stats.typings > 0 ? `已完成 ${s.stats.typings} 次` : '新遊戲',
+      hot: s.stats.typings === 0,
+    });
+  }
 
   return (
     <div className="arcade">

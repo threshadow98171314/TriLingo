@@ -3157,3 +3157,56 @@ button.dex-tile:hover {
     opacity: 0;
   }
 }
+
+/* ───────── 日文打字題 ───────── */
+.ex-typeja .type-input.ja {
+  width: min(100%, 420px);
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-align: center;
+}
+.ex-typeja .type-input.ja::placeholder {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+.ex-typeja .check {
+  width: min(100%, 420px);
+}
+.type-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: var(--lang);
+}
+.type-tools {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.link-btn {
+  padding: 6px 4px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.link-btn:hover:not(:disabled) {
+  color: var(--text);
+}
+.link-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  text-decoration: none;
+}
+.fb-override {
+  align-self: flex-start;
+  padding-left: 0;
+}

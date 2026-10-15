@@ -6,6 +6,7 @@ import { sample, shuffle, type Rng } from '../core/rng';
 import { chunkEven } from '../core/util';
 import { confusableReadings, furiPlain, hasKanji, isKanaStr } from './furigana';
 import { isHangulStr } from './hangul';
+import { readingOf } from './jaInput';
 
 export interface Txt {
   s: string;
@@ -56,6 +57,20 @@ export interface TypeEx {
   accept: string[];
   reveal: Reveal;
 }
+/** 日文打字題：看中文（或聽發音）用日文輸入法打出答案，假名、漢字都算對 */
+export interface TypeJaEx {
+  t: 'typeja';
+  itemId: string;
+  mode: 'm2w' | 'listen';
+  label: string;
+  prompt?: Txt;
+  audio?: Speak;
+  /** 答案（含「漢字[よみ]」標註） */
+  furi: string;
+  /** 現在不方便打字時，改出這題選擇題 */
+  fallback: ChoiceEx;
+  reveal: Reveal;
+}
 export interface MatchEx {
   t: 'match';
   label: string;
@@ -69,13 +84,15 @@ export interface NoteEx {
   t: 'note';
   note: GrammarNote;
 }
-export type Exercise = ChoiceEx | TilesEx | TypeEx | MatchEx | TeachEx | NoteEx;
+export type Exercise = ChoiceEx | TilesEx | TypeEx | TypeJaEx | MatchEx | TeachEx | NoteEx;
 
 export interface Ctx {
   lang: LangId;
   rng: Rng;
   /** 這個語言有沒有可用的語音；沒有就不出聽力題 */
   canListen: boolean;
+  /** 出日文打字題（設定可關閉，需要日文輸入法） */
+  jaTyping?: boolean;
 }
 
 export const LANG_NAME: Record<LangId, string> = { en: '英文', ja: '日文', ko: '韓文' };
@@ -414,6 +431,25 @@ export function typeEx(i: VocabItem, ctx: Ctx): TypeEx | null {
   };
 }
 
+/** 日文打字：看意思（或聽發音）用日文輸入法打出來 */
+export function typeJaEx(i: VocabItem, pool: VocabItem[], ctx: Ctx, mode: 'm2w' | 'listen' = 'm2w'): TypeJaEx | null {
+  if (ctx.lang !== 'ja' || i.kind === 'char') return null;
+  const furi = i.furi ?? i.w;
+  if (!readingOf(furi)) return null;
+  const listen = mode === 'listen' && ctx.canListen;
+  return {
+    t: 'typeja',
+    itemId: i.id,
+    mode: listen ? 'listen' : 'm2w',
+    label: listen ? '聽發音，用日文打出來' : '用日文打出這個意思',
+    prompt: listen ? undefined : zh(i.m),
+    audio: listen ? { text: sayOf(i, 'ja'), lang: 'ja' } : undefined,
+    furi,
+    fallback: listen ? listenEx(i, pool, ctx) : recall(i, pool, ctx),
+    reveal: reveal(i, 'ja'),
+  };
+}
+
 export function matchEx(items: VocabItem[], ctx: Ctx): MatchEx | null {
   const { lang } = ctx;
   const as = new Set<string>();
@@ -433,6 +469,11 @@ export function matchEx(items: VocabItem[], ctx: Ctx): MatchEx | null {
 /** 產出：最難的一類，要自己把答案「做」出來 */
 export function produce(i: VocabItem, pool: VocabItem[], ctx: Ctx): Exercise {
   if (i.kind === 'char') return typeEx(i, ctx) ?? recall(i, pool, ctx);
+  // 日文：大部分改成用鍵盤打出來（比排字卡更接近真的會寫）
+  if (ctx.jaTyping && ctx.lang === 'ja' && ctx.rng() < 0.6) {
+    const t = typeJaEx(i, pool, ctx);
+    if (t) return t;
+  }
   if (i.kind === 'phrase') {
     const b = i.tokens ? buildEx(i, i.tokens, i.m, tokenPool(pool, ctx.lang), ctx) : null;
     return b ?? spellEx(i, pool, ctx, 6) ?? (ctx.canListen ? listenEx(i, pool, ctx) : recall(i, pool, ctx));
