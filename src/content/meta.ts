@@ -210,7 +210,6 @@ const KO: CourseMeta = {
       color: '#22d3ee',
       group: 'main',
       style: 'level',
-      planned: ['敬語 -(으)세요・-(으)셨어요', '能力 -(으)ㄹ 수 있다／없다', '數量詞與時間', 'TOPIK 2 級單字：購物與生活', '聽力：日常對話'],
     }),
     stage({
       id: 'ko.k3',
@@ -221,7 +220,7 @@ const KO: CourseMeta = {
       color: '#60a5fa',
       group: 'main',
       style: 'level',
-      planned: ['間接引用', '-(으)ㄴ／는 것 같다', '被動與使動', 'TOPIK 3 級單字', '閱讀：短文', '聽力：公告與訪談'],
+      planned: ['寫作：短文與作文（TOPIK II 寫作題）'],
     }),
     stage({
       id: 'ko.k4',

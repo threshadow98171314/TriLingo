@@ -1,7 +1,9 @@
 // 韓文初級 2（約等於 TOPIK I 的 2 級）：交通、天氣、身體、興趣、職業，加上連接語尾與未來、提議、義務的句型。
+// 後半（敬語、能力與否定、數量詞、購物與生活、聽力）在 ko-k2b.ts。
 // 羅馬拼音依實際發音標示；漢字詞附上對應漢字，中文母語者記起來特別快。
 import type { Unit } from '../core/types';
 import { cz, grammarUnit, ko, note, ss, vocabUnit } from './dsl';
+import { K2_MORE } from './ko-k2b';
 
 const H = (hanja: string) => ({ note: `漢字詞：${hanja}` });
 
@@ -187,4 +189,4 @@ const job = vocabUnit('ko.k2.job', '💼', '職業與工作', '직업과 일', [
   ko('동료', 'dongnyo', '同事', '동료들과 점심을 먹어요.|和同事們吃午餐。', H('同僚')),
 ]);
 
-export const K2_UNITS: Unit[] = [transport, weather, g1, body, hobby, g2, job];
+export const K2_UNITS: Unit[] = [transport, weather, g1, body, hobby, g2, job, ...K2_MORE];
