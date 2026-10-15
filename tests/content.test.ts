@@ -203,24 +203,30 @@ describe('按語言分開載入', () => {
 
 describe('打包', () => {
   it('App 程式沒有直接引用各語言的題目檔（否則題目會被打包回主程式）', async () => {
-    const { readdirSync, readFileSync, statSync } = await import('node:fs');
-    const { join } = await import('node:path');
+    // 執行時才讀檔（import.meta.glob 的檔案清單會被轉譯快取住，新加的檔案可能檢查不到）。
+    // 用動態字串引用 node:fs，就不需要為測試安裝 Node 的型別定義。
+    const fs = (await import(/* @vite-ignore */ `node:${'fs'}`)) as {
+      readdirSync(p: string): string[];
+      readFileSync(p: string, enc: 'utf8'): string;
+      statSync(p: string): { isDirectory(): boolean };
+    };
     const files: string[] = [];
     const walk = (dir: string) => {
-      for (const f of readdirSync(dir)) {
-        const p = join(dir, f);
-        if (statSync(p).isDirectory()) walk(p);
+      for (const f of fs.readdirSync(dir)) {
+        const p = `${dir}/${f}`;
+        if (fs.statSync(p).isDirectory()) walk(p);
         else if (/\.tsx?$/.test(f)) files.push(p);
       }
     };
     walk('src');
+    expect(files.length).toBeGreaterThan(20);
     // 語言檔彼此引用沒關係（同一包）；入口 index.ts 用動態 import，all.ts 只給測試
-    const langFile = /src[\\/]content[\\/](en|ja|ko)[-.]/;
-    const allowed = /src[\\/]content[\\/](index|all)\.ts$/;
+    const langFile = /^src\/content\/(en|ja|ko)[-.]/;
+    const allowed = /^src\/content\/(index|all)\.ts$/;
     const bad = /from '(\.\.\/content|\.)\/(en|ja|ko|all)(-[a-z0-9]+)?'/;
     for (const f of files) {
       if (langFile.test(f) || allowed.test(f)) continue;
-      expect(readFileSync(f, 'utf8'), f).not.toMatch(bad);
+      expect(fs.readFileSync(f, 'utf8'), f).not.toMatch(bad);
     }
   });
 });
