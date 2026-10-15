@@ -2,7 +2,8 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { RankLine } from '../components/RankEmblem';
 import { Bar, ItemCard, LangBadge, Modal, Stars } from '../components/ui';
-import { COURSES, courseIndex } from '../content';
+import { CourseGate } from '../components/CourseGate';
+import { courseIndex, META, requireCourse } from '../content';
 import { addDays, dayNum, today } from '../core/date';
 import { mastery, MASTERY_LABEL } from '../core/logic';
 import {
@@ -14,6 +15,7 @@ import {
   learnedVocab,
   lessonState,
   nextInStage,
+  quickStats,
   stageState,
   starsOf,
   unitState,
@@ -22,7 +24,7 @@ import {
 import type { Save } from '../core/save';
 import { setStage, useSave } from '../core/store';
 import { canSpeak, speak, useVoices } from '../core/tts';
-import type { Course, Item, LangId, Stage, VocabItem } from '../core/types';
+import type { Item, LangId, Stage, VocabItem } from '../core/types';
 import { cx, fmtTime } from '../core/util';
 import { clozeFilled, isVocab, LANG_NAME, sayOf } from '../engine/exercises';
 import { furiPlain } from '../engine/furigana';
@@ -98,8 +100,8 @@ function UnitRow({ lang, stage, ui, s, nextId }: { lang: LangId; stage: Stage; u
   );
 }
 
-function PathTab({ course, s, stageId }: { course: Course; s: Save; stageId?: string }) {
-  const lang = course.id;
+function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string }) {
+  const course = requireCourse(lang);
   const stage = course.stages.find((x) => x.id === stageId) ?? currentStage(s, course);
   useEffect(() => setStage(lang, stage.id), [lang, stage.id]);
 
@@ -300,7 +302,7 @@ function tileLabel(it: Item): string {
 }
 
 function DexTab({ lang, s }: { lang: LangId; s: Save }) {
-  const course = COURSES[lang];
+  const course = requireCourse(lang);
   const [open, setOpen] = useState<Item | null>(null);
   const st = langStats(s, lang);
   const p = open ? s.items[open.id] : undefined;
@@ -385,7 +387,7 @@ function DexTab({ lang, s }: { lang: LangId; s: Save }) {
 
 function ChartTab({ lang, s }: { lang: LangId; s: Save }) {
   useVoices();
-  const course = COURSES[lang];
+  const course = requireCourse(lang);
   const idx = courseIndex(lang).items;
   const units = course.stages.flatMap((st) => st.units).filter((u) => u.chart);
   const table = lang === 'ko' ? basicTable() : null;
@@ -468,8 +470,9 @@ function ChartTab({ lang, s }: { lang: LangId; s: Save }) {
 
 export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; stageId?: string }) {
   const s = useSave();
-  const course = COURSES[lang];
-  const due = langStats(s, lang).due;
+  const course = META[lang];
+  // 標題與分頁不需要題目，先顯示；分頁內容等題目下載完成
+  const due = quickStats(s, lang).due;
   const tabs: { id: LangTab; label: string; to: string }[] = [
     { id: 'path', label: '學習路線', to: `/l/${lang}` },
     { id: 'arcade', label: '遊樂場', to: `/l/${lang}/arcade` },
@@ -503,10 +506,12 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
         ))}
       </nav>
 
-      {tab === 'path' && <PathTab course={course} s={s} stageId={stageId} />}
-      {tab === 'arcade' && <ArcadeTab lang={lang} s={s} />}
-      {tab === 'dex' && <DexTab lang={lang} s={s} />}
-      {tab === 'chart' && <ChartTab lang={lang} s={s} />}
+      <CourseGate lang={lang} compact>
+        {tab === 'path' && <PathTab lang={lang} s={s} stageId={stageId} />}
+        {tab === 'arcade' && <ArcadeTab lang={lang} s={s} />}
+        {tab === 'dex' && <DexTab lang={lang} s={s} />}
+        {tab === 'chart' && <ChartTab lang={lang} s={s} />}
+      </CourseGate>
     </div>
   );
 }

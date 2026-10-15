@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { ResultScreen, type ResultData } from '../components/Result';
 import { Coin, Modal, Tx } from '../components/ui';
-import { COURSES } from '../content';
+import { META } from '../content';
 import { today } from '../core/date';
 import { crosswordPool, UNLOCK } from '../core/progress';
 import { hashStr, mulberry32, shuffle } from '../core/rng';
@@ -288,7 +288,7 @@ function Game({ lang, daily, puzzle, onAgain }: { lang: LangId; daily: boolean; 
 
   if (result) return <ResultScreen data={result} lang={lang} />;
 
-  const course = COURSES[lang];
+  const course = META[lang];
   const activeSet = new Set(coords[sel.w].map(keyOf));
   const clueList = (dir: 0 | 1) => (
     <div className="cw-clue-group">

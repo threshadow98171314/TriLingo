@@ -4,7 +4,7 @@ import { fx } from '../core/fx';
 import { sfx } from '../core/sfx';
 import { useSave } from '../core/store';
 import { canSpeak, speak, useVoices } from '../core/tts';
-import type { Course, Item, LangId } from '../core/types';
+import type { CourseMeta, Item, LangId } from '../core/types';
 import { cx } from '../core/util';
 import { clozeFilled, headOf, isVocab, sayOf } from '../engine/exercises';
 import { furiPlain, furiSegs } from '../engine/furigana';
@@ -101,7 +101,7 @@ export function Coin({ n, className }: { n?: number | string; className?: string
   );
 }
 
-export function LangBadge({ course, size }: { course: Course; size?: 'sm' | 'lg' }) {
+export function LangBadge({ course, size }: { course: CourseMeta; size?: 'sm' | 'lg' }) {
   return (
     <span className={cx('lang-badge', size)} style={{ '--lang': course.color } as CSSProperties} lang={course.id}>
       {course.glyph}

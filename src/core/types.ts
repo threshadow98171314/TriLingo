@@ -133,3 +133,11 @@ export interface Course {
   trackLabel?: string;
   stages: Stage[];
 }
+
+/** 關卡的基本資料（不含題目）：隨主程式載入，畫面不用等題目下載完就能顯示 */
+export type StageMeta = Omit<Stage, 'units'>;
+
+/** 語言的基本資料：名稱、顏色、目標、關卡大綱 */
+export interface CourseMeta extends Omit<Course, 'stages'> {
+  stages: StageMeta[];
+}

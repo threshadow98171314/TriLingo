@@ -1,6 +1,6 @@
 // 課程內容的完整性檢查。之後新增 N4、棕色證書等內容時，這些測試能抓出常見的筆誤。
 import { describe, expect, it } from 'vitest';
-import { COURSE_LIST } from '../src/content';
+import { COURSE_LIST } from '../src/content/all';
 import type { Course, Item, Unit } from '../src/core/types';
 import { isVocab } from '../src/engine/exercises';
 import { furiKana, furiPlain } from '../src/engine/furigana';
@@ -172,6 +172,55 @@ describe('項目內容', () => {
       // 取字根前幾個字母比對，容許 leave → leaves、delay → delayed 之類的變化
       const stem = it.w.slice(0, Math.max(3, it.w.length - 2));
       expect(it.ex?.s.toLowerCase(), it.id).toContain(stem);
+    }
+  });
+});
+
+describe('按語言分開載入', () => {
+  it('語言檔裡的關卡 id 都對得到 meta.ts（打錯字的話那批單元會默默消失）', async () => {
+    const { META } = await import('../src/content/meta');
+    const mods = { en: await import('../src/content/en'), ja: await import('../src/content/ja'), ko: await import('../src/content/ko') };
+    for (const [lang, mod] of Object.entries(mods)) {
+      const ids = new Set(META[lang as keyof typeof META].stages.map((s) => s.id));
+      for (const key of Object.keys(mod.UNITS)) expect(ids.has(key), `${lang}：${key}`).toBe(true);
+    }
+  });
+
+  it('還沒載入時拿不到題目；載入後可以查索引，重複載入不會重新下載', async () => {
+    const content = await import('../src/content/index');
+    expect(content.getCourse('ko')).toBeNull();
+    expect(() => content.requireCourse('ko')).toThrow();
+    const p1 = content.loadCourse('ko');
+    const p2 = content.loadCourse('ko');
+    expect(p1).toBe(p2);
+    const ko = await p1;
+    expect(content.getCourse('ko')).toBe(ko);
+    expect(ko.stages.map((s) => s.id)).toEqual(content.META.ko.stages.map((s) => s.id));
+    expect(content.courseIndex('ko').lessons.size).toBeGreaterThan(0);
+    expect(await content.loadCourse('ko')).toBe(ko);
+  });
+});
+
+describe('打包', () => {
+  it('App 程式沒有直接引用各語言的題目檔（否則題目會被打包回主程式）', async () => {
+    const { readdirSync, readFileSync, statSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const files: string[] = [];
+    const walk = (dir: string) => {
+      for (const f of readdirSync(dir)) {
+        const p = join(dir, f);
+        if (statSync(p).isDirectory()) walk(p);
+        else if (/\.tsx?$/.test(f)) files.push(p);
+      }
+    };
+    walk('src');
+    // 語言檔彼此引用沒關係（同一包）；入口 index.ts 用動態 import，all.ts 只給測試
+    const langFile = /src[\\/]content[\\/](en|ja|ko)[-.]/;
+    const allowed = /src[\\/]content[\\/](index|all)\.ts$/;
+    const bad = /from '(\.\.\/content|\.)\/(en|ja|ko|all)(-[a-z0-9]+)?'/;
+    for (const f of files) {
+      if (langFile.test(f) || allowed.test(f)) continue;
+      expect(readFileSync(f, 'utf8'), f).not.toMatch(bad);
     }
   });
 });

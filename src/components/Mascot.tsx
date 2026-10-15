@@ -1,11 +1,11 @@
 // 吉祥物「喵師父」：點一下換一句話，連點會說出秘密，偶爾會變成金色的。
 import { useRef, useState, type FormEvent } from 'react';
-import { COURSE_LIST } from '../content';
+import { META_LIST } from '../content';
 import { MASCOT_CONFUSED, MASCOT_GOLD, MASCOT_SECRET, mascotLines } from '../content/mascot';
 import { nowMs, today } from '../core/date';
 import { tapCount, triggerEgg, whisper } from '../core/eggs';
 import { fx } from '../core/fx';
-import { langStats } from '../core/progress';
+import { quickStats } from '../core/progress';
 import { rankOf } from '../core/ranks';
 import { sfx } from '../core/sfx';
 import { useSave } from '../core/store';
@@ -18,7 +18,7 @@ export function Mascot() {
   const t = today();
   const now = new Date(nowMs());
   const nearest =
-    COURSE_LIST.map((c) => ({ lang: c.name, r: rankOf(s.xp[c.id]) }))
+    META_LIST.map((c) => ({ lang: c.name, r: rankOf(s.xp[c.id]) }))
       .filter((x) => x.r.next !== null)
       .sort((a, b) => a.r.toNext - b.r.toNext)
       .map((x) => ({ lang: x.lang, name: x.r.nextName!, toNext: x.r.toNext }))[0] ?? null;
@@ -28,7 +28,7 @@ export function Mascot() {
     day: now.getDate(),
     streak: s.streak.count,
     lit: s.streak.last === t && s.streak.count > 0,
-    due: COURSE_LIST.reduce((n, c) => n + langStats(s, c.id).due, 0),
+    due: META_LIST.reduce((n, c) => n + quickStats(s, c.id).due, 0),
     todayXp: s.days[t] ? sum(s.days[t].xp) : 0,
     goal: s.settings.dailyGoal,
     nearest,

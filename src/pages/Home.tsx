@@ -3,19 +3,19 @@ import { useRef, useState, type CSSProperties } from 'react';
 import { Mascot } from '../components/Mascot';
 import { RankEmblem } from '../components/RankEmblem';
 import { Bar, Coin, flameTier, flyCoins, LangBadge, Modal, SpeakBtn, Tx } from '../components/ui';
-import { COURSE_LIST } from '../content';
+import { META_LIST, useCourse } from '../content';
 import { PROVERBS } from '../content/proverbs';
 import { fx } from '../core/fx';
 import { hashStr } from '../core/rng';
 import { furiKana } from '../engine/furigana';
 import { lastDays, nowMs, today } from '../core/date';
-import { crosswordPool, langStats, nextUp, UNLOCK } from '../core/progress';
+import { crosswordPool, langStats, nextUp, quickStats, UNLOCK } from '../core/progress';
 import { questsFor } from '../core/quests';
 import { rankOf, TIERS } from '../core/ranks';
 import { emptyDay, type Save } from '../core/save';
 import { sfx } from '../core/sfx';
 import { claimChest, claimQuest, useSave } from '../core/store';
-import type { Course } from '../core/types';
+import type { CourseMeta } from '../core/types';
 import { LANGS } from '../core/types';
 import { cx, sum } from '../core/util';
 import { href } from '../router';
@@ -40,11 +40,15 @@ function GoalRing({ value, goal }: { value: number; goal: number }) {
   );
 }
 
-function LangCard({ course, s }: { course: Course; s: Save }) {
+function LangCard({ meta: course, s }: { meta: CourseMeta; s: Save }) {
+  // 題目還在下載時，先用存檔算得出來的數字顯示
+  const loaded = useCourse(course.id);
   const xp = s.xp[course.id];
   const r = rankOf(xp);
-  const st = langStats(s, course.id);
-  const up = nextUp(s, course);
+  const quick = quickStats(s, course.id);
+  const full = loaded ? langStats(s, course.id) : null;
+  const st = { learned: full?.learned ?? quick.learned, due: full?.due ?? quick.due, total: full?.total };
+  const up = loaded ? nextUp(s, loaded) : null;
   const todayXp = s.days[today()]?.xp[course.id] ?? 0;
   return (
     <article className="lang-card card" style={{ '--lang': course.color } as CSSProperties}>
@@ -73,7 +77,7 @@ function LangCard({ course, s }: { course: Course; s: Save }) {
 
       <div className="lang-meta">
         <span>
-          已學 <b>{st.learned}</b> / {st.total}
+          已學 <b>{st.learned}</b> / {st.total ?? '…'}
         </span>
         {st.due > 0 ? (
           <a className="chip warn" href={href(`/l/${course.id}/review`)}>
@@ -87,10 +91,12 @@ function LangCard({ course, s }: { course: Course; s: Save }) {
       <a className="btn primary wide" href={href(`/l/${course.id}`)}>
         {st.learned > 0 ? '繼續學習' : '開始學習'}
       </a>
-      {up && (
+      {up ? (
         <small className="next-up muted">
           下一課：{up.stage.short} › {up.unit.title}
         </small>
+      ) : (
+        !loaded && <small className="next-up muted">正在載入課程…</small>
       )}
     </article>
   );
@@ -226,7 +232,7 @@ function ProverbCard() {
         </button>
       </header>
       <div className="proverb-grid">
-        {COURSE_LIST.map((c, i) => {
+        {META_LIST.map((c, i) => {
           const list = PROVERBS[c.id];
           const p = list[(seed + i * 7) % list.length];
           return (
@@ -248,8 +254,36 @@ function ProverbCard() {
   );
 }
 
+function DailyRow({ c, s }: { c: CourseMeta; s: Save }) {
+  const loaded = useCourse(c.id);
+  const have = loaded ? crosswordPool(s, c.id).length : 0;
+  const locked = have < UNLOCK.crossword;
+  const done = !!s.days[today()]?.dailyCw?.[c.id];
+  return (
+    <li style={{ '--lang': c.color } as CSSProperties}>
+      <LangBadge course={c} size="sm" />
+      <div className="grow">
+        <b>{c.name}填字</b>
+        <small className="muted">
+          {!loaded ? '載入中…' : locked ? `再學會 ${UNLOCK.crossword - have} 個單字就能解鎖` : done ? '今天已完成，明天有新題目' : '完成可多拿 20 XP'}
+        </small>
+      </div>
+      {!loaded ? (
+        <span className="chip">…</span>
+      ) : locked ? (
+        <span className="chip">🔒</span>
+      ) : done ? (
+        <span className="chip ok">完成 ✓</span>
+      ) : (
+        <a className="btn small primary" href={href(`/l/${c.id}/play/crossword?daily=1`)}>
+          挑戰
+        </a>
+      )}
+    </li>
+  );
+}
+
 function DailyPanel({ s }: { s: Save }) {
-  const log = s.days[today()];
   return (
     <section className="card panel">
       <header className="panel-head">
@@ -257,29 +291,9 @@ function DailyPanel({ s }: { s: Save }) {
         <small className="muted">每天一題・用你學過的字出題</small>
       </header>
       <ul className="daily">
-        {COURSE_LIST.map((c) => {
-          const have = crosswordPool(s, c.id).length;
-          const locked = have < UNLOCK.crossword;
-          const done = !!log?.dailyCw?.[c.id];
-          return (
-            <li key={c.id} style={{ '--lang': c.color } as CSSProperties}>
-              <LangBadge course={c} size="sm" />
-              <div className="grow">
-                <b>{c.name}填字</b>
-                <small className="muted">{locked ? `再學會 ${UNLOCK.crossword - have} 個單字就能解鎖` : done ? '今天已完成，明天有新題目' : '完成可多拿 20 XP'}</small>
-              </div>
-              {locked ? (
-                <span className="chip">🔒</span>
-              ) : done ? (
-                <span className="chip ok">完成 ✓</span>
-              ) : (
-                <a className="btn small primary" href={href(`/l/${c.id}/play/crossword?daily=1`)}>
-                  挑戰
-                </a>
-              )}
-            </li>
-          );
-        })}
+        {META_LIST.map((c) => (
+          <DailyRow key={c.id} c={c} s={s} />
+        ))}
       </ul>
     </section>
   );
@@ -295,7 +309,7 @@ function WeekChart({ s }: { s: Save }) {
       <header className="panel-head">
         <h2>最近 7 天</h2>
         <small className="muted">
-          本週共 {sum(totals)} XP・{COURSE_LIST.map((c) => c.name).join('／')}
+          本週共 {sum(totals)} XP・{META_LIST.map((c) => c.name).join('／')}
         </small>
       </header>
       <div className="week" style={{ '--goal': s.settings.dailyGoal / max } as CSSProperties}>
@@ -310,7 +324,7 @@ function WeekChart({ s }: { s: Save }) {
               <div className="week-bar">
                 {LANGS.map((l) => {
                   const v = log?.xp[l] ?? 0;
-                  return v > 0 ? <i key={l} style={{ height: `${(v / max) * 100}%`, background: COURSE_LIST.find((c) => c.id === l)!.color }} /> : null;
+                  return v > 0 ? <i key={l} style={{ height: `${(v / max) * 100}%`, background: META_LIST.find((c) => c.id === l)!.color }} /> : null;
                 })}
               </div>
               <small>{i === 6 ? '今天' : names[wd]}</small>
@@ -360,8 +374,8 @@ export function Home() {
       <Mascot />
 
       <section className="lang-grid">
-        {COURSE_LIST.map((c) => (
-          <LangCard key={c.id} course={c} s={s} />
+        {META_LIST.map((c) => (
+          <LangCard key={c.id} meta={c} s={s} />
         ))}
       </section>
 

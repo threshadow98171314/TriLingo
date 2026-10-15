@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { COURSE_LIST, COURSES } from '../src/content';
+import { COURSE_LIST, COURSES } from '../src/content/all';
 import { mulberry32 } from '../src/core/rng';
 import type { LangId, VocabItem } from '../src/core/types';
 import { cellsOfWord, generateCrossword, type Crossword, type CwEntry } from '../src/engine/crossword';

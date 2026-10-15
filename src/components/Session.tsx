@@ -1,7 +1,7 @@
 // 一場練習的流程控制：出題 → 作答 → 回饋 → 下一題 → 結算。
 // 課程、單元測驗、複習、聽力特訓都用這個元件。
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { COURSES } from '../content';
+import { META } from '../content';
 import { fx } from '../core/fx';
 import { sfx } from '../core/sfx';
 import { recordAnswer, useSave, type AnswerMode, type SessionStats } from '../core/store';
@@ -58,7 +58,7 @@ export function Session({
   retry?: boolean;
   onFinish: (stats: SessionStats) => ResultData;
 }) {
-  const course = COURSES[lang];
+  const course = META[lang];
   const { autoSpeak } = useSave().settings;
   const [queue, setQueue] = useState<QueueItem[]>(() => exercises.map((ex, key) => ({ ex, key, retry: 0 })));
   const [idx, setIdx] = useState(0);

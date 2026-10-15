@@ -2,7 +2,7 @@
 import { useRef, useState, type ReactNode } from 'react';
 import { Modal } from '../components/ui';
 import { connect, disconnect, syncNow, useCloud } from '../core/cloud';
-import { COURSE_LIST } from '../content';
+import { META_LIST } from '../content';
 import { nowMs, today } from '../core/date';
 import { tapCount, triggerEgg } from '../core/eggs';
 import { fx, seasonOf, SEASON_LABEL } from '../core/fx';
@@ -207,7 +207,7 @@ export function SettingsPage() {
             onChange={(e) => updateSettings({ ttsRate: Number(e.target.value) })}
           />
         </Row>
-        {COURSE_LIST.map((c) => {
+        {META_LIST.map((c) => {
           const list = voicesFor(c.id);
           return (
             <Row key={c.id} title={`${c.name}語音`} desc={list.length ? undefined : '這個瀏覽器沒有這個語言的語音，聽力題會自動略過。建議使用 Chrome 或 Edge。'}>

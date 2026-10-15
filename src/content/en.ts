@@ -1,6 +1,6 @@
 // 英文：以多益 TOEIC 證書顏色分級。橘 → 棕 → 綠 → 藍 → 金（最高，860–990）
-import type { Course } from '../core/types';
-import { cz, en, grammarUnit, note, qa, stage, vocabUnit } from './dsl';
+import type { Unit } from '../core/types';
+import { cz, en, grammarUnit, note, qa, vocabUnit } from './dsl';
 import { BROWN_UNITS } from './en-brown';
 
 // ───────── 橘色證書（10–215）：基礎起步 ─────────
@@ -285,71 +285,8 @@ const listening = grammarUnit(
   'listening',
 );
 
-export const EN: Course = {
-  id: 'en',
-  name: '英文',
-  native: 'English',
-  glyph: 'A',
-  color: '#4f8cff',
-  goal: '多益 TOEIC 990 分滿分',
-  goals: ['多益 TOEIC 聽力＋閱讀 990 分滿分（金色證書）'],
-  pathLabel: '多益證書路線',
-  stages: [
-    stage({
-      id: 'en.orange',
-      short: '橘色',
-      title: '橘色證書',
-      subtitle: '10 – 215 分',
-      description: '從零打底：最基本的職場與生活單字、be 動詞、基礎時態，以及聽懂最簡單的問答。',
-      color: '#f08a24',
-      group: 'main',
-      style: 'cert',
-      units: [office, people, g1, time, money, g2, travel, dining, verbs, g3, adjectives, listening],
-    }),
-    stage({
-      id: 'en.brown',
-      short: '棕色',
-      title: '棕色證書',
-      subtitle: '220 – 465 分',
-      description: '能應付簡單的日常對話，開始接觸會議、電話與電子郵件用語。',
-      color: '#a8703a',
-      group: 'main',
-      style: 'cert',
-      units: BROWN_UNITS,
-      planned: ['Part 1 照片描述', '比較級與最高級', '動名詞與不定詞'],
-    }),
-    stage({
-      id: 'en.green',
-      short: '綠色',
-      title: '綠色證書',
-      subtitle: '470 – 725 分',
-      description: '能在熟悉的工作情境中溝通，掌握 Part 5／6 常考文法與商務書信。',
-      color: '#2fa36b',
-      group: 'main',
-      style: 'cert',
-      planned: ['商務書信', '人事與招募', '行銷與銷售', '財務與預算', 'Part 3 簡短對話', 'Part 6 段落填空', '關係子句', '被動語態'],
-    }),
-    stage({
-      id: 'en.blue',
-      short: '藍色',
-      title: '藍色證書',
-      subtitle: '730 – 855 分',
-      description: '能有效處理大部分商務情境，挑戰長篇聽力與多篇閱讀。',
-      color: '#2f7de1',
-      group: 'main',
-      style: 'cert',
-      planned: ['合約與談判', '製造與物流', '出差與會展', 'Part 4 簡短獨白', 'Part 7 多篇閱讀', '假設語氣', '分詞構句', '易混淆字'],
-    }),
-    stage({
-      id: 'en.gold',
-      short: '金色',
-      title: '金色證書',
-      subtitle: '860 – 990 分',
-      description: '專業精通：高階字彙、同義改寫、速讀與陷阱題，目標 990 滿分。',
-      color: '#e6b422',
-      group: 'main',
-      style: 'cert',
-      planned: ['高階商務字彙', '同義詞替換（Paraphrasing）', '長篇閱讀速讀', '推論題攻略', '高頻陷阱題', '全真模擬測驗', '滿分衝刺'],
-    }),
-  ],
+/** 各關卡的單元（關卡名稱、說明、預定大綱在 meta.ts） */
+export const UNITS: Record<string, Unit[]> = {
+  'en.orange': [office, people, g1, time, money, g2, travel, dining, verbs, g3, adjectives, listening],
+  'en.brown': BROWN_UNITS,
 };

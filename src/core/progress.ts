@@ -1,5 +1,5 @@
 // 由存檔推導出來的學習進度：哪些課解鎖了、學了幾個字、今天有幾個要複習…
-import { COURSES, courseIndex } from '../content';
+import { courseIndex, requireCourse } from '../content';
 import { cellsOf, isVocab } from '../engine/exercises';
 import { dayNum, today } from './date';
 import { mastery } from './logic';
@@ -115,7 +115,7 @@ export function nextUp(s: Save, course: Course): NextUp | null {
 /** 已學過的項目（依課程順序） */
 export function learnedItems(s: Save, lang: LangId): Item[] {
   const out: Item[] = [];
-  for (const stage of COURSES[lang].stages) {
+  for (const stage of requireCourse(lang).stages) {
     for (const unit of stage.units) for (const item of unit.items) if (s.items[item.id]) out.push(item);
   }
   return out;
@@ -170,6 +170,23 @@ export function langStats(s: Save, lang: LangId): LangStats {
     if (mastery(p) === 4) mastered++;
   }
   return { learned, total: courseIndex(lang).items.size, due, mastered };
+}
+
+/**
+ * 只看存檔的統計（不需要先下載題目）：學過幾個、今天有幾個要複習。
+ * 和 langStats 的差別只在「題目已經下架的舊項目」也會算進去，用在首頁這類概覽剛好。
+ */
+export function quickStats(s: Save, lang: LangId): { learned: number; due: number } {
+  const day = dayNum(today());
+  const prefix = `${lang}.`;
+  let learned = 0;
+  let due = 0;
+  for (const [id, p] of Object.entries(s.items)) {
+    if (!id.startsWith(prefix)) continue;
+    learned++;
+    if (p.due <= day) due++;
+  }
+  return { learned, due };
 }
 
 /** 各種遊戲需要的最少已學字數 */

@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { CelebrationHost } from './components/Celebrations';
+import { CourseGate } from './components/CourseGate';
 import { BottomNav, TopBar } from './components/Layout';
 import { Empty } from './components/ui';
 import { nowMs } from './core/date';
@@ -32,6 +33,8 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
 
   if (p[0] === 'l' && (LANGS as string[]).includes(p[1])) {
     const lang = p[1] as LangId;
+    // 上課、玩遊戲要先等這個語言的題目下載完成（語言頁自己會處理）
+    const gated = (node: ReactNode) => play(<CourseGate lang={lang}>{node}</CourseGate>);
     switch (p[2]) {
       case undefined:
         return view(<LangPage lang={lang} tab="path" />);
@@ -43,14 +46,14 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
       case 'chart':
         return view(<LangPage lang={lang} tab={lang === 'en' ? 'path' : 'chart'} />);
       case 'lesson':
-        return play(<LessonPage lang={lang} lessonId={p[3] ?? ''} />);
+        return gated(<LessonPage lang={lang} lessonId={p[3] ?? ''} />);
       case 'review':
-        return play(<ReviewPage lang={lang} />);
+        return gated(<ReviewPage lang={lang} />);
       case 'play':
-        if (p[3] === 'crossword') return play(<CrosswordPage lang={lang} daily={route.query.get('daily') === '1'} />);
-        if (p[3] === 'match') return play(<MatchPage lang={lang} />);
-        if (p[3] === 'blitz') return play(<BlitzPage lang={lang} />);
-        if (p[3] === 'listen') return play(<ListenPage lang={lang} />);
+        if (p[3] === 'crossword') return gated(<CrosswordPage lang={lang} daily={route.query.get('daily') === '1'} />);
+        if (p[3] === 'match') return gated(<MatchPage lang={lang} />);
+        if (p[3] === 'blitz') return gated(<BlitzPage lang={lang} />);
+        if (p[3] === 'listen') return gated(<ListenPage lang={lang} />);
     }
   }
 

@@ -13,7 +13,6 @@ import type {
   Lesson,
   QaItem,
   SentenceItem,
-  Stage,
   Unit,
   UnitKind,
   VocabItem,
@@ -220,8 +219,4 @@ export function grammarUnit(
   });
   lessons.push(bossOf(id, items));
   return { id, icon, title, subtitle, kind, items, lessons };
-}
-
-export function stage(s: Omit<Stage, 'units' | 'planned'> & { units?: Unit[]; planned?: string[] }): Stage {
-  return { units: [], planned: [], ...s };
 }

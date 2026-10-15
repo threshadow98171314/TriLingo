@@ -1,6 +1,6 @@
 // 慶祝畫面：升段、連勝里程碑（全螢幕）與成就提示（右上角）。
 import { useEffect } from 'react';
-import { COURSES } from '../content';
+import { META } from '../content';
 import { dismissModal, dismissToast, useCelebrations, type ModalEvent } from '../core/celebrate';
 import { fx } from '../core/fx';
 import { stepName, tierOfStep, TIERS } from '../core/ranks';
@@ -9,7 +9,7 @@ import { RankEmblem } from './RankEmblem';
 import { Coin, Modal } from './ui';
 
 function RankUp({ e }: { e: Extract<ModalEvent, { type: 'rank' }> }) {
-  const course = COURSES[e.lang];
+  const course = META[e.lang];
   const tierUp = tierOfStep(e.to) > tierOfStep(e.from);
   const t = TIERS[tierOfStep(e.to)];
   return (

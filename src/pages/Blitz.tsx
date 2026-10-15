@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ChoiceView } from '../components/ExerciseViews';
 import { ResultScreen, type ResultData } from '../components/Result';
-import { COURSES, courseIndex } from '../content';
+import { courseIndex, META } from '../content';
 import { learnedVocab, UNLOCK } from '../core/progress';
 import { pick } from '../core/rng';
 import { sfx } from '../core/sfx';
@@ -118,7 +118,7 @@ function Game({ lang, vocab, onAgain }: { lang: LangId; vocab: VocabItem[]; onAg
 
   const mult = multOf(combo);
   return (
-    <div className="game-page" style={{ '--lang': COURSES[lang].color } as CSSProperties}>
+    <div className="game-page" style={{ '--lang': META[lang].color } as CSSProperties}>
       <header className="session-top">
         <button type="button" className="icon-btn" aria-label="離開" onClick={() => nav(back)}>
           ✕

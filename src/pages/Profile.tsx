@@ -2,7 +2,7 @@
 import { useState, type CSSProperties } from 'react';
 import { RankEmblem, RankLine } from '../components/RankEmblem';
 import { Bar, Coin, LangBadge } from '../components/ui';
-import { COURSE_LIST } from '../content';
+import { META_LIST } from '../content';
 import { ACHIEVEMENTS } from '../core/achievements';
 import { lastDays, today } from '../core/date';
 import { EGGS } from '../core/eggData';
@@ -63,7 +63,7 @@ function Heatmap({ s }: { s: Save }) {
 }
 
 function Ladder({ s }: { s: Save }) {
-  const at = COURSE_LIST.map((c) => ({ c, tier: rankOf(s.xp[c.id]).tier }));
+  const at = META_LIST.map((c) => ({ c, tier: rankOf(s.xp[c.id]).tier }));
   return (
     <section className="card panel">
       <header className="panel-head">
@@ -210,7 +210,7 @@ export function ProfilePage() {
       </section>
 
       <section className="rank-trio">
-        {COURSE_LIST.map((c) => (
+        {META_LIST.map((c) => (
           <div key={c.id} className="card rank-card" style={{ '--lang': c.color } as CSSProperties}>
             <header>
               <LangBadge course={c} size="sm" />

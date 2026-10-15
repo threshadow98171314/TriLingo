@@ -15,6 +15,7 @@
 ## 課程內容
 
 - 內容在 `src/content/`，用 `dsl.ts` 的工具撰寫；寫法見 README「新增內容」。
+- 題目按語言分開打包、用到時才下載：關卡大綱在 `meta.ts`（隨主程式載入），各關卡的單元在 `en.ts`／`ja.ts`／`ko.ts` 的 `UNITS`。App 程式不要直接 import 這些語言檔或 `all.ts`（會把題目打包回主程式），要用 `content/index.ts` 的 `useCourse`／`loadCourse`／`requireCourse`；上課、遊戲頁外層有 `CourseGate` 等待下載。
 - 學習進度以「單元 id＋原文」當 key 儲存：已上線項目的原文不要改，否則該字的進度會歸零。
 - 新增內容後一定要跑 `npm test`，`tests/content.test.ts` 會抓 id 重複、振假名漏標、選項重複等筆誤。
 

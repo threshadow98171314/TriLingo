@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { ResultScreen, type ResultData } from '../components/Result';
 import { Tx } from '../components/ui';
-import { COURSES } from '../content';
+import { META } from '../content';
 import { learnedVocab, UNLOCK } from '../core/progress';
 import { shuffle } from '../core/rng';
 import { sfx } from '../core/sfx';
@@ -118,7 +118,7 @@ function Game({ lang, rounds, onAgain }: { lang: LangId; rounds: MatchEx['pairs'
   if (result) return <ResultScreen data={result} lang={lang} />;
 
   return (
-    <div className="game-page" style={{ '--lang': COURSES[lang].color } as CSSProperties}>
+    <div className="game-page" style={{ '--lang': META[lang].color } as CSSProperties}>
       <header className="session-top">
         <button type="button" className="icon-btn" aria-label="離開" onClick={() => nav(back)}>
           ✕

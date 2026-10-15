@@ -1,6 +1,6 @@
 // 結算畫面：課程與所有小遊戲共用。
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { COURSES } from '../content';
+import { META } from '../content';
 import { fx } from '../core/fx';
 import { rankOf, TIERS } from '../core/ranks';
 import { sfx } from '../core/sfx';
@@ -27,7 +27,7 @@ export interface ResultData {
 export function ResultScreen({ data, lang }: { data: ResultData; lang: LangId }) {
   const o = data.outcome;
   const r = o.reward;
-  const course = COURSES[lang];
+  const course = META[lang];
   const before = rankOf(r.before);
   const after = rankOf(r.after);
   // 進度條從作答前的位置長到作答後；升段時從 0 開始長

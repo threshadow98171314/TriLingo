@@ -3,7 +3,7 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { ResultData } from '../components/Result';
 import { Session } from '../components/Session';
 import { Empty } from '../components/ui';
-import { COURSES, courseIndex } from '../content';
+import { courseIndex, META } from '../content';
 import { dueItems, learnedItems, learnedVocab, UNLOCK, weakestItems } from '../core/progress';
 import { shuffle } from '../core/rng';
 import { BOSS_PASS, finishGame, finishLesson, getSave, type SessionStats } from '../core/store';
@@ -24,7 +24,7 @@ const statLines = (st: SessionStats): [string, string][] => [
 /** 還不能玩的時候顯示的說明頁 */
 export function Blocked({ lang, icon, title, back, children }: { lang: LangId; icon: string; title: string; back: string; children: ReactNode }) {
   return (
-    <div className="page narrow" style={{ '--lang': COURSES[lang].color } as CSSProperties}>
+    <div className="page narrow" style={{ '--lang': META[lang].color } as CSSProperties}>
       <Empty icon={icon} title={title}>
         <p className="muted">{children}</p>
         <a className="btn primary" href={href(back)}>
