@@ -4,7 +4,7 @@ import type { ResultData } from '../components/Result';
 import { Session } from '../components/Session';
 import { Empty } from '../components/ui';
 import { courseIndex, META } from '../content';
-import { dueItems, learnedItems, learnedVocab, UNLOCK, weakestItems } from '../core/progress';
+import { dueItems, learnedItems, learnedVocab, nextBankLesson, UNLOCK, weakestItems } from '../core/progress';
 import { sample, shuffle } from '../core/rng';
 import { BOSS_PASS, finishGame, finishLesson, getSave, type SessionStats } from '../core/store';
 import { canSpeak, listenMuted, unmuteListening, useVoices } from '../core/tts';
@@ -69,6 +69,17 @@ export function LessonPage({ lang, lessonId }: { lang: LangId; lessonId: string 
           headline: '差一點點！',
           sub: `答對率要達到 ${BOSS_PASS * 100}% 才算通過。把這個單元的課上完，再回來挑戰吧。`,
           again: again('再挑戰一次'),
+        };
+      }
+      if (unit.bank) {
+        // 單字庫：直接接下一組還沒學完的字
+        const nb = nextBankLesson(getSave(), stage, unit.id) ?? nextBankLesson(getSave(), stage);
+        return {
+          ...base,
+          emoji: '👑',
+          headline: '這組單字完成！',
+          sub: `「${unit.title}」的 ${unit.items.length} 個字都學會了，之後會自動排進複習。`,
+          next: nb ? { label: `下一組：${nb.unit.title}`, to: lessonPath(lang, nb.lesson.id) } : undefined,
         };
       }
       return {

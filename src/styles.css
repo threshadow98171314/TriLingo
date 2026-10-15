@@ -4262,3 +4262,144 @@ button.dex-tile:hover {
   text-align: center;
   font-size: 0.88rem;
 }
+
+/* ───────── 單字庫 ───────── */
+.bank {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+}
+.bank-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-left: 6px solid var(--c);
+}
+.bank-head .grow {
+  flex: 1 1 260px;
+  display: grid;
+  gap: 6px;
+}
+.bank-head h3 {
+  font-size: 1.15rem;
+}
+.bank-head h3 small {
+  font-size: 0.8rem;
+  margin-left: 6px;
+}
+.bank-head p {
+  font-size: 0.9rem;
+}
+.bank-prog {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.bank-prog .bar {
+  flex: 1;
+}
+.bank-group {
+  padding: 0;
+  overflow: hidden;
+}
+.bank-group-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.bank-group-head .grow {
+  display: grid;
+  gap: 2px;
+}
+.bank-group-head small {
+  font-size: 0.8rem;
+}
+.bank-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--c, var(--lang)) 18%, var(--card-2));
+  font-size: 1.2rem;
+}
+.bank-group-prog {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.decks {
+  display: grid;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+.deck {
+  display: grid;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--card-2);
+}
+.deck > header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.deck-toggle {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 10px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.deck-toggle .bar {
+  grid-column: 1 / -1;
+  height: 6px;
+}
+.deck-title {
+  font-weight: 800;
+}
+.deck-done {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ok) 20%, transparent);
+  color: var(--ok);
+  font-weight: 900;
+}
+.deck.complete .deck-title {
+  color: var(--ok);
+}
+.deck .nodes {
+  padding-bottom: 4px;
+}
+.dex-bank {
+  display: grid;
+  gap: 12px;
+  padding: 0 0 12px;
+}
+.dex-bank > .dex-unit,
+.dex-bank > p {
+  margin: 0 12px;
+}

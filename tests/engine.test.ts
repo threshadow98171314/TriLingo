@@ -290,7 +290,8 @@ describe('出題引擎', () => {
       }
     }
     expect(lessons).toBeGreaterThan(150);
-  });
+    // 單字庫讓課數變成上千堂，每堂要出四種組合，給比較長的時間
+  }, 120_000);
 
   it('第一次上的單字課：每個新項目都有教學卡，而且都被考到', () => {
     for (const c of COURSE_LIST) {

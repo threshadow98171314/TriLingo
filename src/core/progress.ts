@@ -10,13 +10,17 @@ export const starsOf = (s: Save, lessonId: string): number => s.lessons[lessonId
 
 export const bossOf = (u: Unit): Lesson => u.lessons[u.lessons.length - 1];
 
+/** 學習路線上的單元（單字庫的組不算在路線裡） */
+export const pathUnits = (stage: Stage): Unit[] => stage.units.filter((u) => !u.bank);
+export const bankUnits = (stage: Stage): Unit[] => stage.units.filter((u) => !!u.bank);
+
 export interface UnitState {
   done: number;
   total: number;
   /** 單元測驗已通過 */
   complete: boolean;
   stars: number;
-  /** 前一個單元已完成（第一個單元一律開放） */
+  /** 前一個單元已完成（第一個單元、單字庫的組一律開放） */
   unlocked: boolean;
 }
 
@@ -29,12 +33,14 @@ export function unitState(s: Save, stage: Stage, index: number): UnitState {
     if (st > 0) done++;
     stars += st;
   }
+  // 路線上的前一個單元（跳過單字庫的組）
+  const prev = stage.units.slice(0, index).filter((x) => !x.bank).pop();
   return {
     done,
     total: u.lessons.length,
     complete: starsOf(s, bossOf(u).id) > 0,
     stars,
-    unlocked: index === 0 || starsOf(s, bossOf(stage.units[index - 1]).id) > 0,
+    unlocked: !!u.bank || !prev || starsOf(s, bossOf(prev).id) > 0,
   };
 }
 
@@ -62,11 +68,13 @@ export interface StageState {
   complete: boolean;
 }
 
+/** 關卡進度只算學習路線；單字庫另外用 bankState 統計 */
 export function stageState(s: Save, stage: Stage): StageState {
   let done = 0;
   let total = 0;
-  let complete = stage.units.length > 0;
-  for (const u of stage.units) {
+  const path = pathUnits(stage);
+  let complete = path.length > 0;
+  for (const u of path) {
     for (const l of u.lessons) {
       total++;
       if (starsOf(s, l.id) > 0) done++;
@@ -83,11 +91,44 @@ export interface NextUp {
   lesson: Lesson;
 }
 
-/** 某一關裡下一堂該上的課 */
+/** 某一關的學習路線上，下一堂該上的課 */
 export function nextInStage(s: Save, stage: Stage): NextUp | null {
   for (let ui = 0; ui < stage.units.length; ui++) {
     const unit = stage.units[ui];
-    if (starsOf(s, bossOf(unit).id) > 0) continue;
+    if (unit.bank || starsOf(s, bossOf(unit).id) > 0) continue;
+    const lesson = unit.lessons.find((l) => starsOf(s, l.id) === 0) ?? bossOf(unit);
+    return { stage, unit, unitIndex: ui, lesson };
+  }
+  return null;
+}
+
+export interface BankState {
+  decks: number;
+  /** 已通過小測驗的組數 */
+  done: number;
+  words: number;
+  learned: number;
+}
+
+/** 單字庫的進度：學過幾個字、完成幾組 */
+export function bankState(s: Save, stage: Stage): BankState {
+  const out: BankState = { decks: 0, done: 0, words: 0, learned: 0 };
+  for (const u of bankUnits(stage)) {
+    out.decks++;
+    if (starsOf(s, bossOf(u).id) > 0) out.done++;
+    out.words += u.items.length;
+    for (const i of u.items) if (s.items[i.id]) out.learned++;
+  }
+  return out;
+}
+
+/** 單字庫裡下一堂可以上的課：照順序第一個還沒完成的組 */
+export function nextBankLesson(s: Save, stage: Stage, after?: string): NextUp | null {
+  let start = 0;
+  if (after) start = stage.units.findIndex((u) => u.id === after) + 1;
+  for (let ui = start; ui < stage.units.length; ui++) {
+    const unit = stage.units[ui];
+    if (!unit.bank || starsOf(s, bossOf(unit).id) > 0) continue;
     const lesson = unit.lessons.find((l) => starsOf(s, l.id) === 0) ?? bossOf(unit);
     return { stage, unit, unitIndex: ui, lesson };
   }
@@ -98,7 +139,7 @@ export function nextInStage(s: Save, stage: Stage): NextUp | null {
 export function currentStage(s: Save, course: Course): Stage {
   const saved = course.stages.find((st) => st.id === s.stage[course.id]);
   if (saved) return saved;
-  return course.stages.find((st) => st.units.length > 0 && !stageState(s, st).complete) ?? course.stages[0];
+  return course.stages.find((st) => pathUnits(st).length > 0 && !stageState(s, st).complete) ?? course.stages[0];
 }
 
 export function nextUp(s: Save, course: Course): NextUp | null {

@@ -10,6 +10,8 @@ import { courseIndex, META, META_LIST, requireCourse } from '../content';
 import { addDays, dayNum, today } from '../core/date';
 import { mastery, MASTERY_LABEL } from '../core/logic';
 import {
+  bankState,
+  bankUnits,
   crosswordPool,
   currentStage,
   dueItems,
@@ -17,7 +19,9 @@ import {
   learnedItems,
   learnedVocab,
   lessonState,
+  nextBankLesson,
   nextInStage,
+  pathUnits,
   quickStats,
   stageState,
   starsOf,
@@ -27,7 +31,7 @@ import {
 import type { Save } from '../core/save';
 import { setStage, useSave } from '../core/store';
 import { canSpeak, speak, useVoices } from '../core/tts';
-import type { Item, LangId, Stage, VocabItem } from '../core/types';
+import type { Item, LangId, Stage, Unit, VocabItem } from '../core/types';
 import { cx, fmtTime } from '../core/util';
 import { clozeSentence, isVocab, LANG_NAME, sayOf } from '../engine/exercises';
 import { furiPlain } from '../engine/furigana';
@@ -52,6 +56,40 @@ function StageCard({ lang, stage, s, active }: { lang: LangId; stage: Stage; s: 
       <small>{stage.subtitle}</small>
       <span className="stage-status">{!ss.ready ? '準備中' : ss.complete ? '完成 ✓' : `${Math.round(ss.pct * 100)}%`}</span>
     </a>
+  );
+}
+
+/** 一個單元裡的課（圓圈）；路線上的單元和單字庫的組共用 */
+function LessonNodes({ lang, stage, ui, s, nextId }: { lang: LangId; stage: Stage; ui: number; s: Save; nextId?: string }) {
+  const u = stage.units[ui];
+  const st = unitState(s, stage, ui);
+  return (
+    <div className="nodes">
+      {u.lessons.map((l, li) => {
+        const state = lessonState(s, stage, ui, li);
+        const label = l.boss ? (u.bank ? '小測驗' : st.unlocked || st.complete ? '單元測驗' : '跳級測驗') : l.title;
+        const dot = l.boss ? '👑' : state === 'locked' ? '🔒' : state === 'done' ? '✓' : String(li + 1);
+        const cls = cx('node', state, l.boss && 'boss', l.id === nextId && 'next');
+        const inner = (
+          <>
+            <span className="node-dot">{dot}</span>
+            <span className="node-label" lang={u.kind === 'chars' && !l.boss ? lang : undefined}>
+              {label}
+            </span>
+            <Stars n={starsOf(s, l.id)} />
+          </>
+        );
+        return state === 'locked' ? (
+          <span key={l.id} className={cls} title="先完成前一課">
+            {inner}
+          </span>
+        ) : (
+          <a key={l.id} className={cls} href={href(lessonPath(lang, l.id))}>
+            {inner}
+          </a>
+        );
+      })}
+    </div>
   );
 }
 
@@ -80,35 +118,116 @@ function UnitRow({ lang, stage, ui, s, nextId }: { lang: LangId; stage: Stage; u
           <span className="unit-count">{!st.unlocked ? '🔒 未解鎖' : `${st.done} / ${st.total}`}</span>
         )}
       </header>
+      {open && <LessonNodes lang={lang} stage={stage} ui={ui} s={s} nextId={nextId} />}
+      {!st.unlocked && !st.complete && <p className="unit-hint muted">完成上一個單元就會解鎖。已經會了？直接挑戰「跳級測驗」，通過就算完成。</p>}
+    </section>
+  );
+}
+
+// ───────── 單字庫 ─────────
+
+const learnedIn = (s: Save, u: Unit) => u.items.filter((i) => s.items[i.id]).length;
+
+function DeckRow({ lang, stage, ui, s }: { lang: LangId; stage: Stage; ui: number; s: Save }) {
+  const u = stage.units[ui];
+  const st = unitState(s, stage, ui);
+  const [open, setOpen] = useState(false);
+  const got = learnedIn(s, u);
+  const next = u.lessons.find((l) => starsOf(s, l.id) === 0);
+  return (
+    <section className={cx('deck', st.complete && 'complete')}>
+      <header>
+        <button type="button" className="deck-toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
+          <span className="deck-title">{u.title}</span>
+          <small className="muted">
+            {got} / {u.items.length} 字
+          </small>
+          <Bar v={got / u.items.length} color="var(--c)" />
+        </button>
+        {st.complete ? (
+          <span className="deck-done" title="小測驗已通過">
+            ✓
+          </span>
+        ) : (
+          next && (
+            <a className="btn small" href={href(lessonPath(lang, next.id))}>
+              {next.boss ? '測驗' : got ? '繼續' : '學習'}
+            </a>
+          )
+        )}
+      </header>
+      {open && <LessonNodes lang={lang} stage={stage} ui={ui} s={s} />}
+    </section>
+  );
+}
+
+function BankGroup({ lang, stage, s, name, uis, nextId }: { lang: LangId; stage: Stage; s: Save; name: string; uis: number[]; nextId?: string }) {
+  const units = uis.map((ui) => stage.units[ui]);
+  const words = units.reduce((a, u) => a + u.items.length, 0);
+  const got = units.reduce((a, u) => a + learnedIn(s, u), 0);
+  // 下一組新字所在的分組預設打開
+  const [open, setOpen] = useState(() => units.some((u) => u.id === nextId));
+  return (
+    <section className={cx('bank-group card', open && 'open')}>
+      <button type="button" className="bank-group-head" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <span className="bank-icon" lang={lang}>
+          {units[0].icon}
+        </span>
+        <span className="grow">
+          <b>{name}</b>
+          <small className="muted">
+            {units.length} 組・{words} 字
+          </small>
+        </span>
+        <span className="bank-group-prog">
+          {got} / {words}
+        </span>
+        <span aria-hidden>{open ? '▲' : '▼'}</span>
+      </button>
       {open && (
-        <div className="nodes">
-          {u.lessons.map((l, li) => {
-            const state = lessonState(s, stage, ui, li);
-            const label = l.boss ? (st.unlocked || st.complete ? '單元測驗' : '跳級測驗') : l.title;
-            const dot = l.boss ? '👑' : state === 'locked' ? '🔒' : state === 'done' ? '✓' : String(li + 1);
-            const cls = cx('node', state, l.boss && 'boss', l.id === nextId && 'next');
-            const inner = (
-              <>
-                <span className="node-dot">{dot}</span>
-                <span className="node-label" lang={u.kind === 'chars' && !l.boss ? lang : undefined}>
-                  {label}
-                </span>
-                <Stars n={starsOf(s, l.id)} />
-              </>
-            );
-            return state === 'locked' ? (
-              <span key={l.id} className={cls} title="先完成前一課">
-                {inner}
-              </span>
-            ) : (
-              <a key={l.id} className={cls} href={href(lessonPath(lang, l.id))}>
-                {inner}
-              </a>
-            );
-          })}
+        <div className="decks">
+          {uis.map((ui) => (
+            <DeckRow key={stage.units[ui].id} lang={lang} stage={stage} ui={ui} s={s} />
+          ))}
         </div>
       )}
-      {!st.unlocked && !st.complete && <p className="unit-hint muted">完成上一個單元就會解鎖。已經會了？直接挑戰「跳級測驗」，通過就算完成。</p>}
+    </section>
+  );
+}
+
+function BankSection({ lang, stage, s }: { lang: LangId; stage: Stage; s: Save }) {
+  const groups = new Map<string, number[]>();
+  stage.units.forEach((u, ui) => {
+    if (u.bank) groups.set(u.bank, [...(groups.get(u.bank) ?? []), ui]);
+  });
+  if (!groups.size) return null;
+  const bs = bankState(s, stage);
+  const next = nextBankLesson(s, stage);
+  return (
+    <section className="bank" id="bank">
+      <header className="bank-head card">
+        <div className="grow">
+          <h3>
+            📚 單字庫 <small className="muted">{bs.decks} 組・{bs.words.toLocaleString()} 個字</small>
+          </h3>
+          <p className="muted">照主題分好組的大量單字，不用照順序、也不會上鎖。學過的字會自動排進每天的複習。</p>
+          <div className="bank-prog">
+            <Bar v={bs.words ? bs.learned / bs.words : 0} color={stage.color} />
+            <small className="muted">已學 {bs.learned.toLocaleString()} 字</small>
+          </div>
+        </div>
+        {next && (
+          <a className="btn primary" href={href(lessonPath(lang, next.lesson.id))}>
+            {bs.learned ? '繼續學新字' : '開始學新字'}
+          </a>
+        )}
+      </header>
+      <GuideTip id="tab:bank" icon="📚" title="單字庫怎麼用？">
+        學習路線教文法和最核心的字；單字庫補足考試需要的大量單字。建議每天學一兩組新字（每組約 25 個字、分成 5 課），再去做「今日複習」。點分組可以展開，按「學習」從那一組開始。
+      </GuideTip>
+      {[...groups].map(([name, uis]) => (
+        <BankGroup key={name} lang={lang} stage={stage} s={s} name={name} uis={uis} nextId={next?.unit.id} />
+      ))}
     </section>
   );
 }
@@ -170,9 +289,9 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
           )}
         </header>
 
-        {stage.units.map((u, ui) => (
-          <UnitRow key={u.id} lang={lang} stage={stage} ui={ui} s={s} nextId={up?.lesson.id} />
-        ))}
+        {stage.units.map((u, ui) => (u.bank ? null : <UnitRow key={u.id} lang={lang} stage={stage} ui={ui} s={s} nextId={up?.lesson.id} />))}
+
+        <BankSection lang={lang} stage={stage} s={s} />
 
         {stage.planned.length > 0 && (
           <section className="planned card">
@@ -363,6 +482,59 @@ function tileLabel(it: Item): string {
   return it.ask ?? it.q;
 }
 
+function DexUnit({ lang, u, s, onOpen }: { lang: LangId; u: Unit; s: Save; onOpen: (it: Item) => void }) {
+  const got = learnedIn(s, u);
+  return (
+    <section className="card dex-unit">
+      <header>
+        <b>
+          <span lang={lang}>{u.icon}</span> {u.title}
+        </b>
+        <small className="muted">
+          {got} / {u.items.length}
+        </small>
+      </header>
+      <div className={cx('dex-grid', u.kind)}>
+        {u.items.map((it) => {
+          const m = mastery(s.items[it.id]);
+          return m === 0 ? (
+            <span key={it.id} className="dex-tile unknown" title="還沒學到">
+              ？
+            </span>
+          ) : (
+            <button key={it.id} type="button" className={`dex-tile m${m}`} lang={lang} onClick={() => onOpen(it)}>
+              {tileLabel(it)}
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function DexBank({ lang, stage, s, onOpen }: { lang: LangId; stage: Stage; s: Save; onOpen: (it: Item) => void }) {
+  const [open, setOpen] = useState(false);
+  const decks = bankUnits(stage);
+  const bs = bankState(s, stage);
+  return (
+    <section className="card dex-bank">
+      <button type="button" className="bank-group-head" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <span className="bank-icon">📚</span>
+        <span className="grow">
+          <b>單字庫</b>
+          <small className="muted">{decks.length} 組</small>
+        </span>
+        <span className="bank-group-prog">
+          {bs.learned} / {bs.words}
+        </span>
+        <span aria-hidden>{open ? '▲' : '▼'}</span>
+      </button>
+      {open && decks.filter((u) => learnedIn(s, u) > 0).map((u) => <DexUnit key={u.id} lang={lang} u={u} s={s} onOpen={onOpen} />)}
+      {open && bs.learned === 0 && <p className="muted">還沒有學過單字庫的字。到學習路線的「📚 單字庫」挑一組開始吧。</p>}
+    </section>
+  );
+}
+
 function DexTab({ lang, s }: { lang: LangId; s: Save }) {
   const course = requireCourse(lang);
   const [open, setOpen] = useState<Item | null>(null);
@@ -394,35 +566,10 @@ function DexTab({ lang, s }: { lang: LangId; s: Save }) {
         .map((stage) => (
           <div key={stage.id} className="dex-stage">
             <h3 className="group-label">{stage.title}</h3>
-            {stage.units.map((u) => {
-              const got = u.items.filter((i) => s.items[i.id]).length;
-              return (
-                <section key={u.id} className="card dex-unit">
-                  <header>
-                    <b>
-                      <span lang={lang}>{u.icon}</span> {u.title}
-                    </b>
-                    <small className="muted">
-                      {got} / {u.items.length}
-                    </small>
-                  </header>
-                  <div className={cx('dex-grid', u.kind)}>
-                    {u.items.map((it) => {
-                      const m = mastery(s.items[it.id]);
-                      return m === 0 ? (
-                        <span key={it.id} className="dex-tile unknown" title="還沒學到">
-                          ？
-                        </span>
-                      ) : (
-                        <button key={it.id} type="button" className={`dex-tile m${m}`} lang={lang} onClick={() => setOpen(it)}>
-                          {tileLabel(it)}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-              );
-            })}
+            {pathUnits(stage).map((u) => (
+              <DexUnit key={u.id} lang={lang} u={u} s={s} onOpen={setOpen} />
+            ))}
+            {bankUnits(stage).length > 0 && <DexBank lang={lang} stage={stage} s={s} onOpen={setOpen} />}
           </div>
         ))}
 

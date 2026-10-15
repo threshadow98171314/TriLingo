@@ -82,6 +82,36 @@ export function ko(w: string, rm: string, m: string, ex?: string, o: Opt = {}): 
   };
 }
 
+// ───────── 單字清單（單字庫用，一行一個字） ─────────
+
+/** 把「一行一筆、欄位用 | 分隔」的文字切開；空行略過 */
+function rows(text: string, min: number): string[][] {
+  return text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((l) => {
+      const f = l.split('|').map((x) => x.trim());
+      if (f.length < min) throw new Error(`欄位不夠：${l}`);
+      return f;
+    });
+}
+
+/** 日文單字清單：一行一個「原文|意思|例句|例句翻譯|補充說明」，例句與說明可省略 */
+export function jaList(text: string): VocabItem[] {
+  return rows(text, 2).map(([w, m, s, t, note]) => ja(w, m, s ? `${s}|${t}` : undefined, { note }));
+}
+
+/** 英文單字清單：一行一個「單字|詞性|意思|例句|例句翻譯|補充說明」 */
+export function enList(text: string): VocabItem[] {
+  return rows(text, 3).map(([w, pos, m, s, t, note]) => en(w, pos, m, s ? `${s}|${t}` : undefined, { note }));
+}
+
+/** 韓文單字清單：一行一個「韓文|羅馬拼音|意思|例句|例句翻譯|補充說明」 */
+export function koList(text: string): VocabItem[] {
+  return rows(text, 3).map(([w, rm, m, s, t, note]) => ko(w, rm, m, s ? `${s}|${t}` : undefined, { note }));
+}
+
 /** 字母。spec 寫成「字 拼音|其他可接受輸入」，例如 'し shi|si' */
 export function ch(spec: string, o: { note?: string; say?: string; sound?: string } = {}): VocabItem {
   const [w, rest] = spec.split(' ');
@@ -160,7 +190,7 @@ export function vocabUnit(
   title: string,
   subtitle: string,
   raw: VocabItem[],
-  o: { chunk?: number; kind?: UnitKind } = {},
+  o: { chunk?: number; kind?: UnitKind; bank?: string } = {},
 ): Unit {
   const items = finalize(id, raw);
   const lessons: Lesson[] = chunkEven(items, o.chunk ?? 5).map((g, i) => ({
@@ -169,7 +199,18 @@ export function vocabUnit(
     itemIds: g.map((x) => x.id),
   }));
   lessons.push(bossOf(id, items));
-  return { id, icon, title, subtitle, kind: o.kind ?? 'vocab', items, lessons };
+  const unit: Unit = { id, icon, title, subtitle, kind: o.kind ?? 'vocab', items, lessons };
+  if (o.bank) unit.bank = o.bank;
+  return unit;
+}
+
+/**
+ * 單字庫的一組字：不排在學習路線上、不會上鎖，每課 5 個字，最後是這組的小測驗。
+ * bank 是分組名稱（例如「生活與家庭」），同一組的字放在一起顯示。
+ * 已經上線的組只能在後面加字，不要把字搬到別組（id 是「組的 id＋原文」，搬了進度會歸零）。
+ */
+export function deck(id: string, icon: string, title: string, bank: string, raw: VocabItem[]): Unit {
+  return vocabUnit(id, icon, title, `${raw.length} 個字`, raw, { bank });
 }
 
 export interface CharRow {

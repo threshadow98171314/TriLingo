@@ -108,6 +108,8 @@ export interface Unit {
   items: Item[];
   lessons: Lesson[];
   chart?: ChartRow[];
+  /** 單字庫的分組名稱。有這個欄位的單元不排在學習路線上、不會上鎖，可以隨時挑一組來學 */
+  bank?: string;
 }
 
 export interface Stage {
