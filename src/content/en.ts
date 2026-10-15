@@ -1,7 +1,9 @@
 // 英文：以多益 TOEIC 證書顏色分級。橘 → 棕 → 綠 → 藍 → 金（最高，860–990）
 import type { Unit } from '../core/types';
 import { cz, en, grammarUnit, note, qa, vocabUnit } from './dsl';
+import { BLUE_UNITS } from './en-blue';
 import { BROWN_UNITS } from './en-brown';
+import { GREEN_UNITS } from './en-green';
 
 // ───────── 橘色證書（10–215）：基礎起步 ─────────
 
@@ -289,6 +291,8 @@ const listening = grammarUnit(
 export const UNITS: Record<string, Unit[]> = {
   'en.orange': [office, people, g1, time, money, g2, travel, dining, verbs, g3, adjectives, listening],
   'en.brown': BROWN_UNITS,
+  'en.green': GREEN_UNITS,
+  'en.blue': BLUE_UNITS,
 };
 
 export { EN_MOCKS as MOCKS } from './en-mock';

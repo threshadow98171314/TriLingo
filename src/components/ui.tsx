@@ -6,7 +6,7 @@ import { useSave } from '../core/store';
 import { canSpeak, speak, useVoices } from '../core/tts';
 import type { CourseMeta, Item, LangId } from '../core/types';
 import { cx } from '../core/util';
-import { clozeFilled, headOf, isVocab, sayOf } from '../engine/exercises';
+import { clozeSentence, headOf, isVocab, sayOf, transcriptOf } from '../engine/exercises';
 import { furiPlain, furiSegs, isKanaStr, toHiragana, toKatakana } from '../engine/furigana';
 import { romajiOf } from '../engine/romaji';
 
@@ -172,14 +172,34 @@ export function ItemCard({ item, lang, big }: { item: Item; lang: LangId; big?: 
   }
 
   if (item.kind === 'cloze') {
-    const full = clozeFilled(item);
     return (
       <div className="item-card">
         <div className="ic-head">
           <span className="ic-sentence">
             <ClozeText q={item.q} lang={lang} fill={item.opts[item.a]} />
           </span>
-          <SpeakBtn text={furiPlain(full).replace(/（[^）]*）/g, '')} lang={lang} />
+          <SpeakBtn text={furiPlain(clozeSentence(item))} lang={lang} />
+        </div>
+        {item.t && <div className="ic-meaning">{item.t}</div>}
+      </div>
+    );
+  }
+
+  if (item.kind === 'qa' && item.ask) {
+    // 多益 Part 3／4：對話稿、問題、答案
+    return (
+      <div className="item-card">
+        <div className="ic-head">
+          <Tx className="ic-talk" s={transcriptOf(item.q)} lang={lang} />
+          <SpeakBtn text={item.q} lang={lang} />
+        </div>
+        <div className="ic-qa">
+          <span>問</span>
+          <Tx s={item.ask} lang={lang} />
+        </div>
+        <div className="ic-qa">
+          <span>答</span>
+          <Tx s={item.opts[item.a]} lang={lang} />
         </div>
         {item.t && <div className="ic-meaning">{item.t}</div>}
       </div>

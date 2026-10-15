@@ -57,6 +57,7 @@ export function ChoiceView({
   }, [ex, done, pick]);
 
   const showPrompt = !!ex.prompt && (!ex.hidePrompt || done);
+  const talk = ex.reveal.item.kind === 'qa' && !!ex.reveal.item.ask;
   // 選項比較長、或只有三個選項時排成一欄，兩欄會參差不齊
   const long = ex.options.length === 3 || ex.options.some((o) => o.s.length > 14);
 
@@ -70,7 +71,7 @@ export function ChoiceView({
             <SpeakBtn text={ex.audio.text} lang={ex.audio.lang} slow />
           </div>
         )}
-        {ex.audio && ex.hidePrompt && onMute && !done && (
+        {ex.audio && (ex.hidePrompt || talk) && onMute && !done && (
           <button type="button" className="link-btn mute-btn" onClick={onMute}>
             🔇 現在不方便聽
           </button>
@@ -80,7 +81,7 @@ export function ChoiceView({
             <ClozeText q={ex.prompt.s} lang={ex.prompt.lang as LangId} fill={done ? ex.options[ex.answer].s : null} />
           </div>
         ) : (
-          showPrompt && ex.prompt && <Tx className={cx('prompt-text', ex.big && 'big')} s={ex.prompt.s} lang={ex.prompt.lang} />
+          showPrompt && ex.prompt && (talk ? <TalkPrompt s={ex.prompt.s} lang={ex.prompt.lang} /> : <Tx className={cx('prompt-text', ex.big && 'big')} s={ex.prompt.s} lang={ex.prompt.lang} />)
         )}
       </div>
       <div className={cx('options', long && 'list')}>
@@ -97,6 +98,17 @@ export function ChoiceView({
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** 多益 Part 3／4／7：文章或對話稿放在框裡，最後一段是問題 */
+function TalkPrompt({ s, lang }: { s: string; lang: LangId | 'zh' }) {
+  const k = s.lastIndexOf('\n\n');
+  return (
+    <div className="talk-prompt">
+      {k >= 0 && <Tx className="talk-passage" s={s.slice(0, k)} lang={lang} />}
+      <Tx className="talk-ask" s={k >= 0 ? s.slice(k + 2) : s} lang={lang} />
     </div>
   );
 }

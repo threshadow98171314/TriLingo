@@ -4,9 +4,10 @@ import { COURSES } from '../src/content/all';
 import { randomTip, TIPS } from '../src/content/tips';
 import { lastStudiedLang, quickStats } from '../src/core/progress';
 import { defaultSave } from '../src/core/save';
-import type { VocabItem } from '../src/core/types';
+import type { ClozeItem, QaItem, VocabItem } from '../src/core/types';
 import { ja } from '../src/content/dsl';
-import { listenEx, qaEx, recog, typeJaEx, unlisten, type Ctx } from '../src/engine/exercises';
+import { scriptLines } from '../src/core/tts';
+import { clozeSentence, listenEx, qaEx, recog, tokenPool, transcriptOf, typeJaEx, unlisten, type Ctx } from '../src/engine/exercises';
 import { furiPlain } from '../src/engine/furigana';
 
 describe('知識補充站', () => {
@@ -66,6 +67,59 @@ describe('現在不方便聽', () => {
     expect(u.t === 'typeja' && u.mode === 'm2w' && !u.audio && u.prompt?.s === '車站').toBe(true);
     const r = recog(words[2], words, ctx);
     expect(unlisten(r)).toBe(r);
+  });
+});
+
+describe('多益 Part 1、3、4、7', () => {
+  const units = COURSES.en.stages.flatMap((s) => s.units);
+  const all = units.flatMap((u) => u.items);
+  const talks = all.filter((i): i is QaItem => i.kind === 'qa' && !!i.ask && !i.read);
+  const reads = all.filter((i): i is QaItem => i.kind === 'qa' && !!i.read);
+  const en = (canListen: boolean): Ctx => ({ lang: 'en', rng: () => 0.3, canListen });
+
+  it('對話稿一行一句、每行標出說話者；閱讀文章不會被當成對話', () => {
+    expect(talks.length).toBeGreaterThanOrEqual(20);
+    expect(reads.length).toBeGreaterThanOrEqual(8);
+    for (const t of talks) {
+      const lines = t.q.split('\n');
+      for (const line of lines) expect(line, t.id).toMatch(/^[MF]: \S/);
+      expect(scriptLines(t.q)?.length, t.id).toBe(lines.length);
+      expect(t.ask!.length, t.id).toBeGreaterThan(5);
+    }
+    for (const r of reads) expect(scriptLines(r.q), r.id).toBeNull();
+  });
+
+  it('聽對話題：問題一直顯示、播放對話稿；不方便聽或沒有語音時改成印出對話稿', () => {
+    const t = talks[0];
+    const ex = qaEx(t, en(true));
+    expect(ex.prompt?.s).toBe(t.ask);
+    expect(ex.hidePrompt).toBeFalsy();
+    expect(ex.audio?.text).toBe(t.q);
+    const u = unlisten(ex);
+    expect(u.t === 'choice' && !u.audio && u.prompt!.s.startsWith(transcriptOf(t.q)) && u.prompt!.s.endsWith(t.ask!)).toBe(true);
+    expect(transcriptOf(t.q)).toMatch(/^(男|女)：/);
+    const quiet = qaEx(t, en(false));
+    expect(quiet.audio).toBeUndefined();
+    expect(quiet.prompt?.s.endsWith(t.ask!)).toBe(true);
+  });
+
+  it('閱讀題：直接印出文章，不朗讀', () => {
+    const r = reads[0];
+    const ex = qaEx(r, en(true));
+    expect(ex.audio).toBeUndefined();
+    expect(ex.prompt?.s.startsWith(r.q)).toBe(true);
+    expect(unlisten(ex)).toBe(ex);
+  });
+
+  it('Part 1 的（照片：…）只顯示在題目上：不朗讀，也不會變成句子重組的字卡', () => {
+    const p1 = units.find((u) => u.id === 'en.brown.part1')!;
+    const cz = p1.items.filter((i): i is ClozeItem => i.kind === 'cloze');
+    expect(cz.length).toBeGreaterThanOrEqual(10);
+    for (const c of cz) {
+      expect(c.q.startsWith('（照片：'), c.id).toBe(true);
+      expect(clozeSentence(c), c.id).toMatch(/^[A-Z][A-Za-z ,.]+$/);
+    }
+    expect(tokenPool(p1.items, 'en').some((t) => t.includes('照片'))).toBe(false);
   });
 });
 

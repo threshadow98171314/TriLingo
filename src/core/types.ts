@@ -62,11 +62,16 @@ export interface ClozeItem {
 export interface QaItem {
   id: string;
   kind: 'qa';
+  /** 聽到的內容。多益 Part 3／4 的對話稿一行一句，用「M: 」「F: 」標出說話者 */
   q: string;
   opts: string[];
   a: number;
   t?: string;
   explain?: string;
+  /** 畫面上顯示的問題（聽一段對話或獨白回答問題時才有） */
+  ask?: string;
+  /** 閱讀題（多益 Part 7）：q 是文章，直接印出來、不朗讀 */
+  read?: boolean;
 }
 
 export type Item = VocabItem | SentenceItem | ClozeItem | QaItem;

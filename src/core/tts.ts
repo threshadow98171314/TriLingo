@@ -56,7 +56,18 @@ export function setTtsPrefs(p: typeof prefs) {
   prefs = p;
 }
 
+/** 「M: …」「F: …」一行一句的對話稿（多益 Part 3／4）；一般的句子回傳 null */
+export function scriptLines(text: string): { who: 'M' | 'F' | null; text: string }[] | null {
+  if (!/^[MF]: /.test(text)) return null;
+  return text.split('\n').map((l) => {
+    const m = /^([MF]):\s*(.*)$/.exec(l);
+    return m ? { who: m[1] as 'M' | 'F', text: m[2] } : { who: null, text: l };
+  });
+}
+
 export function speak(text: string, lang: LangId, o: { rate?: number } = {}): boolean {
+  const lines = scriptLines(text);
+  if (lines) return speakScript(lines, lang, undefined, o.rate);
   const s = synth();
   if (!s || !text) return false;
   const voice = bestVoice(lang, prefs.voices[lang]);
@@ -79,10 +90,10 @@ export function stopSpeaking() {
 }
 
 /**
- * 依序唸出一段對話（模擬考的聽力）。who 為 'M' 的台詞盡量換另一個語音、降低音高，聽得出是兩個人。
- * onEnd：整段唸完時呼叫。
+ * 依序唸出一段對話（模擬考、多益 Part 3／4）。who 為 'M' 的台詞盡量換另一個語音、降低音高，聽得出是兩個人。
+ * onEnd：整段唸完時呼叫；rate：語速倍率（慢速播放用）。
  */
-export function speakScript(lines: { who: 'M' | 'F' | null; text: string }[], lang: LangId, onEnd?: () => void): boolean {
+export function speakScript(lines: { who: 'M' | 'F' | null; text: string }[], lang: LangId, onEnd?: () => void, rate = 1): boolean {
   const s = synth();
   if (!s || !lines.length) return false;
   const main = bestVoice(lang, prefs.voices[lang]);
@@ -95,7 +106,7 @@ export function speakScript(lines: { who: 'M' | 'F' | null; text: string }[], la
       const male = l.who === 'M';
       u.voice = male ? other : main;
       u.lang = u.voice.lang;
-      u.rate = prefs.rate * 0.95;
+      u.rate = prefs.rate * 0.95 * rate;
       u.pitch = male ? (other === main ? 0.75 : 0.9) : 1.1;
       if (i === lines.length - 1 && onEnd) u.onend = () => onEnd();
       s.speak(u);

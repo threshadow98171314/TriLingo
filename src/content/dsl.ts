@@ -112,6 +112,19 @@ export function qa(q: string, opts: string[], t?: string, explain?: string): QaI
   return { id: '', kind: 'qa', q, opts, a: 0, t, explain };
 }
 
+/**
+ * 聽一段對話或獨白，回答畫面上的問題（多益 Part 3／4）。
+ * script 一行一句，用「M: 」「F: 」標出說話者（男女用不同的聲音唸）；**第一個選項是正確答案**。
+ */
+export function talk(script: string[], ask: string, opts: string[], t?: string, explain?: string): QaItem {
+  return { ...qa(script.join('\n'), opts, t, explain), ask };
+}
+
+/** 閱讀短文，回答問題（多益 Part 7）。passage 一行一段；**第一個選項是正確答案** */
+export function read(passage: string[], ask: string, opts: string[], t?: string, explain?: string): QaItem {
+  return { ...talk(passage, ask, opts, t, explain), read: true };
+}
+
 /** 文法說明卡。examples 寫成「原文|翻譯」 */
 export function note(title: string, body: string[], examples: string[] = [], isJa = false): GrammarNote {
   return { title, body, examples: examples.map((e) => parseEx(e, isJa)!) };

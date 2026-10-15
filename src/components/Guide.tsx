@@ -147,6 +147,10 @@ export function exHintOf(ex: Exercise): { id: string; text: string } | null {
     case 'choice':
       if (ex.mode === 'w2r') return { id: 'ex:w2r', text: '漢字讀音題：選出正確的假名讀音。小心長音、促音（っ）、濁音的差別。' };
       if (ex.mode === 'cloze') return { id: 'ex:cloze', text: '選出最適合填進空格的答案，作答後會顯示解析。' };
+      if (ex.mode === 'qa' && ex.reveal.item.kind === 'qa' && ex.reveal.item.ask)
+        return ex.audio
+          ? { id: 'ex:talk', text: '先看畫面上的問題，再聽對話或獨白找答案。男女用不同的聲音唸；🔊 重聽、🐢 慢速播放。' }
+          : { id: 'ex:read', text: '閱讀題：先看最後的問題，再回到文章裡找關鍵字，不用每個字都看懂。' };
       if (ex.mode === 'qa') return { id: 'ex:qa', text: '聽問題（或看問題），選出最自然的回應。' };
       if (ex.audio) return { id: 'ex:listen', text: '聽力題：🔊 重聽、🐢 慢速播放。在不方便出聲的地方，可以按「現在不方便聽」改成看文字。' };
       return null;

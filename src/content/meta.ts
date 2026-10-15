@@ -33,7 +33,6 @@ const EN: CourseMeta = {
       color: '#a8703a',
       group: 'main',
       style: 'cert',
-      planned: ['Part 1 照片描述', '比較級與最高級', '動名詞與不定詞'],
     }),
     stage({
       id: 'en.green',
@@ -44,7 +43,6 @@ const EN: CourseMeta = {
       color: '#2fa36b',
       group: 'main',
       style: 'cert',
-      planned: ['商務書信', '人事與招募', '行銷與銷售', '財務與預算', 'Part 3 簡短對話', 'Part 6 段落填空', '關係子句', '被動語態'],
     }),
     stage({
       id: 'en.blue',
@@ -55,7 +53,6 @@ const EN: CourseMeta = {
       color: '#2f7de1',
       group: 'main',
       style: 'cert',
-      planned: ['合約與談判', '製造與物流', '出差與會展', 'Part 4 簡短獨白', 'Part 7 多篇閱讀', '假設語氣', '分詞構句', '易混淆字'],
     }),
     stage({
       id: 'en.gold',

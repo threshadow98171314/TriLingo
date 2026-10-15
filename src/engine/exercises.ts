@@ -147,10 +147,22 @@ export function clozeFilled(i: ClozeItem): string {
   return i.q.replace('___', i.opts[i.a]);
 }
 
+/** 填好答案、去掉（中文提示）的句子：拿來朗讀、排句子重組。例如多益 Part 1 的（照片：…） */
+export function clozeSentence(i: ClozeItem): string {
+  return clozeFilled(i)
+    .replace(/（[^）]*）/g, '')
+    .trim();
+}
+
+/** 對話稿給人看的版本：「M: 」「F: 」換成「男：」「女：」 */
+export function transcriptOf(q: string): string {
+  return q.replace(/^M: /gm, '男：').replace(/^F: /gm, '女：');
+}
+
 function speakOfItem(i: Item, lang: LangId): Speak | undefined {
   if (isVocab(i)) return { text: sayOf(i, lang), lang };
   if (i.kind === 'sentence') return { text: i.s, lang };
-  if (i.kind === 'cloze') return { text: furiPlain(clozeFilled(i)).replace(/（[^）]*）/g, ''), lang };
+  if (i.kind === 'cloze') return { text: furiPlain(clozeSentence(i)), lang };
   return undefined;
 }
 
@@ -309,6 +321,23 @@ export function clozeEx(i: ClozeItem, ctx: Ctx): ChoiceEx {
 /** 聽問題選回應（沒有語音時改成閱讀題） */
 export function qaEx(i: QaItem, ctx: Ctx): ChoiceEx {
   const { lang, canListen } = ctx;
+  if (i.ask) {
+    // 多益 Part 3／4：聽一段對話或獨白，問題一直顯示在畫面上；Part 7 閱讀題直接印出文章
+    const listen = canListen && !i.read;
+    return choice(
+      {
+        itemId: i.id,
+        mode: 'qa',
+        label: i.read ? '閱讀短文，回答問題' : listen ? '聽一段話，回答問題' : '閱讀這段話，回答問題',
+        prompt: { s: listen ? i.ask : `${transcriptOf(i.q)}\n\n${i.ask}`, lang },
+        audio: listen ? { text: i.q, lang } : undefined,
+        reveal: reveal(i, lang, i.explain),
+      },
+      { s: i.opts[i.a], lang },
+      i.opts.filter((_, k) => k !== i.a).map((s) => ({ s, lang })),
+      ctx.rng,
+    );
+  }
   return choice(
     {
       itemId: i.id,
@@ -390,7 +419,7 @@ export function tokenPool(pool: Item[], lang: LangId): string[] {
     let tk: string[] = [];
     if (x.kind === 'sentence') tk = x.tokens;
     else if (isVocab(x) && x.tokens) tk = x.tokens;
-    else if (x.kind === 'cloze' && lang === 'en') tk = clozeFilled(x).split(' ');
+    else if (x.kind === 'cloze' && lang === 'en') tk = clozeSentence(x).split(' ');
     for (const t of cleanTokens(tk)) if (!(lang === 'ja' && isJaParticle(t))) out.add(t);
   }
   return [...out];
@@ -529,7 +558,7 @@ function grammarFlow(items: Item[], pool: Item[], ctx: Ctx, skipTeach: boolean):
   // 英文：剛做過的克漏字句子，再用重組練一次語序
   if (lang === 'en') {
     for (const c of shuffle(C, rng).slice(0, 2)) {
-      const e = c.t ? buildEx(c, clozeFilled(c).split(' '), c.t, distract, ctx) : null;
+      const e = c.t ? buildEx(c, clozeSentence(c).split(' '), c.t, distract, ctx) : null;
       if (e) out.push(e);
     }
   }
@@ -650,6 +679,11 @@ export function buildListening(items: VocabItem[], poolOf: (i: VocabItem) => Voc
 
 /** 現在不方便聽：把聽力題改成看文字作答（只改得了本來就有文字可以顯示的題目） */
 export function unlisten(ex: Exercise): Exercise {
+  // 聽對話回答問題 → 把對話稿印在問題上面
+  if (ex.t === 'choice' && ex.audio && ex.reveal.item.kind === 'qa' && ex.reveal.item.ask) {
+    const { q, ask } = ex.reveal.item;
+    return { ...ex, audio: undefined, prompt: { s: `${transcriptOf(q)}\n\n${ask}`, lang: ex.audio.lang }, label: '閱讀這段話，回答問題' };
+  }
   if (ex.t === 'choice' && ex.audio && ex.hidePrompt) {
     const item = ex.reveal.item;
     // 字母的聽力題沒有文字題目：改成看羅馬拼音選字

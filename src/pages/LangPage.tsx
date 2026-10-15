@@ -29,7 +29,7 @@ import { setStage, useSave } from '../core/store';
 import { canSpeak, speak, useVoices } from '../core/tts';
 import type { Item, LangId, Stage, VocabItem } from '../core/types';
 import { cx, fmtTime } from '../core/util';
-import { clozeFilled, isVocab, LANG_NAME, sayOf } from '../engine/exercises';
+import { clozeSentence, isVocab, LANG_NAME, sayOf } from '../engine/exercises';
 import { furiPlain } from '../engine/furigana';
 import { basicTable } from '../engine/hangul';
 import { href, lessonPath, stagePath } from '../router';
@@ -359,8 +359,8 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
 function tileLabel(it: Item): string {
   if (isVocab(it)) return it.w;
   if (it.kind === 'sentence') return it.s;
-  if (it.kind === 'cloze') return furiPlain(clozeFilled(it)).replace(/（[^）]*）/g, '');
-  return it.q;
+  if (it.kind === 'cloze') return furiPlain(clozeSentence(it));
+  return it.ask ?? it.q;
 }
 
 function DexTab({ lang, s }: { lang: LangId; s: Save }) {

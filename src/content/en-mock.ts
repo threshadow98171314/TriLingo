@@ -1,5 +1,5 @@
 // 英文實戰模擬考：仿多益（TOEIC Listening & Reading）的題型，題目全部是原創。
-// 難度對應橘色、棕色證書的課程內容。每次從題庫隨機抽題，所以每次考的都不太一樣。
+// 第一份對應橘色、棕色證書，第二份對應綠色、藍色證書。每次從題庫隨機抽題，所以每次考的都不太一樣。
 import type { MockExam } from '../core/types';
 import { mockExam, mq, one, set } from './mockDsl';
 
@@ -185,4 +185,241 @@ const brown = mockExam({
   ],
 });
 
-export const EN_MOCKS: MockExam[] = [brown];
+const blue = mockExam({
+  id: 'en.mock.blue',
+  title: '多益模擬考：綠色・藍色',
+  subtitle: '聽力 Part 1–4＋閱讀 Part 5–7（含多篇閱讀）',
+  about:
+    '正式的多益是聽力 100 題（45 分鐘）＋閱讀 100 題（75 分鐘），滿分 990 分。這份模擬考涵蓋全部七個大題，約 37 題、30 分鐘，難度對應綠色到藍色證書（約 470–855 分）。Part 1 沒辦法放照片，改成看文字描述選句子。',
+  after: 'en.green',
+  minutes: 30,
+  pass: 0.6,
+  levels: [
+    { min: 0.85, label: '藍色證書程度', desc: '這個程度的題目幾乎難不倒你，可以往金色證書（860 分以上）衝刺了。' },
+    { min: 0.6, label: '綠色證書程度', desc: '大約落在綠色證書（470–725 分）的範圍。把答錯的題型整理起來，特別是 Part 3、4 的長聽力。' },
+    { min: 0.4, label: '棕色證書程度', desc: '基礎已經穩了。建議把綠色證書的單元上完，多練被動語態、關係子句和商務單字。' },
+    { min: 0, label: '先打穩基礎', desc: '建議先完成棕色證書的單元，再回來挑戰。' },
+  ],
+  sections: [
+    {
+      id: 'p1',
+      title: 'Part 1 照片描述（文字版）',
+      intro: '正式考試會看一張照片、聽四個句子。這裡把照片寫成文字，選出最符合的描述。注意動作和狀態的差別。',
+      pick: 3,
+      groups: [
+        one('（照片：一名女子站在影印機前影印文件）', ['A woman is making copies.', 'A woman is repairing a machine.', 'A woman is carrying some boxes.', 'A woman is writing on a whiteboard.'], 'making copies＝影印。照片裡有影印機，但她不是在修理。', '一名女子正在影印。'),
+        one('（照片：餐廳裡的桌子都已經擺好餐具，沒有客人）', ['The tables have been set.', 'The tables are being cleaned.', 'Some customers are eating.', 'A waiter is pouring water.'], '沒有人在場，用完成被動 have been set（已經擺好）。', '桌子都已經擺好餐具了。'),
+        one('（照片：幾艘船停靠在碼頭邊）', ['Some boats are docked at a pier.', 'Some boats are sailing in the ocean.', 'People are swimming near the boats.', 'A boat is being painted.'], 'docked at a pier＝停靠在碼頭。照片裡的船沒有在航行。', '幾艘船停靠在碼頭邊。'),
+        one('（照片：一名男子蹲著綁鞋帶）', ['A man is tying his shoes.', 'A man is putting on a jacket.', 'A man is buying some shoes.', 'A man is running on a track.'], 'tie one’s shoes＝綁鞋帶。', '一名男子正在綁鞋帶。'),
+        one('（照片：一名工人站在梯子上換燈泡）', ['A worker is standing on a ladder.', 'A worker is carrying a ladder.', 'A ladder is lying on the floor.', 'A worker is painting the ceiling.'], '他「站在」梯子上；梯子沒有被搬，也沒有倒在地上。', '一名工人站在梯子上。'),
+      ],
+    },
+    {
+      id: 'p2',
+      title: 'Part 2 應答問題',
+      intro: '聽一個問題或一句話，選出最適當的回應。這一級常出「間接回答」，不一定會直接說 Yes 或 No。',
+      listening: true,
+      pick: 5,
+      groups: [
+        set({ script: ['M: Who is going to lead the training session next week?'], zh: '下週的培訓課程由誰帶？' }, mq(undefined, ["I think it's someone from headquarters.", 'In the training room.', 'Yes, it was very useful.'], 'Who 問人；「我想是總部的人」是間接但合理的回答。')),
+        set({ script: ["F: Why don't we order lunch from the new sandwich shop?"], zh: '我們何不從那家新的三明治店訂午餐？' }, mq(undefined, ["Sure, I've heard it's good.", 'Because I was hungry.', 'At twelve thirty.'], "Why don't we…? 是提議，不是問原因；Because 開頭的選項是陷阱。")),
+        set({ script: ['M: Has the budget for next year been approved?'], zh: '明年的預算核准了嗎？' }, mq(undefined, ['The board will decide on Friday.', 'About two million dollars.', 'I approve of your plan.'], '間接回答：還沒，要等董事會星期五決定。重複 approve 的選項是陷阱。')),
+        set({ script: ['F: Where can I find the latest sales figures?'], zh: '最新的銷售數字在哪裡可以找到？' }, mq(undefined, ["They're on the shared drive.", 'Sales went up last month.', 'I found it yesterday.'], 'Where 問地點；shared drive＝共用雲端硬碟。')),
+        set({ script: ["M: You went to the trade show in Berlin, didn't you?"], zh: '你去了柏林的商展，對吧？' }, mq(undefined, ['Yes, and I met several new clients.', 'The show starts at nine.', 'No, I prefer trains.'], '附加問句：照事實回答，再補充資訊。')),
+        set({ script: ["F: I'm afraid the shipment won't arrive until Thursday."], zh: '恐怕貨要到星期四才會到。' }, mq(undefined, ["Then we'll have to tell the customer.", "I'm not afraid of it.", 'It arrived on Monday.'], '直述句：回應接下來怎麼處理；重複 afraid 的選項是陷阱。')),
+        set({ script: ['M: Would you rather meet in person or talk over the phone?'], zh: '你比較想當面談還是講電話？' }, mq(undefined, ['A video call would be easiest for me.', 'Yes, I would.', 'The phone is on the desk.'], '選擇問句也可以提出第三個方案（視訊），一樣是自然的回答。')),
+        set({ script: ['F: How did the client like our proposal?'], zh: '客戶覺得我們的提案怎麼樣？' }, mq(undefined, ['She asked for a few changes.', 'By express mail.', 'I like it too.'], 'How did … like…? 問感想；「她要求修改幾個地方」是合理的回答。')),
+      ],
+    },
+    {
+      id: 'p3',
+      title: 'Part 3 簡短對話',
+      intro: '聽一段兩人的對話，回答三個問題。先看題目再按播放，邊聽邊找答案。',
+      listening: true,
+      pick: 2,
+      groups: [
+        set(
+          {
+            script: [
+              'F: Hi, Mark. Do you have a minute? I wanted to talk about the new product launch.',
+              'M: Sure. Is there a problem?',
+              "F: The factory just told me the packaging won't be ready until the end of the month. That's two weeks later than planned.",
+              "M: Then we should move the launch event to the first week of next month. I'll call the hotel to change our reservation.",
+            ],
+            zh: '女：嗨，Mark，有空嗎？我想談新產品上市的事。／男：好，有什麼問題嗎？／女：工廠剛通知我，包裝要到月底才會好，比計畫晚了兩週。／男：那我們應該把上市活動延到下個月第一週。我來打給飯店改預約。',
+          },
+          mq('What are the speakers mainly discussing?', ['A product launch', 'A hiring plan', 'A factory tour', 'A hotel renovation'], '開頭就說 talk about the new product launch。'),
+          mq('What problem does the woman mention?', ['Some packaging will be late.', 'A factory has closed.', 'A hotel is fully booked.', 'A product is too expensive.'], "the packaging won't be ready until the end of the month＝包裝會延遲。"),
+          mq('What will the man most likely do next?', ['Contact a hotel', 'Visit the factory', 'Design new packaging', 'Cancel the product'], "I'll call the hotel to change our reservation。"),
+        ),
+        set(
+          {
+            script: [
+              "M: Good morning. I'd like to open a business account for my company.",
+              'F: Certainly. Do you have your business registration certificate with you?',
+              'M: I have a copy, but not the original.',
+              "F: I'm sorry, but we need the original. You can bring it in any time this week, and the process only takes about thirty minutes.",
+            ],
+            zh: '男：早安，我想幫公司開一個企業帳戶。／女：好的，您有帶公司登記證明嗎？／男：我有影本，但沒有正本。／女：抱歉，我們需要正本。這週任何時候帶來都可以，手續大約只要三十分鐘。',
+          },
+          mq('Where does the conversation most likely take place?', ['At a bank', 'At a post office', 'At a law firm', 'At a printing shop'], 'open a business account＝在銀行開戶。'),
+          mq('What does the woman need from the man?', ['An original document', 'A copy of his passport', 'A payment', 'His business card'], 'we need the original＝需要正本文件。'),
+          mq('How long will the process take?', ['About thirty minutes', 'About one week', 'About three days', 'About an hour'], 'the process only takes about thirty minutes。this week 是指這週什麼時候來都可以。'),
+        ),
+        set(
+          {
+            script: [
+              "F: Mr. Ito, thanks for coming in. We're interested in your company's delivery service.",
+              'M: Thank you. We deliver to over two hundred cities in Asia, usually within forty-eight hours.',
+              "F: That's impressive. We ship about five hundred packages a month. Could you send us a price list?",
+              'M: Of course. And since you ship so many packages, I can offer you a ten percent discount.',
+            ],
+            zh: '女：伊藤先生，謝謝您過來。我們對貴公司的配送服務有興趣。／男：謝謝。我們配送到亞洲兩百多個城市，通常四十八小時內送達。／女：真厲害。我們每個月寄大約五百件包裹，可以給我們一份價目表嗎？／男：當然。而且因為您寄的量很大，我可以提供九折優惠。',
+          },
+          mq("What does the man's company provide?", ['Delivery services', 'Office supplies', 'Travel tours', 'Packaging design'], 'delivery service＝配送服務。'),
+          mq('What does the woman ask for?', ['A price list', 'A free sample', 'A contract', 'Faster delivery'], 'Could you send us a price list?'),
+          mq('Why does the man offer a discount?', ["The woman's company ships a large volume.", 'It is a holiday sale.', 'A delivery was late.', 'The woman is a new customer.'], 'since you ship so many packages＝因為量大。'),
+        ),
+      ],
+    },
+    {
+      id: 'p4',
+      title: 'Part 4 簡短獨白',
+      intro: '聽一個人說的公告、留言或廣告，回答三個問題。開頭通常會說出場合，結尾常是請聽眾做的事。',
+      listening: true,
+      pick: 2,
+      groups: [
+        set(
+          {
+            script: [
+              'M: Good morning, and welcome to the third annual Green Energy Conference. Before we begin, a few announcements.',
+              "M: Lunch will be served in the main hall at noon. This afternoon's workshop on solar power has been moved from Room 201 to Room 305.",
+              'M: Finally, please complete the online survey at the end of the day. Everyone who completes it will receive a free conference T-shirt.',
+            ],
+            zh: '早安，歡迎來到第三屆綠色能源研討會。開始之前有幾項公告：午餐中午在主廳供應。今天下午的太陽能工作坊從 201 室改到 305 室。最後，請在今天結束時填寫線上問卷，填完的人都會拿到一件研討會 T 恤。',
+          },
+          mq('Where is the talk most likely taking place?', ['At a conference', 'At a restaurant', 'At a factory', 'At a clothing store'], 'welcome to the … Conference。'),
+          mq('What has changed?', ['The location of a workshop', 'The time of lunch', 'The date of the conference', 'The price of a T-shirt'], 'workshop … has been moved from Room 201 to Room 305＝工作坊換地點。'),
+          mq('How can listeners get a free T-shirt?', ['By completing a survey', 'By attending a workshop', 'By eating lunch in the main hall', 'By registering early'], 'Everyone who completes it (the survey) will receive a free T-shirt。'),
+        ),
+        set(
+          {
+            script: [
+              "F: Hello, Mr. Brown. This is Linda from Sunrise Dental Clinic. I'm calling to remind you about your appointment tomorrow at 10 a.m.",
+              "F: Unfortunately, Dr. Kim is sick and won't be in tomorrow. Dr. Lopez can see you at the same time, or you can reschedule with Dr. Kim for next week.",
+              'F: Please call us back at 555-0167 to let us know which you prefer.',
+            ],
+            zh: '布朗先生您好，我是日出牙醫診所的 Linda，打電話提醒您明天早上十點的預約。很遺憾，金醫師生病了，明天不會來。羅培茲醫師可以在同一時間幫您看診，或者您也可以改約下週給金醫師看。請回電 555-0167 告訴我們您想選哪一個。',
+          },
+          mq('Why is the speaker calling?', ['To discuss an appointment', 'To ask for a payment', 'To offer a job', 'To advertise a new clinic'], "I'm calling to remind you about your appointment。"),
+          mq('What problem does the speaker mention?', ['A doctor is not available.', 'The clinic is closing.', 'A bill was not paid.', 'The appointment time was wrong.'], "Dr. Kim is sick and won't be in＝醫師不在。"),
+          mq('What is Mr. Brown asked to do?', ['Return a call', 'Arrive early', 'Visit another clinic', 'Fill out a form'], 'Please call us back＝回電。'),
+        ),
+        set(
+          {
+            script: [
+              'M: Looking for a relaxing weekend? Come to Lakeview Resort, just one hour from the city.',
+              'M: Enjoy our hot springs, fresh local food, and beautiful mountain views.',
+              'M: This month only, guests who stay two nights will get a free dinner for two. Book now on our website.',
+            ],
+            zh: '想度過輕鬆的週末嗎？歡迎來到湖景度假村，離市區只要一小時。享受溫泉、新鮮在地美食和美麗的山景。只限本月，住兩晚的房客可以獲得雙人免費晚餐。現在就上官網預訂。',
+          },
+          mq('What is being advertised?', ['A resort', 'A restaurant', 'A tour company', 'A real estate agency'], 'Come to Lakeview Resort。'),
+          mq('What can guests enjoy at the resort?', ['Hot springs', 'A golf course', 'A shopping mall', 'A water park'], 'Enjoy our hot springs…。'),
+          mq('How can guests get a free dinner?', ['By staying two nights', 'By booking by phone', 'By visiting on a weekday', 'By bringing a friend'], 'guests who stay two nights will get a free dinner for two。'),
+        ),
+      ],
+    },
+    {
+      id: 'p5',
+      title: 'Part 5 句子填空',
+      intro: '選出最適合填入空格的答案。這一級除了詞性，還常考被動語態、關係詞、假設語氣與分詞。',
+      pick: 8,
+      groups: [
+        one('The annual report ___ to all shareholders next week.', ['will be sent', 'sent', 'will send', 'sending'], '報告是被寄送的，next week 用未來被動。', '年度報告將在下週寄給所有股東。'),
+        one('Applicants ___ have at least three years of experience will be considered.', ['who', 'which', 'whose', 'what'], '先行詞是人（applicants），當主詞用 who。', '至少有三年經驗的應徵者才會被考慮。'),
+        one('___ the heavy rain, the outdoor concert was held as planned.', ['Despite', 'Although', 'Because', 'Unless'], 'Despite ＋ 名詞＝儘管；Although 後面要接子句。', '儘管下大雨，戶外音樂會仍照計畫舉行。'),
+        one('The new software allows employees to work more ___.', ['efficiently', 'efficient', 'efficiency', 'efficiencies'], '修飾動詞 work 用副詞。', '新軟體讓員工能更有效率地工作。'),
+        one('If the order had been placed earlier, it ___ on time.', ['would have arrived', 'will arrive', 'arrived', 'had arrived'], '與過去事實相反的假設：would have ＋ 過去分詞。', '如果早點下訂單，貨就會準時到了。'),
+        one('Please ___ the attached form and return it by Friday.', ['complete', 'completion', 'completely', 'completing'], 'Please 後面接原形動詞。', '請填寫附件的表格，並在星期五前寄回。'),
+        one('Ms. Lopez has been ___ to regional sales manager.', ['promoted', 'promoting', 'promotion', 'promote'], '被升職：has been ＋ 過去分詞。', '羅培茲小姐已經升為區域業務經理。'),
+        one('All visitors must ___ at the front desk.', ['register', 'registration', 'registered', 'registering'], 'must 後面接原形動詞。', '所有訪客都必須在櫃台登記。'),
+        one('The board of directors will meet ___ the proposal next Monday.', ['to discuss', 'discussing', 'discussed', 'discuss'], 'to V 表示目的：為了討論。', '董事會將在下週一開會討論這項提案。'),
+        one('___ you need further information, please do not hesitate to call us.', ['Should', 'Would', 'Had', 'Were'], '省略 if 的倒裝：Should you need…', '如果您需要更多資訊，請隨時來電。'),
+        one("The company's profits increased ___ this year.", ['considerably', 'considerable', 'consider', 'consideration'], '修飾動詞 increased 用副詞。', '公司今年的利潤大幅增加。'),
+        one('Neither the manager ___ his assistant was at the meeting.', ['nor', 'or', 'and', 'but'], 'neither A nor B＝A 和 B 都不。', '經理和他的助理都沒有出席會議。'),
+        one('This contract is valid ___ December 31.', ['until', 'by', 'since', 'during'], 'until＝一直持續到某個時間點；by 是「最晚在…之前」完成。', '這份合約的有效期到 12 月 31 日。'),
+        one('___ in 1985, Brown & Co. is one of the oldest law firms in the city.', ['Founded', 'Founding', 'Found', 'To found'], '公司是「被創立」的，分詞構句用過去分詞。', '創立於 1985 年的 Brown & Co. 是市內最老的律師事務所之一。'),
+      ],
+    },
+    {
+      id: 'p6',
+      title: 'Part 6 段落填空',
+      intro: '閱讀一篇短文，選出最適合填入每個空格的答案；其中一題要選出最適合放進空格的「句子」。',
+      pick: 1,
+      groups: [
+        set(
+          {
+            passage:
+              'To: All Employees\nFrom: Human Resources\nSubject: Health Check\n\nOur annual health check will take place on March 15 and 16 in the main conference room. All employees are __(1)__ to attend on one of these days. __(2)__ Please sign up for a time slot on the HR website by March 10. Those who cannot attend __(3)__ either day should contact HR directly. We hope everyone takes this __(4)__ to check on their health.',
+            zh: '致全體員工（人資部）：年度健康檢查將在 3 月 15、16 日於大會議室舉行，所有員工都必須在其中一天參加。檢查大約需要三十分鐘。請在 3 月 10 日前到人資網站登記時段。這兩天都無法參加的人請直接聯絡人資部。希望大家把握這個機會關心自己的健康。',
+          },
+          mq('空格 (1)', ['required', 'requiring', 'requirement', 'require'], 'be required to V＝必須（被要求）做…。'),
+          mq('空格 (2)：選出最適合放進這個位置的句子', ['The check takes about thirty minutes.', 'The conference room was painted last year.', 'Thank you for your recent order.', 'Our new office opened in March.'], '前一句說要在這兩天之一參加，接著補充「檢查大約三十分鐘」最自然；其他句子和健康檢查無關。'),
+          mq('空格 (3)', ['on', 'in', 'at', 'for'], '某一天前面用 on：on either day。'),
+          mq('空格 (4)', ['opportunity', 'opportune', 'opportunities', 'opportunely'], 'this 後面接單數名詞：this opportunity（這個機會）。'),
+        ),
+        set(
+          {
+            passage:
+              'Dear Valued Customer,\n\nThank you for shopping at Home Plus. Our store on Park Road will be closed for renovation from April 1 to April 20. __(1)__, our online store will remain open as usual. When the store __(2)__ on April 21, it will feature a larger kitchen section and a new café. __(3)__ We look forward to __(4)__ you soon.\n\nSincerely,\nHome Plus Customer Service',
+            zh: '親愛的顧客：感謝您在 Home Plus 購物。我們在公園路的門市將於 4 月 1 日到 20 日整修暫停營業。不過，網路商店照常營業。門市 4 月 21 日重新開幕後，將有更大的廚房用品區和新的咖啡廳。開幕第一週所有商品享 85 折。期待很快再見到您。Home Plus 客服部 敬上',
+          },
+          mq('空格 (1)', ['However', 'Therefore', 'For example', 'Otherwise'], '前面說門市關閉，後面說網路商店照常營業，意思轉折用 However。'),
+          mq('空格 (2)', ['reopens', 'reopened', 'will have reopened', 'reopening'], '時間副詞子句（When…）用現在式表示未來。'),
+          mq('空格 (3)：選出最適合放進這個位置的句子', ['All items will be 15% off during the first week.', 'Our café closed last year.', 'Please return the item within 30 days.', 'The kitchen is on the second floor of your home.'], '前面介紹重新開幕後的新設施，接著說開幕週的優惠最自然。'),
+          mq('空格 (4)', ['seeing', 'see', 'seen', 'to see'], 'look forward to 的 to 是介系詞，後面接 V-ing。'),
+        ),
+      ],
+    },
+    {
+      id: 'p7',
+      title: 'Part 7 閱讀理解（含多篇）',
+      intro: '閱讀電子郵件、廣告、訊息等，回答問題。雙篇閱讀的答案常常要把兩篇的資訊合起來看。',
+      pick: 2,
+      groups: [
+        set(
+          {
+            passage:
+              'From: Rachel Green, Office Manager\nTo: All Staff\nSubject: New Recycling Program\n\nStarting September 15, our office will begin a new recycling program. Blue bins for paper will be placed next to every printer, and green bins for plastic bottles will be placed in the kitchen. Please do not put food waste in either bin. A short training session will be held on September 10 at 3 p.m. in Room 402. Attendance is optional, but we encourage everyone to join. If you have questions, please contact me at extension 215.',
+            zh: '寄件人：辦公室經理 Rachel Green；收件人：全體員工；主旨：新的資源回收計畫。9 月 15 日起辦公室開始新的回收計畫：每台印表機旁會放藍色的紙類回收桶，廚房會放綠色的寶特瓶回收桶。兩種桶子都請不要丟廚餘。9 月 10 日下午三點在 402 室有簡短的說明會，自由參加，但鼓勵大家都來。有問題請打分機 215 找我。',
+          },
+          mq('What is the purpose of the e-mail?', ['To announce a new program', 'To introduce a new manager', 'To request new printers', 'To change office hours'], 'our office will begin a new recycling program。'),
+          mq('Where will the green bins be placed?', ['In the kitchen', 'Next to every printer', 'In Room 402', 'At the front desk'], 'green bins for plastic bottles will be placed in the kitchen。'),
+          mq('What is indicated about the training session?', ['Employees are not required to attend it.', 'It will last all afternoon.', 'It will be held on September 15.', 'It is only for managers.'], 'Attendance is optional＝不強制參加（換句話說）。'),
+        ),
+        set(
+          {
+            passage:
+              'ADVERTISEMENT\nCityLink Coworking Space\nFlexible desks: $15 per day or $250 per month\nPrivate offices: $900 per month\nAll members enjoy free coffee, high-speed Internet, and access to meeting rooms. Members who sign up for six months or longer get one month free.\n\nE-MAIL\nTo: CityLink Coworking Space\nFrom: Daniel Ho\nI am a freelance designer and would like to rent a flexible desk starting next Monday. I plan to stay for at least six months. Do you have a quiet area away from the meeting rooms? I often talk to clients on the phone.',
+            zh: '（廣告）CityLink 共享辦公室：彈性座位每天 15 美元或每月 250 美元；獨立辦公室每月 900 美元。所有會員都可享免費咖啡、高速網路並使用會議室。簽約六個月以上送一個月。（電子郵件）寄件人 Daniel Ho：我是自由接案的設計師，想從下週一開始租彈性座位，至少會待六個月。你們有遠離會議室的安靜區域嗎？我常常要和客戶講電話。',
+          },
+          mq('How much will Mr. Ho most likely pay per month?', ['$250', '$15', '$900', '$450'], '他要租彈性座位（flexible desk），月租 250 美元。'),
+          mq('What will Mr. Ho probably receive?', ['One free month', 'A private office', 'A free phone', 'A discount on coffee'], '要合起來看：廣告說簽六個月以上送一個月，他打算至少待六個月。'),
+          mq('What does Mr. Ho ask about?', ['A quiet place to work', 'The price of meeting rooms', 'Parking for visitors', 'The Internet speed'], 'Do you have a quiet area away from the meeting rooms?'),
+        ),
+        set(
+          {
+            passage:
+              "Jason Lee (2:10 P.M.): Hi Amy, the client from Seoul just called. Her flight was delayed, so she won't arrive until 6.\nAmy Park (2:12 P.M.): Then we can't have the meeting at 4. Should we move it to tomorrow morning?\nJason Lee (2:13 P.M.): Good idea. I'll book the conference room for 9 a.m.\nAmy Park (2:14 P.M.): Thanks. I'll let the restaurant know we won't need the dinner reservation tonight.",
+            zh: 'Jason（2:10）：嗨 Amy，首爾的客戶剛打來，她的班機延誤，要六點才會到。／Amy（2:12）：那四點的會議開不成了，要改到明天早上嗎？／Jason（2:13）：好主意，我來訂明天早上九點的會議室。／Amy（2:14）：謝謝，我會通知餐廳今晚的晚餐預約不需要了。',
+          },
+          mq('Why will the meeting be rescheduled?', ["A client's flight was delayed.", 'The conference room is not available.', 'Mr. Lee is sick.', 'The restaurant is closed.'], 'Her flight was delayed＝客戶的班機延誤。'),
+          mq('What will Ms. Park most likely do next?', ['Contact a restaurant', 'Book a conference room', 'Call the client', 'Go to the airport'], "I'll let the restaurant know…＝聯絡餐廳。訂會議室的是 Jason。"),
+        ),
+      ],
+    },
+  ],
+});
+
+export const EN_MOCKS: MockExam[] = [brown, blue];
