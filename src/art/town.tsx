@@ -320,6 +320,9 @@ const BUILDINGS: Record<string, () => ReactNode> = {
   ),
 };
 
+/** 建築插畫的內容（圖片題也會用到） */
+export const buildingDraw = (id: string): (() => ReactNode) | undefined => BUILDINGS[id];
+
 export function BuildingArt({ id, size = 72 }: { id: string; size?: number | string }) {
   const draw = BUILDINGS[id];
   return draw ? <Art size={size}>{draw()}</Art> : null;

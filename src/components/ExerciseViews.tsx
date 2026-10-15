@@ -9,6 +9,8 @@ import type { ChoiceEx, MatchEx, NoteEx, TeachEx, TilesEx, TypeEx, TypeWordEx } 
 import { isVocab, sayOf } from '../engine/exercises';
 import { normJa } from '../engine/jaInput';
 import { checkTyped, diagnose, firstHint, keyGuide, normKo } from '../engine/typing';
+import { PictureArt } from '../art/pictures';
+import { pictureOf } from '../engine/pictures';
 import { TypingRules } from './TypingRules';
 import { ClozeText, ItemCard, Modal, Ruby, SpeakBtn, Tx } from './ui';
 
@@ -60,13 +62,19 @@ export function ChoiceView({
 
   const showPrompt = !!ex.prompt && (!ex.hidePrompt || done);
   const talk = ex.reveal.item.kind === 'qa' && !!ex.reveal.item.ask;
+  const pics = ex.options.some((o) => o.pic);
   // 選項比較長、或只有三個選項時排成一欄，兩欄會參差不齊
-  const long = ex.options.length === 3 || ex.options.some((o) => o.s.length > 14);
+  const long = !pics && (ex.options.length === 3 || ex.options.some((o) => o.s.length > 14));
 
   return (
     <div className="ex ex-choice">
       <p className="ex-label">{ex.label}</p>
       <div className="ex-prompt">
+        {ex.pic && (
+          <div className="pic-prompt">
+            <PictureArt id={ex.pic} size={150} />
+          </div>
+        )}
         {ex.audio && (
           <div className="audio-prompt">
             <SpeakBtn text={ex.audio.text} lang={ex.audio.lang} size="lg" />
@@ -86,17 +94,25 @@ export function ChoiceView({
           showPrompt && ex.prompt && (talk ? <TalkPrompt s={ex.prompt.s} lang={ex.prompt.lang} /> : <Tx className={cx('prompt-text', ex.big && 'big')} s={ex.prompt.s} lang={ex.prompt.lang} />)
         )}
       </div>
-      <div className={cx('options', long && 'list')}>
+      <div className={cx('options', long && 'list', pics && 'pics')}>
         {ex.options.map((o, i) => (
           <button
             key={i}
             type="button"
-            className={cx('opt', done && i === ex.answer && 'right', done && picked === i && i !== ex.answer && 'wrong')}
+            className={cx('opt', o.pic && 'pic-opt', done && i === ex.answer && 'right', done && picked === i && i !== ex.answer && 'wrong')}
             disabled={done}
             onClick={() => onPick(i)}
+            aria-label={o.pic ? `第 ${i + 1} 張圖` : undefined}
           >
             <kbd>{i + 1}</kbd>
-            <Tx s={o.s} lang={o.lang} />
+            {o.pic ? (
+              <>
+                <PictureArt id={o.pic} size={88} />
+                {done && <small>{o.s}</small>}
+              </>
+            ) : (
+              <Tx s={o.s} lang={o.lang} />
+            )}
           </button>
         ))}
       </div>
@@ -500,9 +516,15 @@ export function TeachView({ ex, lang, autoSpeak }: { ex: TeachEx; lang: LangId; 
     if (autoSpeak) speak(isVocab(item) ? sayOf(item, lang) : item.s, lang);
   }, [item, lang, autoSpeak]);
   const tag = item.kind === 'char' ? '新字母' : item.kind === 'sentence' ? '例句' : item.kind === 'phrase' ? '新句子' : '新單字';
+  const pic = isVocab(item) && item.kind !== 'char' ? pictureOf(item.m) : undefined;
   return (
     <div className="ex ex-teach">
       <span className="teach-tag">{tag}</span>
+      {pic && (
+        <div className="teach-pic">
+          <PictureArt id={pic} size={110} />
+        </div>
+      )}
       <ItemCard item={item} lang={lang} big />
     </div>
   );

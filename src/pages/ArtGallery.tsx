@@ -2,6 +2,8 @@
 import { AVATAR_ART_IDS, AVATAR_NAME, AvatarArt } from '../art/avatars';
 import { ITEM_ICON_IDS, ItemIcon } from '../art/items';
 import { MascotArt } from '../art/mascot';
+import { PICTURES, PictureArt } from '../art/pictures';
+import { pictureName } from '../engine/pictures';
 import { RARITY_NAME, STICKERS, StickerArt } from '../art/stickers';
 import { BuildingArt, StampArt } from '../art/town';
 import { Avatar } from '../components/Avatar';
@@ -11,6 +13,15 @@ export function ArtGallery() {
   return (
     <div className="page art-gallery">
       <h1>插畫一覽</h1>
+      <h2>圖片題（{PICTURES.length}）</h2>
+      <div className="art-grid">
+        {PICTURES.filter((p) => !p.id.includes(':')).map((p) => (
+          <figure key={p.id}>
+            <PictureArt id={p.id} size={84} />
+            <figcaption>{pictureName(p.id)}</figcaption>
+          </figure>
+        ))}
+      </div>
       <h2>小鎮建築</h2>
       <div className="art-grid">
         {['konbini', 'post', 'station', 'bank', 'hospital', 'pharmacy', 'police', 'cafe', 'restaurant', 'supermarket', 'hotel', 'school', 'library', 'park', 'office', 'shrine', 'jjimjil', 'airport'].map((id) => (

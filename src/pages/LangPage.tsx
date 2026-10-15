@@ -5,6 +5,7 @@ import { Bar, ItemCard, LangBadge, Modal, Stars } from '../components/ui';
 import { CourseGate } from '../components/CourseGate';
 import { GuideTip } from '../components/Guide';
 import { TownMap } from '../components/TownMap';
+import { pictureOf } from '../engine/pictures';
 import { kanaPairs } from './Memory';
 import { MockTab } from './Mock';
 import { courseIndex, META, META_LIST, requireCourse } from '../content';
@@ -338,6 +339,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
   useVoices();
   const vocab = learnedVocab(s, lang).length;
   const words = learnedVocab(s, lang).filter((i) => i.kind !== 'char').length;
+  const pictured = learnedVocab(s, lang).filter((i) => i.kind !== 'char' && pictureOf(i.m)).length;
   const cw = crosswordPool(s, lang).length;
   const learned = learnedItems(s, lang).length;
   const due = dueItems(s, lang).length;
@@ -403,6 +405,25 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     },
   ];
   games.push(
+    {
+      icon: '🖼️',
+      title: '看圖猜字',
+      desc: '看可愛的插圖選出單字，或看單字選出插圖。動物、食物、地點、日用品…學過的字越多，圖越多。',
+      to: `/l/${lang}/play/pics`,
+      need: UNLOCK.pics,
+      have: pictured,
+      badge: s.stats.pics > 0 ? `已完成 ${s.stats.pics} 次` : '新遊戲',
+      hot: s.stats.pics === 0 && pictured >= UNLOCK.pics,
+    },
+    {
+      icon: '🗂️',
+      title: '分類大挑戰',
+      desc: lang === 'en' ? '把單字放進正確的主題，還有一回合要分詞性（名詞、動詞、形容詞），多益文法題最愛考。' : '把學過的單字放進正確的主題分類，用情境把字串起來，記得更牢。',
+      to: `/l/${lang}/play/sort`,
+      need: UNLOCK.sort,
+      have: words,
+      badge: s.stats.sorts > 0 ? `已完成 ${s.stats.sorts} 次` : '新遊戲',
+    },
     {
       icon: '✅',
       title: '真假快判',

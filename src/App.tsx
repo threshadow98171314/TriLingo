@@ -13,6 +13,7 @@ import { LANGS, type LangId } from './core/types';
 import { ArtGallery } from './pages/ArtGallery';
 import { BlitzPage } from './pages/Blitz';
 import { CrosswordPage } from './pages/Crossword';
+import { PicturesPage, SortPage } from './pages/FunGames';
 import { HelpPage } from './pages/Help';
 import { Home } from './pages/Home';
 import { LangPage } from './pages/LangPage';
@@ -71,6 +72,8 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
         if (p[3] === 'listen') return gated(<ListenPage lang={lang} />);
         if (p[3] === 'typing' && lang !== 'en') return gated(<TypingPage lang={lang} />);
         if (p[3] === 'truefalse') return gated(<TrueFalsePage lang={lang} />);
+        if (p[3] === 'pics') return gated(<PicturesPage lang={lang} />);
+        if (p[3] === 'sort') return gated(<SortPage lang={lang} />);
         if (p[3] === 'memory') return gated(<MemoryPage lang={lang} kana={lang === 'ja' && route.query.get('kana') === '1'} />);
     }
   }

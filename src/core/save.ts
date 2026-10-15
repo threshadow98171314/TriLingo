@@ -98,6 +98,9 @@ export interface Stats {
   memories: number;
   /** 扭蛋抽過的次數 */
   gacha: number;
+  /** 完成看圖猜字、分類大挑戰的次數 */
+  pics: number;
+  sorts: number;
 }
 
 /** 道具庫存（連勝保護在 streak.freezes、雙倍 XP 在 boostUntil） */
@@ -232,6 +235,8 @@ export function defaultSave(now: number): Save {
       truefalses: 0,
       memories: 0,
       gacha: 0,
+      pics: 0,
+      sorts: 0,
     },
     best: { blitz: { en: 0, ja: 0, ko: 0 }, match: {}, memory: {}, tf: { en: 0, ja: 0, ko: 0 } },
     stage: {},

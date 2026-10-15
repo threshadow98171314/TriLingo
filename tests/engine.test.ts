@@ -248,7 +248,8 @@ function assertExercise(ex: Exercise, where: string) {
     expect(ex.answer, where).toBeGreaterThanOrEqual(0);
     expect(ex.answer, where).toBeLessThan(ex.options.length);
     expect(new Set(ex.options.map((o) => o.s)).size, `${where} 選項重複`).toBe(ex.options.length);
-    if (!ex.audio) expect(ex.prompt, where).toBeTruthy();
+    // 看圖選字的題目是圖，其餘沒有語音的題目一定要有文字
+    if (!ex.audio) expect(ex.prompt ?? ex.pic, where).toBeTruthy();
     if (ex.hidePrompt) expect(ex.audio, where).toBeTruthy();
   } else if (ex.t === 'tiles') {
     expect(ex.answer.length, where).toBeGreaterThanOrEqual(2);

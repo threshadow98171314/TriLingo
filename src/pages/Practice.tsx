@@ -20,9 +20,9 @@ function typingOn(lang: LangId): boolean {
   return lang === 'ja' ? s.jaTyping : lang === 'ko' ? s.koTyping : false;
 }
 
-const ctxOf = (lang: LangId): Ctx => ({ lang, rng: Math.random, canListen: canSpeak(lang) && !listenMuted(), typing: typingOn(lang) });
+export const ctxOf = (lang: LangId): Ctx => ({ lang, rng: Math.random, canListen: canSpeak(lang) && !listenMuted(), typing: typingOn(lang) });
 
-const statLines = (st: SessionStats): [string, string][] => [
+export const statLines = (st: SessionStats): [string, string][] => [
   ['答對率', `${st.graded ? Math.round((st.correct / st.graded) * 100) : 100}%`],
   ['最高連擊', String(st.maxCombo)],
   ['用時', fmtTime(st.seconds)],

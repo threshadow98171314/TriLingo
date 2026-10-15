@@ -6,11 +6,14 @@ import { sample, shuffle, type Rng } from '../core/rng';
 import { chunkEven } from '../core/util';
 import { confusableReadings, furiPlain, hasKanji, isKanaStr } from './furigana';
 import { isHangulStr } from './hangul';
+import { PICTURE_IDS, pictureName, pictureOf } from './pictures';
 import { readingOf } from './jaInput';
 
 export interface Txt {
   s: string;
   lang: LangId | 'zh';
+  /** 圖片選項：顯示這張圖（s 是圖的中文名稱，作答後才顯示） */
+  pic?: string;
 }
 export interface Speak {
   text: string;
@@ -26,8 +29,10 @@ export interface Reveal {
 export interface ChoiceEx {
   t: 'choice';
   itemId: string;
-  mode: 'w2m' | 'm2w' | 'w2r' | 'listen' | 's2m' | 'cloze' | 'qa';
+  mode: 'w2m' | 'm2w' | 'w2r' | 'listen' | 's2m' | 'cloze' | 'qa' | 'pic2w' | 'w2pic';
   label: string;
+  /** 看圖選字：題目的圖 */
+  pic?: string;
   prompt?: Txt;
   /** 單字、字母用大字顯示 */
   big?: boolean;
@@ -286,6 +291,46 @@ export function listenEx(i: VocabItem, pool: VocabItem[], ctx: Ctx): ChoiceEx {
   );
 }
 
+/**
+ * 圖片題（單字的意思有對應的插畫才出得了）：
+ * pic2w 看圖選出原文；w2pic 看字（聽發音）選出對應的圖。
+ */
+export function picEx(i: VocabItem, pool: VocabItem[], ctx: Ctx, mode: 'pic2w' | 'w2pic'): ChoiceEx | null {
+  if (i.kind === 'char') return null;
+  const pic = pictureOf(i.m);
+  if (!pic) return null;
+  const { lang, rng } = ctx;
+  if (mode === 'w2pic') {
+    // 干擾圖：意思不同的其他圖
+    const wrong = shuffle(
+      PICTURE_IDS.filter((id) => id !== pic),
+      rng,
+    ).slice(0, 3);
+    return choice(
+      {
+        itemId: i.id,
+        mode: 'w2pic',
+        label: '這個字是哪一張圖？',
+        prompt: { s: front(i, lang), lang },
+        audio: ctx.canListen ? { text: sayOf(i, lang), lang } : undefined,
+        big: i.kind === 'word',
+        reveal: reveal(i, lang),
+      },
+      { s: pictureName(pic), lang: 'zh', pic },
+      wrong.map((id) => ({ s: pictureName(id), lang: 'zh' as const, pic: id })),
+      rng,
+    );
+  }
+  const ws = others(pool, i, 3, ctx, (x) => front(x, lang), (x) => pictureOf(x.m) ?? x.m);
+  if (ws.length < 2) return null;
+  return choice(
+    { itemId: i.id, mode: 'pic2w', label: `這是什麼？選出對應的${LANG_NAME[lang]}`, pic, reveal: reveal(i, lang) },
+    { s: front(i, lang), lang },
+    ws.map((x) => ({ s: front(x, lang), lang })),
+    rng,
+  );
+}
+
 /** 日文漢字讀音題：干擾選項是促音、長音、清濁音差一點的讀音（日檢「漢字読み」題型） */
 export function readingEx(i: VocabItem, pool: VocabItem[], ctx: Ctx): ChoiceEx | null {
   if (ctx.lang !== 'ja' || i.kind !== 'word' || !i.r || !hasKanji(i.w)) return null;
@@ -534,11 +579,13 @@ function vocabFlow(items: VocabItem[], pool: VocabItem[], ctx: Ctx, skipTeach: b
   const out: Exercise[] = [];
   for (const g of chunkEven(items, 3)) {
     if (!skipTeach) for (const i of g) out.push({ t: 'teach', item: i });
-    for (const i of shuffle(g, rng)) out.push(recog(i, pool, ctx));
+    for (const i of shuffle(g, rng)) out.push((rng() < 0.5 && picEx(i, pool, ctx, 'w2pic')) || recog(i, pool, ctx));
   }
   shuffle(items, rng).forEach((i, k) => {
     const rd = k % 3 === 2 ? readingEx(i, pool, ctx) : null;
+    const pic = !rd && rng() < 0.4 ? picEx(i, pool, ctx, 'pic2w') : null;
     if (rd) out.push(rd);
+    else if (pic) out.push(pic);
     else if (k % 2 === 1 && ctx.canListen) out.push(listenEx(i, pool, ctx));
     else out.push(recall(i, pool, ctx));
   });
@@ -638,8 +685,8 @@ export function buildReview(entries: ReviewEntry[], ctx: Ctx): Exercise[] {
     let e: Exercise | null;
     if (isVocab(item)) {
       const vp = pool.filter(isVocab);
-      if (strength <= 1) e = recog(item, vp, ctx);
-      else if (strength <= 3) e = ctx.canListen && ctx.rng() < 0.5 ? listenEx(item, vp, ctx) : recall(item, vp, ctx);
+      if (strength <= 1) e = (ctx.rng() < 0.4 && picEx(item, vp, ctx, 'w2pic')) || recog(item, vp, ctx);
+      else if (strength <= 3) e = (ctx.rng() < 0.3 && picEx(item, vp, ctx, 'pic2w')) || (ctx.canListen && ctx.rng() < 0.5 ? listenEx(item, vp, ctx) : recall(item, vp, ctx));
       else e = produce(item, vp, ctx);
     } else if (item.kind === 'sentence') {
       e = buildEx(item, item.tokens, item.t, tokenPool(pool, ctx.lang), ctx) ?? sentenceChoice(item, pool, ctx, false);

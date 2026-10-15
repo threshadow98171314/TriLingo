@@ -400,7 +400,7 @@ export function finishLesson(a: { lang: LangId; unit: Unit; lesson: Lesson; stat
   return out;
 }
 
-export type GameId = 'review' | 'crossword' | 'match' | 'blitz' | 'listen' | 'typing' | 'truefalse' | 'memory';
+export type GameId = 'review' | 'crossword' | 'match' | 'blitz' | 'listen' | 'typing' | 'truefalse' | 'memory' | 'pics' | 'sort';
 
 export function finishGame(a: {
   lang: LangId;
@@ -448,6 +448,10 @@ export function finishGame(a: {
       }
     } else if (a.game === 'typing') {
       d.stats.typings++;
+    } else if (a.game === 'pics') {
+      d.stats.pics++;
+    } else if (a.game === 'sort') {
+      d.stats.sorts++;
     } else if (a.game === 'truefalse') {
       d.stats.truefalses++;
       const score = a.score ?? 0;

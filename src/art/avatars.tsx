@@ -426,6 +426,9 @@ const ART: Record<string, () => ReactNode> = {
   ),
 };
 
+/** 頭像插畫的內容（圖片題也會用到） */
+export const avatarDraw = (id: string): (() => ReactNode) | undefined => ART[id];
+
 /** 有畫插畫的頭像（其餘的 emoji 照原樣顯示） */
 export const AVATAR_ART_IDS = Object.keys(ART);
 

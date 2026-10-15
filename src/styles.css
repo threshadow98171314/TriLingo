@@ -5257,3 +5257,118 @@ p.small {
 .stage-card.town .stage-icon {
   font-size: 1.4rem;
 }
+
+/* ───────── 圖片題 ───────── */
+.pic-prompt,
+.teach-pic {
+  display: grid;
+  place-items: center;
+  margin: 4px auto 8px;
+}
+.teach-pic {
+  animation: pop 0.45s both;
+}
+.options.pics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 420px;
+  margin: 0 auto;
+}
+.opt.pic-opt {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+}
+.opt.pic-opt kbd {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+}
+.opt.pic-opt small {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* ───────── 分類大挑戰 ───────── */
+.sort-pool {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  margin-bottom: 14px;
+}
+.sort-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  border: 2px solid var(--line);
+  background: var(--card-2);
+  color: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--edge);
+}
+.sort-chip.sel {
+  border-color: var(--lang);
+  background: color-mix(in srgb, var(--lang) 18%, var(--card-2));
+  transform: translateY(-2px);
+}
+.sort-chip.in {
+  font-size: 0.95rem;
+  padding: 6px 10px;
+}
+.sort-chip small {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+.sort-chip.right {
+  border-color: var(--ok);
+}
+.sort-chip.wrong {
+  border-color: var(--bad);
+  animation: shake 0.35s both;
+}
+.sort-buckets {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.sort-buckets.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 520px) {
+  .sort-buckets.three {
+    grid-template-columns: 1fr;
+  }
+}
+.sort-bucket {
+  min-height: 150px;
+  padding: 10px;
+  cursor: pointer;
+  border-style: dashed;
+}
+.sort-bucket.ready {
+  border-color: var(--lang);
+  background: color-mix(in srgb, var(--lang) 8%, var(--card));
+}
+.sort-bucket header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.sort-icon {
+  font-size: 1.4rem;
+}
+.sort-in {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
