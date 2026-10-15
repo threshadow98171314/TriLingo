@@ -111,7 +111,7 @@ const JA: CourseMeta = {
       color: '#22d3ee',
       group: 'main',
       style: 'level',
-      planned: ['意向形（〜よう・〜ようと思います）', '授受表現（あげる・くれる・もらう）', '條件形（〜ば・〜たら・〜と）', 'N4 單字：社會與交際', 'N4 漢字', '聽解：日常對話'],
+      planned: ['讀解：短文（請先用模擬考練習）'],
     }),
     stage({
       id: 'ja.n3',
@@ -122,7 +122,7 @@ const JA: CourseMeta = {
       color: '#60a5fa',
       group: 'main',
       style: 'level',
-      planned: ['使役・被動', '敬語入門', '〜ようにする・〜ことになる', 'N3 單字', 'N3 漢字', '讀解：短文', '聽解：即時應答'],
+      planned: ['讀解：中篇文章（請先用模擬考練習）', '聽解：重點理解'],
     }),
     stage({
       id: 'ja.n2',
@@ -133,7 +133,7 @@ const JA: CourseMeta = {
       color: '#a78bfa',
       group: 'main',
       style: 'level',
-      planned: ['N2 文法：機能語', '複合動詞', 'N2 單字', '讀解：論說文', '聽解：綜合理解', '商務日語'],
+      planned: ['讀解：論說文（請先用模擬考練習）', '聽解：綜合理解', '更多機能語'],
     }),
     stage({
       id: 'ja.n1',

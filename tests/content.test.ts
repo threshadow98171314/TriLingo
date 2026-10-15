@@ -23,15 +23,13 @@ describe('課程結構', () => {
     expect(byLang('en').stages.map((s) => s.short)).toEqual(['橘色', '棕色', '綠色', '藍色', '金色']);
   });
 
-  it('日文有五十音、N5–N1 與兩條主題路線；N4 已開放，N3 以後先建好頁面', () => {
+  it('日文有五十音、N5–N1 與兩條主題路線；N4–N2 已開放，N1 先建好頁面', () => {
     const ja = byLang('ja');
     expect(ja.stages.filter((s) => s.group === 'main').map((s) => s.short)).toEqual(['五十音', 'N5', 'N4', 'N3', 'N2', 'N1']);
-    expect(ja.stages.find((s) => s.short === 'N4')!.units.length).toBeGreaterThan(0);
-    for (const short of ['N3', 'N2', 'N1']) {
-      const st = ja.stages.find((s) => s.short === short)!;
-      expect(st.units).toHaveLength(0);
-      expect(st.planned.length).toBeGreaterThan(0);
-    }
+    for (const short of ['N4', 'N3', 'N2']) expect(ja.stages.find((s) => s.short === short)!.units.length, short).toBeGreaterThanOrEqual(10);
+    const n1 = ja.stages.find((s) => s.short === 'N1')!;
+    expect(n1.units).toHaveLength(0);
+    expect(n1.planned.length).toBeGreaterThan(0);
   });
 
   it('還沒有內容的關卡一定列出預定單元', () => {
@@ -149,6 +147,10 @@ describe('項目內容', () => {
       } else if (it.kind === 'cloze') {
         check(it.q.replace('___', ''), it.id);
         for (const o of it.opts) check(o, `${it.id} 選項`);
+      } else if (it.kind === 'qa') {
+        // 聽力應答題的題目直接交給語音朗讀，只能用假名
+        expect(it.q, it.id).not.toMatch(/[[\]㐀-鿿々]/);
+        for (const o of it.opts) check(o.replace(/…/g, ''), `${it.id} 選項`);
       }
     }
     for (const u of units(byLang('ja'))) {

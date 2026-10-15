@@ -135,6 +135,15 @@ describe('組卷與計分', () => {
     }
   });
 
+  it('日檢各級的漢字讀音題都出得滿（每一級的課程單字夠多）', () => {
+    for (const m of COURSES.ja.mocks) {
+      for (const s of m.sections) {
+        if (!s.gen) continue;
+        for (const seed of [1, 2, 3]) expect(kanjiReadingGroups(COURSES.ja, s.gen.stages, s.gen.count, mulberry32(seed)).length, m.id).toBe(s.gen.count);
+      }
+    }
+  });
+
   it('計分：全對、全錯、部分答對與程度判斷', () => {
     const m = COURSES.ko.mocks[0];
     const p = paperOf(m, 'ko');

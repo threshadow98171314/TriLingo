@@ -3,6 +3,7 @@
 // 克漏字的題目與選項會檢查讀音，不能出現「」（）〜 之類的符號，要說明的寫在翻譯或解析裡。
 import type { Unit } from '../core/types';
 import { cz, grammarUnit, ja, note, sj, vocabUnit } from './dsl';
+import { N4_MORE } from './ja-n4b';
 
 const N = (title: string, body: string[], examples: string[] = []) => note(title, body, examples, true);
 
@@ -229,4 +230,4 @@ const g3 = grammarUnit('ja.n4.g3', '💭', '文法③：可能形・打算・想
   },
 ]);
 
-export const N4_UNITS: Unit[] = [life, g1, work, g2, body, nature, g3];
+export const N4_UNITS: Unit[] = [life, g1, work, g2, body, nature, g3, ...N4_MORE];
