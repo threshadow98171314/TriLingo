@@ -78,6 +78,34 @@ export function stopSpeaking() {
   synth()?.cancel();
 }
 
+/**
+ * 依序唸出一段對話（模擬考的聽力）。who 為 'M' 的台詞盡量換另一個語音、降低音高，聽得出是兩個人。
+ * onEnd：整段唸完時呼叫。
+ */
+export function speakScript(lines: { who: 'M' | 'F' | null; text: string }[], lang: LangId, onEnd?: () => void): boolean {
+  const s = synth();
+  if (!s || !lines.length) return false;
+  const main = bestVoice(lang, prefs.voices[lang]);
+  if (!main) return false;
+  const other = voicesFor(lang).find((v) => v.name !== main.name) ?? main;
+  try {
+    s.cancel();
+    lines.forEach((l, i) => {
+      const u = new SpeechSynthesisUtterance(l.text);
+      const male = l.who === 'M';
+      u.voice = male ? other : main;
+      u.lang = u.voice.lang;
+      u.rate = prefs.rate * 0.95;
+      u.pitch = male ? (other === main ? 0.75 : 0.9) : 1.1;
+      if (i === lines.length - 1 && onEnd) u.onend = () => onEnd();
+      s.speak(u);
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** 語音清單是非同步載入的；用這個 hook 讓畫面在載入後重新渲染 */
 export function useVoices(): number {
   return useSyncExternalStore(

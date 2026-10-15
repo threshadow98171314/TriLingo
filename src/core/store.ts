@@ -431,6 +431,29 @@ export function finishGame(a: {
   return out;
 }
 
+// ───────── 模擬考 ─────────
+
+/** 交卷：記錄成績（答對率 0–100）並給 XP */
+export function finishMock(a: { lang: LangId; examId: string; correct: number; total: number }): Outcome {
+  let out!: Outcome;
+  mutate((d) => {
+    const pct = a.total ? Math.round((a.correct / a.total) * 100) : 0;
+    const prev = d.mocks[a.examId];
+    const record = !!prev && pct > prev.best;
+    d.mocks[a.examId] = { best: Math.max(prev?.best ?? 0, pct), last: pct, plays: (prev?.plays ?? 0) + 1, at: nowMs() };
+    d.stats.mocks++;
+    const parts: Part[] = [
+      ['完成模擬考', 15],
+      ['答對題數', a.correct],
+    ];
+    if (pct >= 80) parts.push(['答對八成以上', 10]);
+    if (record) parts.push(['刷新最佳成績', 10]);
+    const reward = grantXp(d, a.lang, total(parts));
+    out = { reward, parts, stars: 0, passed: true, first: !prev, chest: 0, record, perfect: a.total > 0 && a.correct === a.total, lucky: false, golden: false };
+  });
+  return out;
+}
+
 // ───────── 每日任務 ─────────
 
 export function claimQuest(id: string): number {

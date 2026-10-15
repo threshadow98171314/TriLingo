@@ -13,3 +13,5 @@ export const UNITS: Record<string, Unit[]> = {
   'ko.travel': KO_TRAVEL_UNITS,
   'ko.drama': KO_DRAMA_UNITS,
 };
+
+export { KO_MOCKS as MOCKS } from './ko-mock';

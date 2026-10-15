@@ -5,7 +5,7 @@
 // 限制：兩台裝置在「都沒連網」的情況下各自學習，XP 取的是較大值而不是相加，
 // 其中一台離線期間多拿的 XP 會少算。平常開 App 就會同步，實際上很少發生。
 import type { ItemProg, StreakState } from './logic';
-import type { DayLog, LessonRec, Save } from './save';
+import type { DayLog, LessonRec, MockRec, Save } from './save';
 import { LANGS } from './types';
 
 /** 每個數字欄位取較大值（a、b 的欄位都是數字） */
@@ -52,6 +52,14 @@ const pickItem = (x: ItemProg, y: ItemProg) => (y.t > x.t || (y.t === x.t && y.o
 
 const pickLesson = (x: LessonRec, y: LessonRec): LessonRec => ({ stars: Math.max(x.stars, y.stars), plays: Math.max(x.plays, y.plays) });
 
+/** 模擬考：最佳成績、次數取較大值；「上一次」取比較晚考的那份 */
+const pickMock = (x: MockRec, y: MockRec): MockRec => ({
+  best: Math.max(x.best, y.best),
+  plays: Math.max(x.plays, y.plays),
+  last: y.at > x.at ? y.last : x.last,
+  at: Math.max(x.at, y.at),
+});
+
 function mergeStreak(a: StreakState, b: StreakState, newerCoins: StreakState): StreakState {
   const best = Math.max(a.best, b.best);
   // 最後學習日比較晚的那份才是最新的連勝狀態
@@ -88,6 +96,7 @@ export function mergeSaves(a: Save, b: Save): Save {
     items: mergeRecord(a.items, b.items, pickItem),
     ach: mergeRecord(a.ach, b.ach, Math.min),
     eggs: mergeRecord(a.eggs, b.eggs, Math.min),
+    mocks: mergeRecord(a.mocks, b.mocks, pickMock),
     stats: maxKeys(a.stats, b.stats),
     best: { blitz: maxKeys(a.best.blitz, b.best.blitz), match },
   };

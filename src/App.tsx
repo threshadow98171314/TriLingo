@@ -13,6 +13,7 @@ import { CrosswordPage } from './pages/Crossword';
 import { Home } from './pages/Home';
 import { LangPage } from './pages/LangPage';
 import { MatchPage } from './pages/MatchGame';
+import { MockPage } from './pages/Mock';
 import { LessonPage, ListenPage, ReviewPage, TypingPage } from './pages/Practice';
 import { ProfilePage } from './pages/Profile';
 import { SettingsPage } from './pages/Settings';
@@ -43,6 +44,9 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
       case 'arcade':
       case 'dex':
         return view(<LangPage lang={lang} tab={p[2]} />);
+      case 'mock':
+        if (p[3]) return gated(<MockPage lang={lang} examId={p[3]} />);
+        return view(<LangPage lang={lang} tab="mock" />);
       case 'chart':
         return view(<LangPage lang={lang} tab={lang === 'en' ? 'path' : 'chart'} />);
       case 'lesson':

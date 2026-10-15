@@ -3,6 +3,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { RankLine } from '../components/RankEmblem';
 import { Bar, ItemCard, LangBadge, Modal, Stars } from '../components/ui';
 import { CourseGate } from '../components/CourseGate';
+import { MockTab } from './Mock';
 import { courseIndex, META, requireCourse } from '../content';
 import { addDays, dayNum, today } from '../core/date';
 import { mastery, MASTERY_LABEL } from '../core/logic';
@@ -31,7 +32,7 @@ import { furiPlain } from '../engine/furigana';
 import { basicTable } from '../engine/hangul';
 import { href, lessonPath, stagePath } from '../router';
 
-export type LangTab = 'path' | 'arcade' | 'dex' | 'chart';
+export type LangTab = 'path' | 'arcade' | 'mock' | 'dex' | 'chart';
 
 // ───────── 學習路線 ─────────
 
@@ -489,6 +490,7 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
   const tabs: { id: LangTab; label: string; to: string }[] = [
     { id: 'path', label: '學習路線', to: `/l/${lang}` },
     { id: 'arcade', label: '遊樂場', to: `/l/${lang}/arcade` },
+    { id: 'mock', label: '模擬考', to: `/l/${lang}/mock` },
     { id: 'dex', label: '圖鑑', to: `/l/${lang}/dex` },
   ];
   if (lang !== 'en') tabs.push({ id: 'chart', label: lang === 'ja' ? '五十音表' : '字母表', to: `/l/${lang}/chart` });
@@ -522,6 +524,7 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
       <CourseGate lang={lang} compact>
         {tab === 'path' && <PathTab lang={lang} s={s} stageId={stageId} />}
         {tab === 'arcade' && <ArcadeTab lang={lang} s={s} />}
+        {tab === 'mock' && <MockTab lang={lang} s={s} />}
         {tab === 'dex' && <DexTab lang={lang} s={s} />}
         {tab === 'chart' && <ChartTab lang={lang} s={s} />}
       </CourseGate>

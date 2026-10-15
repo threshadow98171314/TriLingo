@@ -132,12 +132,76 @@ export interface Course {
   pathLabel: string;
   trackLabel?: string;
   stages: Stage[];
+  /** 實戰模擬考 */
+  mocks: MockExam[];
 }
 
 /** 關卡的基本資料（不含題目）：隨主程式載入，畫面不用等題目下載完就能顯示 */
 export type StageMeta = Omit<Stage, 'units'>;
 
 /** 語言的基本資料：名稱、顏色、目標、關卡大綱 */
-export interface CourseMeta extends Omit<Course, 'stages'> {
+export interface CourseMeta extends Omit<Course, 'stages' | 'mocks'> {
   stages: StageMeta[];
+}
+
+// ───────── 實戰模擬考 ─────────
+
+/** 模擬考的一題。opts 的第一個是正確答案（出題時會洗牌） */
+export interface MockQ {
+  id: string;
+  /** 題目：___ 是空格、{ } 內畫底線、日文用「漢字[よみ]」標註讀音；聽力題可以沒有題目文字 */
+  q?: string;
+  opts: string[];
+  /** 解析（交卷後顯示） */
+  explain?: string;
+  /** 題目翻譯（交卷後顯示） */
+  t?: string;
+}
+
+/** 題組：幾題共用一篇文章或一段聽力 */
+export interface MockGroup {
+  id: string;
+  /** 閱讀文章，換行用 \n；日文可以標振假名 */
+  passage?: string;
+  /** 聽力稿，一行一句，用「M:」「F:」開頭標示男聲、女聲。作答時只播放，交卷後才顯示 */
+  script?: string[];
+  /** 文章或聽力稿的翻譯（交卷後顯示） */
+  zh?: string;
+  qs: MockQ[];
+}
+
+export interface MockSection {
+  id: string;
+  title: string;
+  /** 題目說明（仿照正式考試的指示） */
+  intro: string;
+  listening?: boolean;
+  /** 每次從題組裡隨機抽幾組（不填就全部出） */
+  pick?: number;
+  groups: MockGroup[];
+  /** 由課程內容自動出題（例如日檢的漢字讀音題），和 groups 一起出 */
+  gen?: { kind: 'kanji-reading'; stages: string[]; count: number };
+}
+
+/** 依答對率判斷的程度 */
+export interface MockLevel {
+  min: number;
+  label: string;
+  desc: string;
+}
+
+export interface MockExam {
+  id: string;
+  title: string;
+  subtitle: string;
+  /** 和正式考試的對照說明 */
+  about: string;
+  /** 建議先完成的關卡（只是提示，不會鎖住） */
+  after?: string;
+  minutes: number;
+  /** 及格的答對率（0–1） */
+  pass: number;
+  /** 程度判斷，答對率由高到低排列 */
+  levels: MockLevel[];
+  sections: MockSection[];
 }

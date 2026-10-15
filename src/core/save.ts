@@ -52,6 +52,15 @@ export interface LessonRec {
   plays: number;
 }
 
+/** 一份模擬考的紀錄（成績是答對率 0–100） */
+export interface MockRec {
+  best: number;
+  last: number;
+  plays: number;
+  /** 最後一次考的時間 */
+  at: number;
+}
+
 export interface Stats {
   lessons: number;
   perfect: number;
@@ -80,6 +89,8 @@ export interface Stats {
   goldenChests: number;
   /** 完成日文打字特訓的次數 */
   typings: number;
+  /** 完成模擬考的次數 */
+  mocks: number;
 }
 
 export interface Save {
@@ -105,6 +116,8 @@ export interface Save {
   ach: Record<string, number>;
   /** 已發現的彩蛋 → 發現時間 */
   eggs: Record<string, number>;
+  /** 模擬考成績（id → 紀錄） */
+  mocks: Record<string, MockRec>;
   stats: Stats;
   best: { blitz: Record<LangId, number>; match: Partial<Record<LangId, number>> };
   /** 各語言上次停留的關卡 */
@@ -148,6 +161,7 @@ export function defaultSave(now: number): Save {
     items: {},
     ach: {},
     eggs: {},
+    mocks: {},
     stats: {
       lessons: 0,
       perfect: 0,
@@ -172,6 +186,7 @@ export function defaultSave(now: number): Save {
       luckyStars: 0,
       goldenChests: 0,
       typings: 0,
+      mocks: 0,
     },
     best: { blitz: { en: 0, ja: 0, ko: 0 }, match: {} },
     stage: {},
@@ -199,6 +214,7 @@ export function migrate(raw: unknown, now: number): Save {
     items: x.items ?? {},
     ach: x.ach ?? {},
     eggs: x.eggs ?? {},
+    mocks: x.mocks ?? {},
     stage: x.stage ?? {},
     prefsAt: x.prefsAt ?? 0,
     coinsAt: x.coinsAt ?? 0,

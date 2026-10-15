@@ -13,3 +13,5 @@ export const UNITS: Record<string, Unit[]> = {
   'ja.travel': JA_TRAVEL_UNITS,
   'ja.anime': JA_ANIME_UNITS,
 };
+
+export { JA_MOCKS as MOCKS } from './ja-mock';

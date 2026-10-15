@@ -25,6 +25,8 @@ const minTier = (s: Save) => Math.min(...tiers(s));
 const bestBlitz = (s: Save) => Math.max(...LANGS.map((l) => s.best.blitz[l] ?? 0));
 const eggs = (s: Save) => Object.keys(s.eggs).length;
 const busiestDay = (s: Save) => Math.max(0, ...Object.values(s.days).map((d) => d.lessons));
+const mockBest = (s: Save) => Math.max(0, ...Object.values(s.mocks).map((m) => m.best));
+const mockLangs = (s: Save) => new Set(Object.keys(s.mocks).map((id) => id.slice(0, 2))).size;
 
 const secret = (id: string, icon: string, title: string, desc: string, hint: string, goal: number, value: (s: Save) => number, coins: number): Achievement => ({
   group: '隱藏成就',
@@ -63,6 +65,9 @@ export const ACHIEVEMENTS: Achievement[] = [
   a('學習', 'perfect_30', '✨', '零失誤', '拿下 30 次全對', 30, (s) => s.stats.perfect, 80),
   a('學習', 'combo_15', '⚡', '連擊新星', '單場達成 15 連擊', 15, (s) => s.stats.maxCombo, 15),
   a('學習', 'combo_30', '🌩️', '連擊狂人', '單場達成 30 連擊', 30, (s) => s.stats.maxCombo, 40),
+  a('學習', 'mock_1', '📝', '模擬考初體驗', '完成第一次模擬考', 1, (s) => s.stats.mocks, 20),
+  a('學習', 'mock_80', '🎓', '實力派', '任一份模擬考答對 80% 以上', 80, mockBest, 60),
+  a('學習', 'mock_tri', '🗺️', '三語應考', '三種語言都考過模擬考', 3, mockLangs, 80),
 
   a('字彙', 'words_30', '🌱', '初試啼聲', '學會 30 個字詞', 30, words, 15),
   a('字彙', 'words_100', '🌿', '小有所成', '學會 100 個字詞', 100, words, 40),

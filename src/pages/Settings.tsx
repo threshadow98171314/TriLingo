@@ -311,7 +311,7 @@ export function SettingsPage() {
             if (tapCount('dev', 7, 3000)) triggerEgg('dev');
           }}
         >
-          TriLingo 三語道場 v0.2.0
+          TriLingo 三語道場 v{__APP_VERSION__}
         </button>
       </p>
 
