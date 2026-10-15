@@ -26,6 +26,14 @@ interface Opt {
   say?: string;
   sound?: string;
   kind?: 'word' | 'phrase';
+  /** 更多例句，寫法和例句一樣是「原文|翻譯」 */
+  more?: string[];
+}
+
+/** 更多例句：沒有就不放這個欄位 */
+function parseMore(more: string[] | undefined, isJa: boolean): Example[] | undefined {
+  const out = (more ?? []).map((e) => parseEx(e, isJa)!).filter(Boolean);
+  return out.length ? out : undefined;
 }
 
 function parseEx(ex: string | undefined, isJa: boolean): Example | undefined {
@@ -39,7 +47,7 @@ function parseEx(ex: string | undefined, isJa: boolean): Example | undefined {
 
 /** 英文單字。例句寫成「英文|中文」 */
 export function en(w: string, pos: string, m: string, ex?: string, o: Opt = {}): VocabItem {
-  return { id: '', kind: o.kind ?? (/\s/.test(w) ? 'phrase' : 'word'), w, m, pos, ex: parseEx(ex, false), note: o.note, say: o.say };
+  return { id: '', kind: o.kind ?? (/\s/.test(w) ? 'phrase' : 'word'), w, m, pos, ex: parseEx(ex, false), more: parseMore(o.more, false), note: o.note, say: o.say };
 }
 
 /**
@@ -61,6 +69,7 @@ export function ja(f: string, m: string, ex?: string, o: Opt = {}): VocabItem {
     note: o.note,
     say: o.say,
     ex: parseEx(ex, true),
+    more: parseMore(o.more, true),
     tokens,
   };
 }
@@ -78,6 +87,7 @@ export function ko(w: string, rm: string, m: string, ex?: string, o: Opt = {}): 
     note: o.note,
     say: o.say,
     ex: parseEx(ex, false),
+    more: parseMore(o.more, false),
     tokens: multi ? w.split(' ') : undefined,
   };
 }
@@ -97,19 +107,40 @@ function rows(text: string, min: number): string[][] {
     });
 }
 
-/** 日文單字清單：一行一個「原文|意思|例句|例句翻譯|補充說明」，例句與說明可省略 */
+/**
+ * 一行裡意思之後的欄位：「例句|翻譯」可以寫好幾組（答對時隨機挑一句顯示），
+ * 用「※」開頭的欄位是補充說明。
+ */
+function tail(f: string[]): { ex?: string; more: string[]; note?: string } {
+  const note = f.find((x) => x.startsWith('※'))?.slice(1).trim();
+  const rest = f.filter((x) => !x.startsWith('※'));
+  const exs: string[] = [];
+  for (let i = 0; i + 1 < rest.length; i += 2) if (rest[i]) exs.push(`${rest[i]}|${rest[i + 1]}`);
+  return { ex: exs[0], more: exs.slice(1), note };
+}
+
+/** 日文單字清單：一行一個「原文|意思|例句|例句翻譯|例句2|翻譯2…|※補充說明」，例句與說明可省略 */
 export function jaList(text: string): VocabItem[] {
-  return rows(text, 2).map(([w, m, s, t, note]) => ja(w, m, s ? `${s}|${t}` : undefined, { note }));
+  return rows(text, 2).map(([w, m, ...f]) => {
+    const { ex, more, note } = tail(f);
+    return ja(w, m, ex, { note, more });
+  });
 }
 
-/** 英文單字清單：一行一個「單字|詞性|意思|例句|例句翻譯|補充說明」 */
+/** 英文單字清單：一行一個「單字|詞性|意思|例句|例句翻譯|例句2|翻譯2…|※補充說明」 */
 export function enList(text: string): VocabItem[] {
-  return rows(text, 3).map(([w, pos, m, s, t, note]) => en(w, pos, m, s ? `${s}|${t}` : undefined, { note }));
+  return rows(text, 3).map(([w, pos, m, ...f]) => {
+    const { ex, more, note } = tail(f);
+    return en(w, pos, m, ex, { note, more });
+  });
 }
 
-/** 韓文單字清單：一行一個「韓文|羅馬拼音|意思|例句|例句翻譯|補充說明」 */
+/** 韓文單字清單：一行一個「韓文|羅馬拼音|意思|例句|例句翻譯|例句2|翻譯2…|※補充說明」 */
 export function koList(text: string): VocabItem[] {
-  return rows(text, 3).map(([w, rm, m, s, t, note]) => ko(w, rm, m, s ? `${s}|${t}` : undefined, { note }));
+  return rows(text, 3).map(([w, rm, m, ...f]) => {
+    const { ex, more, note } = tail(f);
+    return ko(w, rm, m, ex, { note, more });
+  });
 }
 
 /** 字母。spec 寫成「字 拼音|其他可接受輸入」，例如 'し shi|si' */

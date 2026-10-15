@@ -1,10 +1,11 @@
 // 共用的小元件
-import { Fragment, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { examplesFor } from '../content';
 import { fx } from '../core/fx';
 import { sfx } from '../core/sfx';
 import { useSave } from '../core/store';
 import { canSpeak, speak, useVoices } from '../core/tts';
-import type { CourseMeta, Item, LangId } from '../core/types';
+import type { CourseMeta, Item, LangId, VocabItem } from '../core/types';
 import { cx } from '../core/util';
 import { clozeSentence, headOf, isVocab, sayOf, transcriptOf } from '../engine/exercises';
 import { furiPlain, furiSegs, isKanaStr, toHiragana, toKatakana } from '../engine/furigana';
@@ -263,6 +264,32 @@ export function ItemCard({ item, lang, big }: { item: Item; lang: LangId; big?: 
           <small>{item.ex.t}</small>
         </div>
       )}
+    </div>
+  );
+}
+
+/** 答對時顯示的例句：從最多三句裡隨機挑一句，可以換下一句 */
+export function ExampleBox({ item, lang }: { item: VocabItem; lang: LangId }) {
+  const exs = useMemo(() => examplesFor(item, lang), [item, lang]);
+  const [k, setK] = useState(() => Math.floor(Math.random() * 3));
+  if (!exs.length) return null;
+  const i = k % exs.length;
+  const e = exs[i];
+  return (
+    <div className="ex-box">
+      <div className="ex-box-head">
+        <span>📝 例句{exs.length > 1 ? ` ${i + 1}／${exs.length}` : ''}</span>
+        {exs.length > 1 && (
+          <button type="button" className="link-btn" onClick={() => setK(i + 1)}>
+            換一句
+          </button>
+        )}
+      </div>
+      <div className="ex-box-s">
+        <Tx s={e.furi ?? e.s} lang={lang} />
+        <SpeakBtn text={e.s} lang={lang} size="sm" />
+      </div>
+      <small>{e.t}</small>
     </div>
   );
 }

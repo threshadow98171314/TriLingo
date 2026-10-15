@@ -2,8 +2,9 @@
 // 基本資料（名稱、顏色、關卡大綱，見 meta.ts）隨主程式載入；
 // 各語言的題目放在獨立的檔案，第一次用到時才下載，之後留在記憶體裡（瀏覽器也會快取檔案）。
 import { useEffect, useSyncExternalStore } from 'react';
-import type { Course, Item, LangId, Lesson, MockExam, Stage, Unit } from '../core/types';
+import type { Course, Example, Item, LangId, Lesson, MockExam, Stage, Unit, VocabItem } from '../core/types';
 import { LANGS } from '../core/types';
+import { corpusOfCourse, examplesOf, type CorpusEntry } from '../engine/examples';
 import { META } from './meta';
 
 export { META, META_LIST } from './meta';
@@ -82,6 +83,8 @@ export function requireCourse(lang: LangId): Course {
 export function provideCourse(course: Course) {
   slots[course.id].course = course;
   cache.delete(course.id);
+  corpora.delete(course.id);
+  exCache.clear();
   emit();
 }
 
@@ -158,4 +161,25 @@ export function courseIndex(lang: LangId): CourseIndex {
 /** item id 以語言代碼開頭（例如 ja.n5.greet:…） */
 export function langOfId(id: string): LangId {
   return id.slice(0, 2) as LangId;
+}
+
+// ───────── 例句：單字自己的例句，加上課程裡其他用到這個字的句子 ─────────
+
+const corpora = new Map<LangId, CorpusEntry[]>();
+const exCache = new Map<string, Example[]>();
+
+/** 一個單字最多三句例句（自己的例句優先）；課程還沒載入時只回傳自己的例句 */
+export function examplesFor(item: VocabItem, lang: LangId = langOfId(item.id)): Example[] {
+  const hit = exCache.get(item.id);
+  if (hit) return hit;
+  const course = slots[lang].course;
+  if (!course) return [item.ex, ...(item.more ?? [])].filter((x): x is Example => !!x).slice(0, 3);
+  let corpus = corpora.get(lang);
+  if (!corpus) {
+    corpus = corpusOfCourse(course);
+    corpora.set(lang, corpus);
+  }
+  const out = examplesOf(item, lang, corpus);
+  exCache.set(item.id, out);
+  return out;
 }

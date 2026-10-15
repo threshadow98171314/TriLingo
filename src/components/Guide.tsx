@@ -137,9 +137,13 @@ export function exHintOf(ex: Exercise): { id: string; text: string } | null {
     case 'match':
       return { id: 'ex:match', text: '先點左邊、再點右邊，把對應的兩張配成一對。' };
     case 'type':
-      return { id: 'ex:type', text: '用英文字母輸入這個字的羅馬拼音，例如 か → ka，按 Enter 送出。' };
-    case 'typeja':
-      return { id: 'ex:typeja', text: '用日文輸入法打出答案，假名或漢字都可以。想不起來就按「💡 提示」看第一個假名。' };
+      return ex.prompt.lang === 'ko'
+        ? { id: 'ex:type-ko', text: '用英文字母輸入這個韓文字的羅馬拼音，例如 가 → ga，按 Enter 送出。' }
+        : { id: 'ex:type', text: '用英文字母輸入這個字的羅馬拼音，例如 か → ka，按 Enter 送出。' };
+    case 'typeword':
+      return ex.lang === 'ko'
+        ? { id: 'ex:typeko', text: '用韓文鍵盤打出答案。打錯一次會告訴你差在哪裡，可以再試一次；不知道怎麼打就按「📖 怎麼打？」。' }
+        : { id: 'ex:typeja', text: '用日文輸入法打出答案，假名或漢字都可以。打錯一次會告訴你差在哪裡（促音、長音…），可以再試一次。' };
     case 'tiles':
       return ex.mode === 'spell'
         ? { id: 'ex:spell', text: '依序點下方的字卡拼出答案；點上面已經放好的字卡可以拿回來。' }

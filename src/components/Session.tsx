@@ -8,14 +8,14 @@ import { markGuide, recordAnswer, useSave, type AnswerMode, type SessionStats } 
 import { listenMuted, muteListening, speak, stopSpeaking } from '../core/tts';
 import type { LangId } from '../core/types';
 import { cx } from '../core/util';
-import { reshuffle, unlisten, type Exercise, type Reveal } from '../engine/exercises';
+import { isVocab, reshuffle, unlisten, type Exercise, type Reveal } from '../engine/exercises';
 import { furiPlain } from '../engine/furigana';
-import { checkJa } from '../engine/jaInput';
+import { inexactNote } from '../engine/typing';
 import { nav } from '../router';
-import { ChoiceView, MatchView, NoteView, TeachView, TilesView, TypeJaView, TypeView } from './ExerciseViews';
+import { ChoiceView, KeyGuideView, MatchView, NoteView, TeachView, TilesView, TypeView, TypeWordView, type TypedResult } from './ExerciseViews';
 import { ExHint, exHintOf } from './Guide';
 import { ResultScreen, type ResultData } from './Result';
-import { Bar, ItemCard, Modal } from './ui';
+import { Bar, ExampleBox, ItemCard, Modal } from './ui';
 
 interface QueueItem {
   ex: Exercise;
@@ -36,6 +36,8 @@ interface Feedback {
   canOverride?: boolean;
   /** 答錯時排進佇列的重考題 key（改判時要撤回） */
   retryKey?: number;
+  /** 打字題：教怎麼打這個答案 */
+  guide?: { lang: 'ja' | 'ko'; answer: string };
 }
 
 const PRAISE = ['答對了！', '完全正確！', '漂亮！', '太棒了！', '就是這樣！'];
@@ -86,7 +88,7 @@ export function Session({
   const cur = queue[idx];
   // 打字題在「不方便打字」時改出事先準備好的選擇題；「不方便聽」時聽力題改成看文字
   const ex: Exercise = useMemo(() => {
-    const e = cur.ex.t === 'typeja' && noTyping ? cur.ex.fallback : cur.ex;
+    const e = cur.ex.t === 'typeword' && noTyping ? cur.ex.fallback : cur.ex;
     return noListen ? unlisten(e) : e;
   }, [cur, noTyping, noListen]);
   const mute = () => {
@@ -107,14 +109,14 @@ export function Session({
     else sfx.wrong();
   };
 
-  /** 選擇、字卡、輸入題作答 */
-  const answer = (correct: boolean, picked: number | null = null, extra: Partial<Feedback> = {}) => {
-    if (fb || (ex.t !== 'choice' && ex.t !== 'tiles' && ex.t !== 'type' && ex.t !== 'typeja')) return;
+  /** 選擇、字卡、輸入題作答；helped：看了提示才答對（複習會排早一點） */
+  const answer = (correct: boolean, picked: number | null = null, extra: Partial<Feedback> = {}, helped = false) => {
+    if (fb || (ex.t !== 'choice' && ex.t !== 'tiles' && ex.t !== 'type' && ex.t !== 'typeword')) return;
     st.current.xpAnswer = correct && cur.retry === 0;
     if (cur.retry === 0) {
       st.current.graded++;
       if (correct) st.current.correct++;
-      recordAnswer(ex.itemId, correct, mode);
+      recordAnswer(ex.itemId, correct, mode, helped);
     }
     bump(correct);
     let retryKey: number | undefined;
@@ -126,20 +128,33 @@ export function Session({
     if (autoSpeak && ex.reveal.speak) speak(ex.reveal.speak.text, ex.reveal.speak.lang);
   };
 
-  /** 日文打字題：假名、漢字、混打都算對；只差平假名／片假名時算對但提醒寫法 */
-  const answerTyped = (input: string) => {
-    if (ex.t !== 'typeja') return;
-    const r = checkJa(input, ex.furi);
-    answer(r.ok, null, {
-      typed: input.trim(),
-      note: r.ok && !r.exact ? `標準寫法是「${furiPlain(ex.furi)}」，注意平假名和片假名。` : undefined,
-      canOverride: !r.ok,
-    });
+  /**
+   * 打字題（打字畫面已經批改過，也處理了第二次機會）。
+   * 日文假名、漢字、混打都算對；只差平假名／片假名（韓文只差空格）時算對但提醒寫法。
+   */
+  const answerTyped = (r: TypedResult) => {
+    if (ex.t !== 'typeword') return;
+    const plain = ex.lang === 'ja' ? furiPlain(ex.answer) : ex.answer;
+    let note: string | undefined;
+    if (r.correct && !r.exact) note = inexactNote(ex.lang, plain);
+    else if (r.correct && r.helped) note = '看了提示才打對：這個字會早一點排進複習。';
+    answer(
+      r.correct,
+      null,
+      {
+        typed: r.typed,
+        note,
+        // 日文可能打了題庫沒列的漢字寫法：讓使用者自己改判
+        canOverride: !r.correct && ex.lang === 'ja' && !!r.typed,
+        guide: !r.correct || r.helped ? { lang: ex.lang, answer: ex.answer } : undefined,
+      },
+      r.helped,
+    );
   };
 
   /** 「我的答案也對」：改判為答對，撤回重考題、恢復連擊 */
   const override = () => {
-    if (!fb || fb.correct || !fb.canOverride || ex.t !== 'typeja') return;
+    if (!fb || fb.correct || !fb.canOverride || ex.t !== 'typeword') return;
     if (cur.retry === 0) {
       st.current.correct++;
       st.current.xpAnswer = true;
@@ -257,8 +272,8 @@ export function Session({
         {ex.t === 'choice' && <ChoiceView ex={ex} done={!!fb} picked={fb?.picked ?? null} onPick={(i) => answer(i === ex.answer, i)} onMute={mute} />}
         {ex.t === 'tiles' && <TilesView ex={ex} done={!!fb} onSubmit={(ok) => answer(ok)} />}
         {ex.t === 'type' && <TypeView ex={ex} done={!!fb} onSubmit={(ok) => answer(ok)} />}
-        {ex.t === 'typeja' && (
-          <TypeJaView ex={ex} done={!!fb} verdict={fb ? fb.correct : null} onSubmit={answerTyped} onFallback={() => setNoTyping(true)} onMute={mute} />
+        {ex.t === 'typeword' && (
+          <TypeWordView ex={ex} done={!!fb} verdict={fb ? fb.correct : null} onSubmit={answerTyped} onFallback={() => setNoTyping(true)} onMute={mute} />
         )}
         {ex.t === 'match' && <MatchView ex={ex} onDone={matchDone} />}
         {ex.t === 'teach' && <TeachView ex={ex} lang={lang} autoSpeak={autoSpeak} />}
@@ -274,8 +289,10 @@ export function Session({
                 {fb.correct && combo >= 3 && <span className="fb-combo">{combo} 連擊</span>}
               </div>
               {fb.reveal && <ItemCard item={fb.reveal.item} lang={lang} />}
+              {fb.correct && fb.reveal && isVocab(fb.reveal.item) && fb.reveal.item.kind !== 'char' && <ExampleBox item={fb.reveal.item} lang={lang} />}
               {fb.reveal?.explain && <p className="fb-explain">💡 {fb.reveal.explain}</p>}
               {fb.note && <p className="fb-explain">✍️ {fb.note}</p>}
+              {fb.guide && <KeyGuideView lang={fb.guide.lang} answer={fb.guide.answer} />}
               {fb.canOverride && fb.typed && (
                 <button type="button" className="link-btn fb-override" onClick={override}>
                   我的答案也對（{fb.typed}）

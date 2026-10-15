@@ -57,16 +57,20 @@ export interface TypeEx {
   accept: string[];
   reveal: Reveal;
 }
-/** 日文打字題：看中文（或聽發音）用日文輸入法打出答案，假名、漢字都算對 */
-export interface TypeJaEx {
-  t: 'typeja';
+/**
+ * 打字題：看中文（或聽發音）用鍵盤打出答案。
+ * 日文用日文輸入法，假名、漢字都算對；韓文用韓文鍵盤。
+ */
+export interface TypeWordEx {
+  t: 'typeword';
+  lang: 'ja' | 'ko';
   itemId: string;
   mode: 'm2w' | 'listen';
   label: string;
   prompt?: Txt;
   audio?: Speak;
-  /** 答案（含「漢字[よみ]」標註） */
-  furi: string;
+  /** 答案：日文含「漢字[よみ]」標註，韓文是原文 */
+  answer: string;
   /** 現在不方便打字時，改出這題選擇題 */
   fallback: ChoiceEx;
   reveal: Reveal;
@@ -84,15 +88,15 @@ export interface NoteEx {
   t: 'note';
   note: GrammarNote;
 }
-export type Exercise = ChoiceEx | TilesEx | TypeEx | TypeJaEx | MatchEx | TeachEx | NoteEx;
+export type Exercise = ChoiceEx | TilesEx | TypeEx | TypeWordEx | MatchEx | TeachEx | NoteEx;
 
 export interface Ctx {
   lang: LangId;
   rng: Rng;
   /** 這個語言有沒有可用的語音；沒有就不出聽力題 */
   canListen: boolean;
-  /** 出日文打字題（設定可關閉，需要日文輸入法） */
-  jaTyping?: boolean;
+  /** 出打字題（日文、韓文；設定可關閉，需要該語言的輸入法） */
+  typing?: boolean;
 }
 
 export const LANG_NAME: Record<LangId, string> = { en: '英文', ja: '日文', ko: '韓文' };
@@ -453,29 +457,41 @@ export function typeEx(i: VocabItem, ctx: Ctx): TypeEx | null {
   return {
     t: 'type',
     itemId: i.id,
-    label: '輸入這個字的羅馬拼音',
+    label: ctx.lang === 'ko' ? '輸入這個韓文字的羅馬拼音' : '輸入這個字的羅馬拼音',
     prompt: { s: i.w, lang: ctx.lang },
     accept: [i.rm, ...(i.alt ?? [])],
     reveal: reveal(i, ctx.lang),
   };
 }
 
-/** 日文打字：看意思（或聽發音）用日文輸入法打出來 */
-export function typeJaEx(i: VocabItem, pool: VocabItem[], ctx: Ctx, mode: 'm2w' | 'listen' = 'm2w'): TypeJaEx | null {
-  if (ctx.lang !== 'ja' || i.kind === 'char') return null;
-  const furi = i.furi ?? i.w;
-  if (!readingOf(furi)) return null;
+/** 韓文打字題的答案只能有韓文字（可以有空格和句尾標點） */
+const KO_TYPABLE = /^[가-힣\s?!.,]+$/;
+
+/** 打字題：看意思（或聽發音）用日文輸入法／韓文鍵盤打出來 */
+export function typeWordEx(i: VocabItem, pool: VocabItem[], ctx: Ctx, mode: 'm2w' | 'listen' = 'm2w'): TypeWordEx | null {
+  const { lang } = ctx;
+  if (i.kind === 'char' || (lang !== 'ja' && lang !== 'ko')) return null;
+  let answer: string;
+  if (lang === 'ja') {
+    answer = i.furi ?? i.w;
+    if (!readingOf(answer)) return null;
+  } else {
+    if (!KO_TYPABLE.test(i.w) || !/[가-힣]/.test(i.w)) return null;
+    answer = i.w;
+  }
   const listen = mode === 'listen' && ctx.canListen;
+  const name = LANG_NAME[lang];
   return {
-    t: 'typeja',
+    t: 'typeword',
+    lang,
     itemId: i.id,
     mode: listen ? 'listen' : 'm2w',
-    label: listen ? '聽發音，用日文打出來' : '用日文打出這個意思',
+    label: listen ? `聽發音，用${name}打出來` : `用${name}打出這個意思`,
     prompt: listen ? undefined : zh(i.m),
-    audio: listen ? { text: sayOf(i, 'ja'), lang: 'ja' } : undefined,
-    furi,
+    audio: listen ? { text: sayOf(i, lang), lang } : undefined,
+    answer,
     fallback: listen ? listenEx(i, pool, ctx) : recall(i, pool, ctx),
-    reveal: reveal(i, 'ja'),
+    reveal: reveal(i, lang),
   };
 }
 
@@ -498,9 +514,9 @@ export function matchEx(items: VocabItem[], ctx: Ctx): MatchEx | null {
 /** 產出：最難的一類，要自己把答案「做」出來 */
 export function produce(i: VocabItem, pool: VocabItem[], ctx: Ctx): Exercise {
   if (i.kind === 'char') return typeEx(i, ctx) ?? recall(i, pool, ctx);
-  // 日文：大部分改成用鍵盤打出來（比排字卡更接近真的會寫）
-  if (ctx.jaTyping && ctx.lang === 'ja' && ctx.rng() < 0.6) {
-    const t = typeJaEx(i, pool, ctx);
+  // 日文、韓文：大部分改成用鍵盤打出來（比排字卡更接近真的會寫）
+  if (ctx.typing && (ctx.lang === 'ja' || ctx.lang === 'ko') && ctx.rng() < (ctx.lang === 'ja' ? 0.6 : 0.5)) {
+    const t = typeWordEx(i, pool, ctx);
     if (t) return t;
   }
   if (i.kind === 'phrase') {
@@ -691,8 +707,8 @@ export function unlisten(ex: Exercise): Exercise {
     if (!prompt) return ex;
     return { ...ex, audio: undefined, hidePrompt: false, prompt, label: ex.label.replace(/^聽(發音|句子|問題)，/, '') };
   }
-  if (ex.t === 'typeja' && ex.mode === 'listen' && isVocab(ex.reveal.item)) {
-    return { ...ex, mode: 'm2w', audio: undefined, prompt: zh(ex.reveal.item.m), label: '用日文打出這個意思' };
+  if (ex.t === 'typeword' && ex.mode === 'listen' && isVocab(ex.reveal.item)) {
+    return { ...ex, mode: 'm2w', audio: undefined, prompt: zh(ex.reveal.item.m), label: `用${LANG_NAME[ex.lang]}打出這個意思` };
   }
   return ex;
 }

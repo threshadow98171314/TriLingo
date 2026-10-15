@@ -5,10 +5,12 @@ import { sfx } from '../core/sfx';
 import { speak } from '../core/tts';
 import type { LangId } from '../core/types';
 import { cx } from '../core/util';
-import type { ChoiceEx, MatchEx, NoteEx, TeachEx, TilesEx, TypeEx, TypeJaEx } from '../engine/exercises';
+import type { ChoiceEx, MatchEx, NoteEx, TeachEx, TilesEx, TypeEx, TypeWordEx } from '../engine/exercises';
 import { isVocab, sayOf } from '../engine/exercises';
-import { kanaHint, normJa } from '../engine/jaInput';
-import { ClozeText, ItemCard, Ruby, SpeakBtn, Tx } from './ui';
+import { normJa } from '../engine/jaInput';
+import { checkTyped, diagnose, firstHint, keyGuide, normKo } from '../engine/typing';
+import { TypingRules } from './TypingRules';
+import { ClozeText, ItemCard, Modal, Ruby, SpeakBtn, Tx } from './ui';
 
 /** 讓鍵盤事件處理器永遠拿到最新的 callback，又不用每次重新綁定 */
 function useLatest<T>(v: T) {
@@ -219,7 +221,7 @@ export function TypeView({ ex, done, onSubmit }: { ex: TypeEx; done: boolean; on
         value={v}
         onChange={(e) => setV(e.target.value)}
         readOnly={done}
-        placeholder="例如：ka"
+        placeholder={ex.prompt.lang === 'ko' ? '例如：ga' : '例如：ka'}
         autoCapitalize="none"
         autoComplete="off"
         autoCorrect="off"
@@ -237,9 +239,24 @@ export function TypeView({ ex, done, onSubmit }: { ex: TypeEx; done: boolean; on
   );
 }
 
-// ───────── 日文打字題（日文輸入法） ─────────
+// ───────── 打字題（日文輸入法／韓文鍵盤） ─────────
 
-export function TypeJaView({
+export interface TypedResult {
+  correct: boolean;
+  typed: string;
+  /** 看了提示、或第二次才打對 */
+  helped: boolean;
+  /** 寫法完全一致（日文：平假名／片假名也一樣；韓文：空格也一樣） */
+  exact: boolean;
+}
+
+const TYPE_PLACEHOLDER = { ja: '用日文輸入法作答（假名、漢字都可以）', ko: '用韓文鍵盤作答' };
+
+/**
+ * 打字題可以打兩次：第一次打錯會說明差在哪裡、給第一個字的提示，再試一次；
+ * 第二次還是錯（或按「看答案」）才算答錯，並在回饋裡教怎麼打。
+ */
+export function TypeWordView({
   ex,
   done,
   verdict,
@@ -247,11 +264,11 @@ export function TypeJaView({
   onFallback,
   onMute,
 }: {
-  ex: TypeJaEx;
+  ex: TypeWordEx;
   done: boolean;
   /** 批改結果（作答前為 null；自己改判後也會變成答對） */
   verdict: boolean | null;
-  onSubmit: (input: string) => void;
+  onSubmit: (r: TypedResult) => void;
   /** 現在不方便打字：改成選擇題 */
   onFallback: () => void;
   /** 現在不方便聽：聽打改成看中文打 */
@@ -259,6 +276,9 @@ export function TypeJaView({
 }) {
   const [v, setV] = useState('');
   const [hint, setHint] = useState(false);
+  /** 第一次打錯後的說明 */
+  const [miss, setMiss] = useState<string | null>(null);
+  const [help, setHelp] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   // 輸入法選字中按的 Enter 是「確定選字」，不能當成送出。
   // Safari 會先結束選字再送出 Enter，所以剛結束選字的一瞬間也不算。
@@ -269,15 +289,32 @@ export function TypeJaView({
     if (ex.audio) speak(ex.audio.text, ex.audio.lang);
   }, [ex]);
 
-  const ready = normJa(v).length > 0;
+  const norm = ex.lang === 'ja' ? normJa(v) : normKo(v);
+  const ready = norm.length > 0;
+
+  const submit = () => {
+    const r = checkTyped(ex.lang, v, ex.answer);
+    if (r.ok) {
+      onSubmit({ correct: true, typed: v.trim(), helped: hint || !!miss, exact: r.exact });
+      return;
+    }
+    if (!miss) {
+      sfx.wrong();
+      setMiss(diagnose(ex.lang, v, ex.answer) ?? '還不對。看看提示，再試一次！');
+      setHint(true);
+      input.current?.select();
+      return;
+    }
+    onSubmit({ correct: false, typed: v.trim(), helped: true, exact: false });
+  };
 
   return (
     <form
-      className="ex ex-type ex-typeja"
+      className="ex ex-type ex-typeword"
       onSubmit={(e) => {
         e.preventDefault();
         if (done || !ready || ime.current.on || Date.now() - ime.current.endedAt < 80) return;
-        onSubmit(v);
+        submit();
       }}
     >
       <p className="ex-label">{ex.label}</p>
@@ -295,14 +332,19 @@ export function TypeJaView({
         )}
         {ex.prompt && <Tx className="prompt-text" s={ex.prompt.s} lang={ex.prompt.lang} />}
       </div>
+      {miss && !done && (
+        <p className="type-miss" role="alert">
+          <b>差一點！</b> {miss}
+        </p>
+      )}
       {hint && !done && (
-        <p className="type-hint" lang="ja" aria-label="提示">
-          {kanaHint(ex.furi)}
+        <p className="type-hint" lang={ex.lang} aria-label="提示">
+          {firstHint(ex.lang, ex.answer)}
         </p>
       )}
       <input
         ref={input}
-        className={cx('type-input ja', verdict !== null && (verdict ? 'right' : 'wrong'))}
+        className={cx('type-input', ex.lang, verdict !== null && (verdict ? 'right' : 'wrong'), miss && !done && 'retry')}
         value={v}
         onChange={(e) => setV(e.target.value)}
         onCompositionStart={() => {
@@ -312,23 +354,32 @@ export function TypeJaView({
           ime.current = { on: false, endedAt: Date.now() };
         }}
         readOnly={done}
-        placeholder="用日文輸入法作答（假名、漢字都可以）"
+        placeholder={TYPE_PLACEHOLDER[ex.lang]}
         autoCapitalize="none"
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
         enterKeyHint="done"
-        lang="ja"
-        aria-label="輸入日文"
+        lang={ex.lang}
+        aria-label={ex.lang === 'ja' ? '輸入日文' : '輸入韓文'}
       />
       {!done && (
         <>
           <button type="submit" className="btn primary wide check" disabled={!ready}>
-            檢查
+            {miss ? '再試一次' : '檢查'}
           </button>
           <div className="type-tools">
-            <button type="button" className="link-btn" onClick={() => setHint(true)} disabled={hint}>
-              💡 提示
+            {!hint ? (
+              <button type="button" className="link-btn" onClick={() => setHint(true)}>
+                💡 提示
+              </button>
+            ) : (
+              <button type="button" className="link-btn" onClick={() => onSubmit({ correct: false, typed: v.trim(), helped: true, exact: false })}>
+                🏳️ 看答案和打法
+              </button>
+            )}
+            <button type="button" className="link-btn" onClick={() => setHelp(true)}>
+              📖 怎麼打？
             </button>
             <button type="button" className="link-btn" onClick={onFallback}>
               ⌨️ 現在不方便打字
@@ -336,7 +387,44 @@ export function TypeJaView({
           </div>
         </>
       )}
+      {help && (
+        <Modal className="typing-help-modal" onClose={() => setHelp(false)}>
+          <TypingRules lang={ex.lang} compact />
+          <div className="modal-actions">
+            <button type="button" className="btn primary" onClick={() => setHelp(false)}>
+              知道了
+            </button>
+          </div>
+        </Modal>
+      )}
     </form>
+  );
+}
+
+/** 一個答案的打法：每個字要按哪些鍵，以及用到的特殊打法 */
+export function KeyGuideView({ lang, answer }: { lang: 'ja' | 'ko'; answer: string }) {
+  const g = keyGuide(lang, answer);
+  if (!g.steps.length) return null;
+  return (
+    <div className="key-guide">
+      <div className="kg-title">⌨️ 這樣打</div>
+      <div className="kg-steps">
+        {g.steps.map((st, i) => (
+          <span key={i} className="kg-step">
+            <b lang={lang}>{st.text}</b>
+            {st.jamo && <i lang="ko">{st.jamo}</i>}
+            <kbd>{st.keys}</kbd>
+          </span>
+        ))}
+      </div>
+      {!!g.tips.length && (
+        <ul className="kg-tips">
+          {g.tips.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 

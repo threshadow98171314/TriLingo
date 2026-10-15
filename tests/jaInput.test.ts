@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import type { VocabItem } from '../src/core/types';
 import { ja } from '../src/content/dsl';
-import { produce, typeJaEx, type Ctx } from '../src/engine/exercises';
+import { produce, typeWordEx, type Ctx } from '../src/engine/exercises';
 import { checkJa, kanaHint, normJa, readingOf } from '../src/engine/jaInput';
 
 describe('日文打字批改', () => {
@@ -52,27 +52,27 @@ describe('日文打字出題', () => {
     ja('公園[こうえん]', '公園'),
     ja('ちょっと 待[ま]って', '等一下'),
   ].map((w, k) => ({ ...w, id: `ja.test:${k}` }));
-  const ctx = (o: Partial<Ctx> = {}): Ctx => ({ lang: 'ja', rng: () => 0, canListen: true, jaTyping: true, ...o });
+  const ctx = (o: Partial<Ctx> = {}): Ctx => ({ lang: 'ja', rng: () => 0, canListen: true, typing: true, ...o });
 
   it('看中文打日文：答案帶振假名標註，準備好改出的選擇題', () => {
-    const e = typeJaEx(words[0], words, ctx())!;
-    expect(e.t).toBe('typeja');
+    const e = typeWordEx(words[0], words, ctx())!;
+    expect(e.t).toBe('typeword');
     expect(e.mode).toBe('m2w');
-    expect(e.furi).toBe('学校[がっこう]');
+    expect(e.answer).toBe('学校[がっこう]');
     expect(e.prompt?.s).toBe('學校');
     expect(e.fallback.t).toBe('choice');
     expect(e.fallback.itemId).toBe(e.itemId);
   });
 
   it('聽打：沒有日文語音時改成看中文', () => {
-    expect(typeJaEx(words[4], words, ctx(), 'listen')!.mode).toBe('listen');
-    expect(typeJaEx(words[4], words, ctx({ canListen: false }), 'listen')!.mode).toBe('m2w');
+    expect(typeWordEx(words[4], words, ctx(), 'listen')!.mode).toBe('listen');
+    expect(typeWordEx(words[4], words, ctx({ canListen: false }), 'listen')!.mode).toBe('m2w');
   });
 
   it('產出題：開啟打字題時日文會出打字題；關掉或其他語言不會', () => {
-    expect(produce(words[1], words, ctx()).t).toBe('typeja');
-    expect(produce(words[1], words, ctx({ jaTyping: false })).t).not.toBe('typeja');
-    expect(typeJaEx({ ...words[1], id: 'en.x:1' }, words, ctx({ lang: 'en' }))).toBeNull();
+    expect(produce(words[1], words, ctx()).t).toBe('typeword');
+    expect(produce(words[1], words, ctx({ typing: false })).t).not.toBe('typeword');
+    expect(typeWordEx({ ...words[1], id: 'en.x:1' }, words, ctx({ lang: 'en' }))).toBeNull();
   });
 });
 

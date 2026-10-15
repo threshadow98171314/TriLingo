@@ -92,7 +92,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   a('遊戲', 'cw_20', '🗝️', '填字達人', '完成 20 個填字遊戲', 20, (s) => s.stats.crosswords, 60),
   a('遊戲', 'dailycw_7', '📅', '每日一填', '完成 7 次每日填字', 7, (s) => s.stats.dailyCw, 40),
   a('遊戲', 'match_10', '🃏', '配對高手', '完成 10 次配對消消樂', 10, (s) => s.stats.matches, 30),
-  a('遊戲', 'typing_10', '⌨️', '鍵盤武士', '完成 10 次日文打字特訓', 10, (s) => s.stats.typings, 40),
+  a('遊戲', 'typing_10', '⌨️', '鍵盤武士', '完成 10 次打字特訓', 10, (s) => s.stats.typings, 40),
   a('遊戲', 'tf_300', '✅', '火眼金睛', '真假快判拿到 300 分', 300, bestTf, 40),
   a('遊戲', 'memory_10', '🃏', '過目不忘', '完成 10 次記憶翻牌', 10, (s) => s.stats.memories, 30),
   a('遊戲', 'blitz_200', '⏱️', '手腦並用', '限時快答拿到 200 分', 200, bestBlitz, 20),

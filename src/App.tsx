@@ -22,6 +22,7 @@ import { ProfilePage } from './pages/Profile';
 import { SettingsPage } from './pages/Settings';
 import { ShopPage } from './pages/Shop';
 import { TrueFalsePage } from './pages/TrueFalse';
+import { TypingGuidePage } from './pages/TypingGuide';
 import { href, useRoute, type Route } from './router';
 
 /** 網址 → 頁面。focus 為 true 的頁面（上課、玩遊戲）不顯示導覽列。 */
@@ -56,6 +57,8 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
         return view(<LangPage lang={lang} tab={lang === 'en' ? 'path' : 'chart'} />);
       case 'lesson':
         return gated(<LessonPage lang={lang} lessonId={p[3] ?? ''} />);
+      case 'typing-guide':
+        return view(<TypingGuidePage lang={lang} />);
       case 'review':
         return gated(<ReviewPage lang={lang} />);
       case 'play':
@@ -63,7 +66,7 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
         if (p[3] === 'match') return gated(<MatchPage lang={lang} />);
         if (p[3] === 'blitz') return gated(<BlitzPage lang={lang} />);
         if (p[3] === 'listen') return gated(<ListenPage lang={lang} />);
-        if (p[3] === 'typing' && lang === 'ja') return gated(<TypingPage lang={lang} />);
+        if (p[3] === 'typing' && lang !== 'en') return gated(<TypingPage lang={lang} />);
         if (p[3] === 'truefalse') return gated(<TrueFalsePage lang={lang} />);
         if (p[3] === 'memory') return gated(<MemoryPage lang={lang} kana={lang === 'ja' && route.query.get('kana') === '1'} />);
     }

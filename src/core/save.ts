@@ -21,6 +21,8 @@ export interface Settings {
   seasonal: boolean;
   /** 日文打字題（需要日文輸入法） */
   jaTyping: boolean;
+  /** 韓文打字題（需要韓文鍵盤） */
+  koTyping: boolean;
 }
 
 /** 單日紀錄：熱力圖、每日目標、每日任務都從這裡計算 */
@@ -87,7 +89,7 @@ export interface Stats {
   grit: number;
   luckyStars: number;
   goldenChests: number;
-  /** 完成日文打字特訓的次數 */
+  /** 完成打字特訓（日文、韓文）的次數 */
   typings: number;
   /** 完成模擬考的次數 */
   mocks: number;
@@ -161,7 +163,7 @@ export function defaultSave(now: number): Save {
     name: '學習者',
     avatar: FREE_AVATARS[0],
     avatars: [...FREE_AVATARS],
-    settings: { dailyGoal: 50, sfx: true, autoSpeak: true, ttsRate: 1, romaji: true, furigana: true, theme: 'dark', voices: {}, fx: true, seasonal: true, jaTyping: true },
+    settings: { dailyGoal: 50, sfx: true, autoSpeak: true, ttsRate: 1, romaji: true, furigana: true, theme: 'dark', voices: {}, fx: true, seasonal: true, jaTyping: true, koTyping: true },
     xp: { en: 0, ja: 0, ko: 0 },
     coins: 0,
     coinsEarned: 0,

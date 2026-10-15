@@ -8,13 +8,19 @@ import { dueItems, learnedItems, learnedVocab, nextBankLesson, UNLOCK, weakestIt
 import { sample, shuffle } from '../core/rng';
 import { BOSS_PASS, finishGame, finishLesson, getSave, type SessionStats } from '../core/store';
 import { canSpeak, listenMuted, unmuteListening, useVoices } from '../core/tts';
-import type { LangId } from '../core/types';
+import type { LangId, VocabItem } from '../core/types';
 import { fmtTime } from '../core/util';
-import { buildLesson, buildListening, buildReview, isVocab, LANG_NAME, typeJaEx, type Ctx, type Exercise } from '../engine/exercises';
+import { buildLesson, buildListening, buildReview, isVocab, LANG_NAME, typeWordEx, type Ctx, type Exercise } from '../engine/exercises';
 import { href, lessonPath, stagePath } from '../router';
 
 // 「現在不方便聽」期間不出聽力題
-const ctxOf = (lang: LangId): Ctx => ({ lang, rng: Math.random, canListen: canSpeak(lang) && !listenMuted(), jaTyping: lang === 'ja' && getSave().settings.jaTyping });
+/** 這個語言要不要出打字題（設定頁可以分別關掉日文、韓文） */
+function typingOn(lang: LangId): boolean {
+  const s = getSave().settings;
+  return lang === 'ja' ? s.jaTyping : lang === 'ko' ? s.koTyping : false;
+}
+
+const ctxOf = (lang: LangId): Ctx => ({ lang, rng: Math.random, canListen: canSpeak(lang) && !listenMuted(), typing: typingOn(lang) });
 
 const statLines = (st: SessionStats): [string, string][] => [
   ['答對率', `${st.graded ? Math.round((st.correct / st.graded) * 100) : 100}%`],
@@ -243,19 +249,21 @@ export function ListenPage({ lang }: { lang: LangId }) {
   return <Session key={run} lang={lang} title="聽力特訓" exercises={exercises} mode="game" exitTo={back} retry={false} onFinish={onFinish} />;
 }
 
-// ───────── 日文打字特訓 ─────────
+// ───────── 打字特訓（日文、韓文） ─────────
 
 export function TypingPage({ lang }: { lang: LangId }) {
   useVoices();
   const build = (): Exercise[] => {
-    if (lang !== 'ja') return [];
-    const words = learnedVocab(getSave(), lang).filter((i) => i.kind !== 'char');
-    if (words.length < UNLOCK.typing) return [];
+    if (lang !== 'ja' && lang !== 'ko') return [];
     const idx = courseIndex(lang).items;
-    const ctx = { ...ctxOf(lang), jaTyping: true };
-    // 看中文打、聽發音打交錯出題（沒有日文語音時全部看中文）
+    const ctx = { ...ctxOf(lang), typing: true };
+    const pool = (i: VocabItem) => idx.get(i.id)!.unit.items.filter(isVocab);
+    // 打得出來的字才算（韓文只算韓文字的單字、短句）
+    const words = learnedVocab(getSave(), lang).filter((i) => i.kind !== 'char' && typeWordEx(i, pool(i), ctx));
+    if (words.length < UNLOCK.typing) return [];
+    // 看中文打、聽發音打交錯出題（沒有語音時全部看中文）
     return sample(words, 10)
-      .map((i, k) => typeJaEx(i, idx.get(i.id)!.unit.items.filter(isVocab), ctx, k % 2 === 1 ? 'listen' : 'm2w'))
+      .map((i, k) => typeWordEx(i, pool(i), ctx, k % 2 === 1 ? 'listen' : 'm2w'))
       .filter((e): e is NonNullable<typeof e> => !!e);
   };
   const [{ run, exercises }, setGame] = useState(() => ({ run: 0, exercises: build() }));
@@ -265,7 +273,7 @@ export function TypingPage({ lang }: { lang: LangId }) {
   if (!exercises.length) {
     return (
       <Blocked lang={lang} icon="⌨️" title="打字特訓尚未解鎖" back={`/l/${lang}`}>
-        學會 {UNLOCK.typing} 個日文單字或短句（不含五十音）之後就能開始。
+        學會 {UNLOCK.typing} 個{LANG_NAME[lang]}單字或短句（不含{lang === 'ja' ? '五十音' : '字母'}）之後就能開始。
       </Blocked>
     );
   }
@@ -273,7 +281,7 @@ export function TypingPage({ lang }: { lang: LangId }) {
   const onFinish = (stats: SessionStats): ResultData => ({
     emoji: '⌨️',
     headline: '打字特訓完成！',
-    sub: stats.correct === stats.graded ? '全部打對了，手指也記住日文了。' : '打錯的字已經排進複習。可以按「提示」看第一個假名。',
+    sub: stats.correct === stats.graded ? `全部打對了，手指也記住${LANG_NAME[lang]}了。` : '打錯的字已經排進複習。卡住時可以按「💡 提示」或「📖 怎麼打？」。',
     outcome: finishGame({
       lang,
       game: 'typing',

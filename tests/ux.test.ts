@@ -7,7 +7,7 @@ import { defaultSave } from '../src/core/save';
 import type { ClozeItem, QaItem, VocabItem } from '../src/core/types';
 import { ja } from '../src/content/dsl';
 import { scriptLines } from '../src/core/tts';
-import { clozeSentence, listenEx, qaEx, recog, tokenPool, transcriptOf, typeJaEx, unlisten, type Ctx } from '../src/engine/exercises';
+import { clozeSentence, listenEx, qaEx, recog, tokenPool, transcriptOf, typeWordEx, unlisten, type Ctx } from '../src/engine/exercises';
 import { furiPlain } from '../src/engine/furigana';
 
 describe('知識補充站', () => {
@@ -39,7 +39,7 @@ describe('現在不方便聽', () => {
     ...w,
     id: `ja.t:${k}`,
   }));
-  const ctx: Ctx = { lang: 'ja', rng: () => 0.3, canListen: true, jaTyping: true };
+  const ctx: Ctx = { lang: 'ja', rng: () => 0.3, canListen: true, typing: true };
 
   it('聽發音選意思 → 改成看文字選意思，答案不變', () => {
     const e = listenEx(words[0], words, ctx);
@@ -62,9 +62,9 @@ describe('現在不方便聽', () => {
   });
 
   it('聽打 → 看中文打；本來就不是聽力題的不變', () => {
-    const t = typeJaEx(words[1], words, ctx, 'listen')!;
+    const t = typeWordEx(words[1], words, ctx, 'listen')!;
     const u = unlisten(t);
-    expect(u.t === 'typeja' && u.mode === 'm2w' && !u.audio && u.prompt?.s === '車站').toBe(true);
+    expect(u.t === 'typeword' && u.mode === 'm2w' && !u.audio && u.prompt?.s === '車站').toBe(true);
     const r = recog(words[2], words, ctx);
     expect(unlisten(r)).toBe(r);
   });
@@ -156,10 +156,10 @@ describe('新手引導', () => {
   it('每種題型都有自己的提示', async () => {
     const { exHintOf } = await import('../src/components/Guide');
     const words: VocabItem[] = [ja('学校[がっこう]', '學校'), ja('駅[えき]', '車站'), ja('病院[びょういん]', '醫院'), ja('公園[こうえん]', '公園')].map((w, k) => ({ ...w, id: `ja.h:${k}` }));
-    const ctx: Ctx = { lang: 'ja', rng: () => 0.3, canListen: true, jaTyping: true };
+    const ctx: Ctx = { lang: 'ja', rng: () => 0.3, canListen: true, typing: true };
     expect(exHintOf({ t: 'teach', item: words[0] })?.id).toBe('ex:teach');
     expect(exHintOf(listenEx(words[0], words, ctx))?.id).toBe('ex:listen');
-    expect(exHintOf(typeJaEx(words[0], words, ctx)!)?.id).toBe('ex:typeja');
+    expect(exHintOf(typeWordEx(words[0], words, ctx)!)?.id).toBe('ex:typeja');
     expect(exHintOf(recog(words[0], words, ctx))).toBeNull();
   });
 });

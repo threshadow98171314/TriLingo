@@ -253,8 +253,11 @@ const total = (parts: Part[]) => parts.reduce((a, [, x]) => a + x, 0);
 
 export type AnswerMode = 'learn' | 'review' | 'game';
 
-/** 記錄一題的對錯，更新該項目的熟練度與複習排程 */
-export function recordAnswer(itemId: string, correct: boolean, mode: AnswerMode) {
+/**
+ * 記錄一題的對錯，更新該項目的熟練度與複習排程。
+ * helped：看了提示才答對，算答對但熟練度不往上加，隔天就排進複習。
+ */
+export function recordAnswer(itemId: string, correct: boolean, mode: AnswerMode, helped = false) {
   mutate((d) => {
     const day = dayNum(today());
     const now = nowMs();
@@ -262,6 +265,8 @@ export function recordAnswer(itemId: string, correct: boolean, mode: AnswerMode)
     if (!p) {
       d.items[itemId] = newProg(correct, day, now);
       dayLog(d).words++;
+    } else if (correct && helped) {
+      d.items[itemId] = { ...p, ok: p.ok + 1, due: Math.min(p.due, day + 1), t: now };
     } else {
       d.items[itemId] = mode === 'review' ? srsReview(p, correct, day, now) : srsTouch(p, correct, day, now);
     }

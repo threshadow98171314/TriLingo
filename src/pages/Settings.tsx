@@ -211,6 +211,12 @@ export function SettingsPage() {
         >
           <Toggle on={set.jaTyping} label="日文打字題" onChange={(v) => updateSettings({ jaTyping: v })} />
         </Row>
+        <Row
+          title="韓文打字題"
+          desc="看中文或聽發音，用韓文鍵盤（兩組式）打出答案。需要先加入韓文鍵盤，遊樂場的「打字教室」有設定方法與鍵盤配置；關掉的話會改用排字卡。"
+        >
+          <Toggle on={set.koTyping} label="韓文打字題" onChange={(v) => updateSettings({ koTyping: v })} />
+        </Row>
         {muteUntil > 0 && (
           <Row title="聽力題暫停中" desc={`在練習中按了「現在不方便聽」，還剩約 ${Math.ceil((muteUntil - Date.now()) / 60000)} 分鐘。暫停期間聽力題會改成看文字作答。`}>
             <button

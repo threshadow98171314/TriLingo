@@ -426,16 +426,31 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
       need: 6,
       have: kanaPairs(learnedItems(s, lang).filter(isVocab)).length,
     });
-    games.push({
-      icon: '⌨️',
-      title: '打字特訓',
-      desc: '看中文或聽發音，用日文鍵盤把單字、短句打出來。假名、漢字、混著打都可以。',
-      to: `/l/${lang}/play/typing`,
-      need: UNLOCK.typing,
-      have: words,
-      badge: s.stats.typings > 0 ? `已完成 ${s.stats.typings} 次` : '新遊戲',
-      hot: s.stats.typings === 0,
-    });
+  }
+  if (lang === 'ja' || lang === 'ko') {
+    games.push(
+      {
+        icon: '⌨️',
+        title: '打字特訓',
+        desc:
+          lang === 'ja'
+            ? '看中文或聽發音，用日文鍵盤把單字、短句打出來。假名、漢字、混著打都可以；打錯一次會告訴你差在哪裡。'
+            : '看中文或聽發音，用韓文鍵盤把單字、短句打出來；打錯一次會告訴你差在哪個字母。',
+        to: `/l/${lang}/play/typing`,
+        need: UNLOCK.typing,
+        have: words,
+        badge: s.stats.typings > 0 ? `已完成 ${s.stats.typings} 次` : '新遊戲',
+        hot: s.stats.typings === 0,
+      },
+      {
+        icon: '🎹',
+        title: '打字教室',
+        desc: lang === 'ja' ? '促音、長音、ん、拗音、外來語怎麼打？看說明，當場試打。' : '韓文鍵盤配置、雙子音、複合母音、收尾音怎麼打？看說明，當場試打。',
+        to: `/l/${lang}/typing-guide`,
+        need: 0,
+        have: 0,
+      },
+    );
   }
 
   return (

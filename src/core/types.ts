@@ -33,6 +33,8 @@ export interface VocabItem {
   pos?: string;
   note?: string;
   ex?: Example;
+  /** 更多例句：答對時會從 ex 和這些例句裡隨機挑一句顯示 */
+  more?: Example[];
   /** 短句的分詞結果，用於句子重組題 */
   tokens?: string[];
 }

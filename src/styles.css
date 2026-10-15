@@ -3202,19 +3202,19 @@ button.dex-tile:hover {
   }
 }
 
-/* ───────── 日文打字題 ───────── */
-.ex-typeja .type-input.ja {
+/* ───────── 打字題（日文、韓文） ───────── */
+.ex-typeword .type-input {
   width: min(100%, 420px);
   font-size: 1.35rem;
   font-weight: 700;
   text-align: center;
 }
-.ex-typeja .type-input.ja::placeholder {
+.ex-typeword .type-input::placeholder {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--muted);
 }
-.ex-typeja .check {
+.ex-typeword .check {
   width: min(100%, 420px);
 }
 .type-hint {
@@ -4402,4 +4402,273 @@ button.dex-tile:hover {
 .dex-bank > .dex-unit,
 .dex-bank > p {
   margin: 0 12px;
+}
+
+/* ───────── 打字題：第二次機會、打法教學 ───────── */
+.type-input.retry {
+  border-color: var(--warn);
+  animation: shake 0.35s both;
+}
+.type-miss {
+  margin: 0 auto;
+  max-width: 460px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--warn) 55%, transparent);
+  background: color-mix(in srgb, var(--warn) 12%, var(--card));
+  font-size: 0.92rem;
+  line-height: 1.6;
+  text-align: left;
+}
+.type-miss b {
+  color: var(--warn);
+  margin-right: 4px;
+}
+.key-guide {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--card-2) 70%, transparent);
+  border: 1px dashed var(--line);
+}
+.kg-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.kg-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.kg-step {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 44px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+.kg-step b {
+  font-size: 1.1rem;
+}
+.kg-step i {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+kbd,
+.kg-step kbd {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.8rem;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--lang) 16%, var(--card-2));
+  border-bottom: 2px solid color-mix(in srgb, var(--lang) 40%, var(--line));
+}
+.kg-tips {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.typing-rules h2 {
+  margin: 0 0 6px;
+}
+.typing-rules h3 {
+  margin: 18px 0 6px;
+  font-size: 1rem;
+}
+.rules-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+.rules-table td {
+  padding: 8px 6px;
+  border-top: 1px solid var(--line);
+  vertical-align: middle;
+}
+.rules-table .rt-word {
+  font-weight: 700;
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+.rules-list {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.7;
+  font-size: 0.9rem;
+}
+.typing-help-modal {
+  max-width: 560px;
+  max-height: 86vh;
+  overflow: auto;
+}
+.ko-kb {
+  margin: 12px 0;
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+}
+.ko-kb-row {
+  display: flex;
+  gap: 4px;
+}
+.ko-kb-row:nth-child(2) {
+  margin-left: 18px;
+}
+.ko-kb-row:nth-child(3) {
+  margin-left: 40px;
+}
+.ko-key {
+  position: relative;
+  width: 34px;
+  height: 42px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-bottom-width: 3px;
+  background: var(--card);
+}
+.ko-key.c {
+  background: color-mix(in srgb, #38bdf8 14%, var(--card));
+}
+.ko-key.v {
+  background: color-mix(in srgb, #f472b6 14%, var(--card));
+}
+.ko-key b {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+.ko-key i {
+  position: absolute;
+  right: 3px;
+  bottom: 1px;
+  font-style: normal;
+  font-size: 0.6rem;
+  color: var(--muted);
+}
+.ko-key small {
+  position: absolute;
+  left: 3px;
+  top: 1px;
+  font-size: 0.6rem;
+  color: var(--gold);
+}
+.ko-kb .small {
+  font-size: 0.8rem;
+}
+@media (max-width: 420px) {
+  .ko-key {
+    width: 29px;
+    height: 38px;
+  }
+  .ko-kb-row:nth-child(2) {
+    margin-left: 12px;
+  }
+  .ko-kb-row:nth-child(3) {
+    margin-left: 26px;
+  }
+}
+.typing-guide .card {
+  margin-bottom: 16px;
+}
+.try-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.try-row {
+  padding: 12px 14px;
+}
+.try-row.ok {
+  border-color: color-mix(in srgb, var(--ok) 60%, transparent);
+}
+.try-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.try-head b {
+  font-size: 1.2rem;
+}
+.try-head .link-btn {
+  margin-left: auto;
+}
+.try-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+.try-form .type-input {
+  flex: 1;
+  width: auto;
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 1.1rem;
+}
+.try-ok,
+.try-bad {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+}
+.try-ok {
+  color: var(--ok);
+}
+.try-bad {
+  color: var(--bad);
+}
+.back-link {
+  display: inline-block;
+  margin: 4px 0 12px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.back-link:hover {
+  color: var(--text);
+}
+
+/* ───────── 答對時的例句 ───────── */
+.ex-box {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ok) 8%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--ok) 30%, transparent);
+  text-align: left;
+}
+.ex-box-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.ex-box-head .link-btn {
+  padding: 0;
+  font-size: 0.8rem;
+}
+.ex-box-s {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0;
+  font-size: 1.02rem;
+  line-height: 1.9;
+}
+.ex-box small {
+  color: var(--muted);
 }
