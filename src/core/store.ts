@@ -370,7 +370,7 @@ export function finishLesson(a: { lang: LangId; unit: Unit; lesson: Lesson; stat
   return out;
 }
 
-export type GameId = 'review' | 'crossword' | 'match' | 'blitz' | 'listen' | 'typing';
+export type GameId = 'review' | 'crossword' | 'match' | 'blitz' | 'listen' | 'typing' | 'truefalse' | 'memory';
 
 export function finishGame(a: {
   lang: LangId;
@@ -418,6 +418,20 @@ export function finishGame(a: {
       }
     } else if (a.game === 'typing') {
       d.stats.typings++;
+    } else if (a.game === 'truefalse') {
+      d.stats.truefalses++;
+      const score = a.score ?? 0;
+      if (score > (d.best.tf[a.lang] ?? 0)) {
+        record = (d.best.tf[a.lang] ?? 0) > 0;
+        d.best.tf[a.lang] = score;
+      }
+    } else if (a.game === 'memory') {
+      d.stats.memories++;
+      const best = d.best.memory[a.lang];
+      if (a.seconds !== undefined && (best === undefined || a.seconds < best)) {
+        d.best.memory[a.lang] = a.seconds;
+        record = best !== undefined;
+      }
     } else {
       d.stats.listens++;
     }
@@ -577,6 +591,23 @@ export function discoverEgg(id: string): boolean {
     got = findEgg(d, id);
   });
   return got;
+}
+
+// ───────── 新手引導 ─────────
+
+/** 標記某個說明已經看過（看過就不再跳出） */
+export function markGuide(...ids: string[]) {
+  if (ids.every((id) => save.guide[id])) return;
+  mutate((d) => {
+    for (const id of ids) d.guide[id] ??= nowMs();
+  });
+}
+
+/** 重新顯示所有說明（設定頁） */
+export function resetGuides() {
+  mutate((d) => {
+    d.guide = {};
+  });
 }
 
 /** 存檔每次變動後呼叫 fn；回傳取消訂閱的函式 */

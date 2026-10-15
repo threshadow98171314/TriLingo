@@ -87,7 +87,7 @@ const JA: CourseMeta = {
       short: '五十音',
       title: '五十音',
       subtitle: '平假名・片假名',
-      description: '日文的地基。先把平假名、片假名認熟，後面每一關都會用到。已經會的話，可以直接挑戰各單元的測驗跳級。',
+      description: '日文的地基：平假名和片假名交替學（清音 → 濁音 → 拗音），各 104 個，後面每一關都會用到。已經會的話，可以直接挑戰各單元的測驗跳級。',
       color: '#fbbf24',
       group: 'main',
       style: 'level',

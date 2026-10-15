@@ -7,7 +7,7 @@ import { canSpeak, speak, useVoices } from '../core/tts';
 import type { CourseMeta, Item, LangId } from '../core/types';
 import { cx } from '../core/util';
 import { clozeFilled, headOf, isVocab, sayOf } from '../engine/exercises';
-import { furiPlain, furiSegs } from '../engine/furigana';
+import { furiPlain, furiSegs, isKanaStr, toHiragana, toKatakana } from '../engine/furigana';
 import { romajiOf } from '../engine/romaji';
 
 /** 連勝火焰的等級：越久越大、顏色越特別（7 天、30 天變藍、100 天變紫） */
@@ -217,6 +217,12 @@ export function ItemCard({ item, lang, big }: { item: Item; lang: LangId; big?: 
         <SpeakBtn text={sayOf(item, lang)} lang={lang} />
       </div>
       {sub && <div className="ic-rm">{sub}</div>}
+      {lang === 'ja' && item.kind === 'char' && isKanaStr(item.w) && (
+        <div className="ic-pair">
+          {/[ぁ-ゖ]/.test(item.w) ? '片假名' : '平假名'}
+          <b lang="ja">{/[ぁ-ゖ]/.test(item.w) ? toKatakana(item.w) : toHiragana(item.w)}</b>
+        </div>
+      )}
       {item.kind !== 'char' && (
         <div className="ic-meaning">
           {item.pos && <em>{item.pos}</em>}

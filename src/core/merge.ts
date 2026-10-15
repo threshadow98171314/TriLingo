@@ -70,11 +70,12 @@ function mergeStreak(a: StreakState, b: StreakState, newerCoins: StreakState): S
 export function mergeSaves(a: Save, b: Save): Save {
   const prefs = b.prefsAt > a.prefsAt ? b : a;
   const coins = b.coinsAt > a.coinsAt ? b : a;
-  const match = { ...a.best.match };
-  for (const [l, v] of Object.entries(b.best.match)) {
-    const k = l as keyof typeof match;
-    if (v !== undefined) match[k] = match[k] === undefined ? v : Math.min(match[k]!, v);
-  }
+  // 秒數類的紀錄取較短的
+  const fastest = (x: Partial<Record<string, number>>, y: Partial<Record<string, number>>) => {
+    const out = { ...x };
+    for (const [l, v] of Object.entries(y)) if (v !== undefined) out[l] = out[l] === undefined ? v : Math.min(out[l]!, v);
+    return out;
+  };
   return {
     v: 1,
     created: Math.min(a.created, b.created),
@@ -97,7 +98,8 @@ export function mergeSaves(a: Save, b: Save): Save {
     ach: mergeRecord(a.ach, b.ach, Math.min),
     eggs: mergeRecord(a.eggs, b.eggs, Math.min),
     mocks: mergeRecord(a.mocks, b.mocks, pickMock),
+    guide: mergeRecord(a.guide, b.guide, Math.min),
     stats: maxKeys(a.stats, b.stats),
-    best: { blitz: maxKeys(a.best.blitz, b.best.blitz), match },
+    best: { blitz: maxKeys(a.best.blitz, b.best.blitz), match: fastest(a.best.match, b.best.match), memory: fastest(a.best.memory, b.best.memory), tf: maxKeys(a.best.tf, b.best.tf) },
   };
 }

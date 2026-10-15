@@ -83,3 +83,59 @@ describe('接續學習', () => {
     expect(quickStats(s, 'ko')).toEqual({ learned: 1, due: 0 });
   });
 });
+
+describe('新手引導', () => {
+  it('看過的說明不再出現；重看會全部清掉；雲端合併取聯集', async () => {
+    const store = await import('../src/core/store');
+    const { mergeSaves } = await import('../src/core/merge');
+    store.resetSave();
+    expect(store.getSave().guide).toEqual({});
+    store.markGuide('welcome', 'tab:path');
+    expect(Object.keys(store.getSave().guide).sort()).toEqual(['tab:path', 'welcome']);
+    store.resetGuides();
+    expect(store.getSave().guide).toEqual({});
+    const a = { ...defaultSave(0), guide: { welcome: 5 } };
+    const b = { ...defaultSave(0), guide: { welcome: 3, 'tab:mock': 9 } };
+    expect(mergeSaves(a, b).guide).toEqual({ welcome: 3, 'tab:mock': 9 });
+  });
+
+  it('每種題型都有自己的提示', async () => {
+    const { exHintOf } = await import('../src/components/Guide');
+    const words: VocabItem[] = [ja('学校[がっこう]', '學校'), ja('駅[えき]', '車站'), ja('病院[びょういん]', '醫院'), ja('公園[こうえん]', '公園')].map((w, k) => ({ ...w, id: `ja.h:${k}` }));
+    const ctx: Ctx = { lang: 'ja', rng: () => 0.3, canListen: true, jaTyping: true };
+    expect(exHintOf({ t: 'teach', item: words[0] })?.id).toBe('ex:teach');
+    expect(exHintOf(listenEx(words[0], words, ctx))?.id).toBe('ex:listen');
+    expect(exHintOf(typeJaEx(words[0], words, ctx)!)?.id).toBe('ex:typeja');
+    expect(exHintOf(recog(words[0], words, ctx))).toBeNull();
+  });
+});
+
+describe('新遊戲', () => {
+  it('假名對對碰：平假名、片假名學過的都算，同一個音只算一組', async () => {
+    const { kanaPairs } = await import('../src/pages/Memory');
+    const kana = COURSES.ja.stages[0].units;
+    const h = kana.find((u) => u.id === 'ja.kana.h1')!.items.slice(0, 3);
+    const k = kana.find((u) => u.id === 'ja.kana.k1')!.items.slice(0, 5);
+    const got = kanaPairs([...h, ...k] as VocabItem[]);
+    expect(got).toEqual(['あ', 'い', 'う', 'え', 'お']);
+  });
+
+  it('最佳紀錄：真假快判取最高分，記憶翻牌取最短秒數；舊存檔補上欄位', async () => {
+    const { mergeSaves } = await import('../src/core/merge');
+    const { migrate } = await import('../src/core/save');
+    const a = defaultSave(0);
+    const b = defaultSave(0);
+    a.best.tf.ja = 120;
+    b.best.tf.ja = 90;
+    a.best.memory.ja = 40;
+    b.best.memory.ja = 33;
+    b.best.memory.ko = 50;
+    const m = mergeSaves(a, b);
+    expect(m.best.tf.ja).toBe(120);
+    expect(m.best.memory).toEqual({ ja: 33, ko: 50 });
+    const old = migrate({ xp: { en: 1, ja: 0, ko: 0 }, items: {}, best: { blitz: { en: 5, ja: 0, ko: 0 }, match: {} } }, 0);
+    expect(old.best.tf).toEqual({ en: 0, ja: 0, ko: 0 });
+    expect(old.best.memory).toEqual({});
+    expect(old.guide).toEqual({});
+  });
+});

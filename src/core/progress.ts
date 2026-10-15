@@ -190,7 +190,7 @@ export function quickStats(s: Save, lang: LangId): { learned: number; due: numbe
 }
 
 /** 各種遊戲需要的最少已學字數 */
-export const UNLOCK = { match: 6, blitz: 8, listen: 8, crossword: 12, typing: 8 };
+export const UNLOCK = { match: 6, blitz: 8, listen: 8, crossword: 12, typing: 8, truefalse: 8, memory: 6 };
 
 /** 最近在學的語言（看最後一次作答的時間）；還沒學過任何東西時回傳 null */
 export function lastStudiedLang(s: Save): LangId | null {

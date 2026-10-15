@@ -3,6 +3,8 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { RankLine } from '../components/RankEmblem';
 import { Bar, ItemCard, LangBadge, Modal, Stars } from '../components/ui';
 import { CourseGate } from '../components/CourseGate';
+import { GuideTip } from '../components/Guide';
+import { kanaPairs } from './Memory';
 import { MockTab } from './Mock';
 import { courseIndex, META, META_LIST, requireCourse } from '../content';
 import { addDays, dayNum, today } from '../core/date';
@@ -276,7 +278,35 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
       blocked: canSpeak(lang) ? undefined : `這個瀏覽器沒有${LANG_NAME[lang]}語音，請改用 Chrome 或 Edge。`,
     },
   ];
+  games.push(
+    {
+      icon: '✅',
+      title: '真假快判',
+      desc: '字和意思配對正確嗎？45 秒內憑直覺按 ✓ 或 ✗，連擊越高分數越多。',
+      to: `/l/${lang}/play/truefalse`,
+      need: UNLOCK.truefalse,
+      have: vocab,
+      badge: (s.best.tf?.[lang] ?? 0) > 0 ? `最高 ${s.best.tf[lang]} 分` : '新遊戲',
+    },
+    {
+      icon: '🃏',
+      title: '記憶翻牌',
+      desc: '12 張蓋著的牌，一次翻兩張，把字和意思配成一對。考驗記憶力也複習單字。',
+      to: `/l/${lang}/play/memory`,
+      need: UNLOCK.memory,
+      have: vocab,
+      badge: s.best.memory?.[lang] !== undefined ? `最快 ${fmtTime(s.best.memory[lang]!)}` : '新遊戲',
+    },
+  );
   if (lang === 'ja') {
+    games.push({
+      icon: 'あ',
+      title: '假名對對碰',
+      desc: '翻牌找出平假名和對應的片假名（あ↔ア），兩種假名一起記熟。',
+      to: `/l/${lang}/play/memory?kana=1`,
+      need: 6,
+      have: kanaPairs(learnedItems(s, lang).filter(isVocab)).length,
+    });
     games.push({
       icon: '⌨️',
       title: '打字特訓',
@@ -417,16 +447,37 @@ function DexTab({ lang, s }: { lang: LangId; s: Save }) {
 
 // ───────── 字母表 ─────────
 
+type KanaMode = 'both' | 'h' | 'k';
+
 function ChartTab({ lang, s }: { lang: LangId; s: Save }) {
   useVoices();
   const course = requireCourse(lang);
   const idx = courseIndex(lang).items;
-  const units = course.stages.flatMap((st) => st.units).filter((u) => u.chart);
+  const all = course.stages.flatMap((st) => st.units).filter((u) => u.chart);
   const table = lang === 'ko' ? basicTable() : null;
+  // 日文：平假名、片假名分開看，或並排對照
+  const [mode, setMode] = useState<KanaMode>('both');
+  const units = lang !== 'ja' ? all : all.filter((u) => (mode === 'k' ? u.id.startsWith('ja.kana.k') : u.id.startsWith('ja.kana.h')));
+  const pairOf = (unitId: string) => (lang === 'ja' && mode === 'both' ? all.find((u) => u.id === unitId.replace('ja.kana.h', 'ja.kana.k')) : undefined);
 
   return (
     <div className="charts">
       <p className="muted chart-tip">點任何一個字就能聽發音。已經學過的字會亮起來。</p>
+      {lang === 'ja' && (
+        <div className="seg small chart-mode" role="tablist" aria-label="假名">
+          {(
+            [
+              ['both', 'あ ア 對照'],
+              ['h', 'あ 平假名'],
+              ['k', 'ア 片假名'],
+            ] as [KanaMode, string][]
+          ).map(([m, label]) => (
+            <button key={m} type="button" role="tab" aria-selected={mode === m} className={cx(mode === m && 'on')} onClick={() => setMode(m)}>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
       {table && (
         <section className="card chart">
           <h3>
@@ -463,39 +514,99 @@ function ChartTab({ lang, s }: { lang: LangId; s: Save }) {
           </div>
         </section>
       )}
-      {units.map((u) => (
-        <section key={u.id} className="card chart">
-          <h3>
-            {u.title} <small className="muted">{u.subtitle}</small>
-          </h3>
-          <div className="chart-scroll">
-            <table className="chart-table">
-              <tbody>
-                {u.chart!.map((row) => (
-                  <tr key={row.label}>
-                    <th lang={lang}>{row.label}</th>
-                    {row.cells.map((id, ci) => {
-                      const it = id ? (idx.get(id)?.item as VocabItem | undefined) : undefined;
-                      return (
-                        <td key={ci}>
-                          {it && (
-                            <button type="button" className={cx('chart-cell', s.items[it.id] && 'on')} onClick={() => speak(sayOf(it, lang), lang)}>
-                              <b lang={lang}>{it.w}</b>
-                              <small>{it.rm}</small>
-                            </button>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ))}
+      {units.map((u) => {
+        const pair = pairOf(u.id);
+        return (
+          <section key={u.id} className="card chart">
+            <h3>
+              {pair ? u.title.replace('平假名', '平假名＋片假名') : u.title} <small className="muted">{u.subtitle}</small>
+            </h3>
+            <div className="chart-scroll">
+              <table className={cx('chart-table', pair && 'pair')}>
+                <tbody>
+                  {u.chart!.map((row, ri) => (
+                    <tr key={row.label}>
+                      <th lang={lang}>{row.label}</th>
+                      {row.cells.map((id, ci) => {
+                        const it = id ? (idx.get(id)?.item as VocabItem | undefined) : undefined;
+                        const pid = pair?.chart?.[ri]?.cells[ci];
+                        const kata = pid ? (idx.get(pid)?.item as VocabItem | undefined) : undefined;
+                        const on = (it && s.items[it.id]) || (kata && s.items[kata.id]);
+                        return (
+                          <td key={ci}>
+                            {it && (
+                              <button type="button" className={cx('chart-cell', on && 'on')} onClick={() => speak(sayOf(it, lang), lang)}>
+                                <b lang={lang}>
+                                  {it.w}
+                                  {kata && <span className="kata">{kata.w}</span>}
+                                </b>
+                                <small>{it.rm}</small>
+                              </button>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
+}
+
+// ───────── 各分頁第一次打開的說明 ─────────
+
+function TabGuide({ tab, lang }: { tab: LangTab; lang: LangId }) {
+  switch (tab) {
+    case 'path':
+      return (
+        <GuideTip id="tab:path" title="學習路線怎麼走？" icon="📚">
+          <ul>
+            <li>上面一排是關卡（例如 N5、N4），點一下切換；每個關卡下面有好幾個單元。</li>
+            <li>圓圈是課：數字＝還沒上、✓＝完成、🔒＝要先上完前一課。星星是這堂課的成績。</li>
+            <li>👑 單元測驗隨時都能挑戰，答對 80% 就完成整個單元、解鎖下一個單元；已經會的內容可以直接考來跳級。</li>
+          </ul>
+        </GuideTip>
+      );
+    case 'arcade':
+      return (
+        <GuideTip id="tab:arcade" title="遊樂場怎麼玩？" icon="🎮">
+          <ul>
+            <li>所有遊戲都用你學過的字出題；🔒 的遊戲多學幾個字就會解鎖。</li>
+            <li>「今日複習」最重要：把快忘記的字複習一次，記憶會更牢。</li>
+          </ul>
+        </GuideTip>
+      );
+    case 'mock':
+      return (
+        <GuideTip id="tab:mock" title="模擬考是什麼？" icon="📝">
+          <ul>
+            <li>仿照正式考試（多益、日檢、TOPIK）題型的計時測驗，每次重新抽題。</li>
+            <li>可以跳題、🚩 標記，時間到自動交卷；交卷後看各大題成績和逐題解析。</li>
+            <li>建議先上完卡片上寫的建議關卡再考，結果會更準。</li>
+          </ul>
+        </GuideTip>
+      );
+    case 'dex':
+      return (
+        <GuideTip id="tab:dex" title="圖鑑" icon="📖">
+          <p>學過的字都會收進圖鑑。顏色代表熟練度（新學 → 學習中 → 熟悉 → 精通），點一下可以看答對次數和下次複習的日子。</p>
+        </GuideTip>
+      );
+    case 'chart':
+      return (
+        <GuideTip id="tab:chart" title={lang === 'ja' ? '五十音表' : '字母表'} icon={lang === 'ja' ? 'あ' : '가'}>
+          <p>
+            點任何一個字就能聽發音，學過的字會亮起來。
+            {lang === 'ja' ? '上面可以切換平假名、片假名，或兩種並排對照。' : '最上面的基本音節表是「子音 × 母音」的組合。'}
+          </p>
+        </GuideTip>
+      );
+  }
 }
 
 // ───────── 頁面 ─────────
@@ -505,13 +616,13 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
   const course = META[lang];
   // 標題與分頁不需要題目，先顯示；分頁內容等題目下載完成
   const due = quickStats(s, lang).due;
-  const tabs: { id: LangTab; label: string; to: string }[] = [
-    { id: 'path', label: '學習路線', to: `/l/${lang}` },
-    { id: 'arcade', label: '遊樂場', to: `/l/${lang}/arcade` },
-    { id: 'mock', label: '模擬考', to: `/l/${lang}/mock` },
-    { id: 'dex', label: '圖鑑', to: `/l/${lang}/dex` },
+  const tabs: { id: LangTab; icon: string; label: string; to: string }[] = [
+    { id: 'path', icon: '📚', label: '學習路線', to: `/l/${lang}` },
+    { id: 'arcade', icon: '🎮', label: '遊樂場', to: `/l/${lang}/arcade` },
+    { id: 'mock', icon: '📝', label: '模擬考', to: `/l/${lang}/mock` },
+    { id: 'dex', icon: '📖', label: '圖鑑', to: `/l/${lang}/dex` },
   ];
-  if (lang !== 'en') tabs.push({ id: 'chart', label: lang === 'ja' ? '五十音表' : '字母表', to: `/l/${lang}/chart` });
+  if (lang !== 'en') tabs.push({ id: 'chart', icon: lang === 'ja' ? 'あ' : '가', label: lang === 'ja' ? '五十音表' : '字母表', to: `/l/${lang}/chart` });
 
   const sameTab = (l: LangId) => (tab === 'chart' && l === 'en' ? '' : tab === 'path' ? '' : `/${tab}`);
   return (
@@ -542,12 +653,16 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
       <nav className="tabs">
         {tabs.map((t) => (
           <a key={t.id} href={href(t.to)} className={cx(tab === t.id && 'on')}>
-            {t.label}
+            <span className="tab-icon" aria-hidden>
+              {t.icon}
+            </span>
+            <span className="tab-label">{t.label}</span>
             {t.id === 'arcade' && due > 0 && <span className="dot">{due}</span>}
           </a>
         ))}
       </nav>
 
+      <TabGuide tab={tab} lang={lang} />
       <CourseGate lang={lang} compact>
         {tab === 'path' && <PathTab lang={lang} s={s} stageId={stageId} />}
         {tab === 'arcade' && <ArcadeTab lang={lang} s={s} />}

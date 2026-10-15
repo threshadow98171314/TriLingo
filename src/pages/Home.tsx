@@ -1,5 +1,6 @@
 // 首頁：連勝、每日目標、接續學習、三種語言的段位、每日任務、每日填字、知識補充、一週紀錄
 import { useRef, useState, type CSSProperties } from 'react';
+import { GuideTip } from '../components/Guide';
 import { Mascot } from '../components/Mascot';
 import { RankEmblem } from '../components/RankEmblem';
 import { Bar, Coin, flameTier, flyCoins, LangBadge, Modal, Ruby, SpeakBtn, Tx } from '../components/ui';
@@ -430,19 +431,36 @@ export function Home() {
         <GoalRing value={todayXp} goal={s.settings.dailyGoal} />
       </section>
 
+      <GuideTip id="home" title="首頁怎麼用？">
+        <ul>
+          <li>「▶ 繼續」直接開始下一堂課；「🧠 複習」是今天該複習的字，每天先清空最有效。</li>
+          <li>右邊的圓圈是今天的目標 XP，達成就能延續連勝 🔥。</li>
+          <li>往下是三種語言的段位、每日任務、每日填字和每次都不一樣的小知識。看不懂的地方按右上角 ❓。</li>
+        </ul>
+      </GuideTip>
+
       <Mascot />
 
+      <h2 className="section-title">
+        我的語言 <small>按「▶ 繼續學習」直接上下一課</small>
+      </h2>
       <section className="lang-grid">
         {META_LIST.map((c) => (
           <LangCard key={c.id} meta={c} s={s} />
         ))}
       </section>
 
+      <h2 className="section-title">
+        每日挑戰 <small>每天換新・三個任務都領完可以開寶箱</small>
+      </h2>
       <div className="grid-2">
         <QuestPanel s={s} />
         <DailyPanel s={s} />
       </div>
 
+      <h2 className="section-title">
+        充電站 <small>每次打開都不一樣</small>
+      </h2>
       <TipCard />
 
       <ProverbCard />

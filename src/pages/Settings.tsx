@@ -7,10 +7,11 @@ import { nowMs, today } from '../core/date';
 import { tapCount, triggerEgg } from '../core/eggs';
 import { fx, seasonOf, SEASON_LABEL } from '../core/fx';
 import { sfx } from '../core/sfx';
-import { exportSave, importSave, resetSave, updateSettings, useSave } from '../core/store';
+import { exportSave, importSave, resetGuides, resetSave, updateSettings, useSave } from '../core/store';
 import { listenMutedUntil, speak, unmuteListening, useVoices, voicesFor } from '../core/tts';
 import type { LangId } from '../core/types';
 import { cx } from '../core/util';
+import { href } from '../router';
 
 const GOALS: [number, string][] = [
   [20, '輕鬆'],
@@ -165,6 +166,26 @@ export function SettingsPage() {
 
   return (
     <div className="page narrow">
+      <section className="card panel help-box">
+        <div className="grow">
+          <b>需要幫忙嗎？</b>
+          <small className="muted">所有功能的說明都在「使用說明」，也可以重看第一次的導覽。</small>
+        </div>
+        <a className="btn small" href={href('/help')}>
+          ❓ 使用說明
+        </a>
+        <button
+          type="button"
+          className="btn small"
+          onClick={() => {
+            resetGuides();
+            setMsg('已重新開啟所有說明，回到首頁就會看到導覽。');
+          }}
+        >
+          🔁 重看導覽
+        </button>
+      </section>
+
       <section className="card panel">
         <header className="panel-head">
           <h2>每日目標</h2>

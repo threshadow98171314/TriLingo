@@ -3826,3 +3826,409 @@ button.dex-tile:hover {
     padding: 12px 14px;
   }
 }
+
+/* ───────── 新手引導 ───────── */
+.guide-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent) 9%, var(--card));
+  animation: fade-in 0.3s both;
+}
+.guide-icon {
+  flex: none;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+.guide-tip b {
+  display: block;
+  margin-bottom: 4px;
+}
+.guide-body {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.guide-body ul {
+  margin: 0;
+  padding-left: 1.1em;
+  display: grid;
+  gap: 2px;
+}
+.guide-body p {
+  margin: 0;
+}
+.guide-tip > .btn {
+  flex: none;
+  align-self: center;
+}
+@media (max-width: 520px) {
+  .guide-tip {
+    flex-wrap: wrap;
+  }
+  .guide-tip > .btn {
+    margin-left: auto;
+  }
+}
+
+.modal.welcome {
+  width: min(100%, 480px);
+  text-align: center;
+  gap: 18px;
+}
+.welcome-slide {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  min-height: 230px;
+  align-content: center;
+  animation: fade-in 0.25s both;
+}
+.welcome-slide h2 {
+  margin: 0;
+}
+.welcome-slide p {
+  margin: 0;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.welcome-icon {
+  font-size: 3.4rem;
+  line-height: 1.1;
+}
+.welcome-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+.welcome-dots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--line);
+  transition: width 0.2s;
+}
+.welcome-dots i.on {
+  width: 22px;
+  background: var(--accent);
+}
+.welcome-langs {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  margin-top: 6px;
+}
+.welcome-lang {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 2px solid var(--line);
+  background: var(--card-2);
+  text-align: left;
+}
+.welcome-lang .lang-badge {
+  grid-row: span 2;
+}
+.welcome-lang small {
+  color: var(--muted);
+}
+.welcome-lang:hover {
+  border-color: var(--lang);
+}
+
+.ex-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: min(100%, 560px);
+  margin: 0 auto;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  font-size: 0.86rem;
+  line-height: 1.6;
+  animation: fade-in 0.3s both;
+}
+.ex-hint span {
+  flex: 1;
+}
+.ex-hint button {
+  flex: none;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.section-title {
+  margin: 8px 2px -4px;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.section-title small {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* 說明頁 */
+.help {
+  display: grid;
+  gap: 14px;
+}
+.help-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.help-q {
+  border-bottom: 1px solid var(--line);
+}
+.help-q:last-child {
+  border-bottom: 0;
+}
+.help-q summary {
+  padding: 12px 4px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.help-q summary::-webkit-details-marker {
+  display: none;
+}
+.help-q summary::after {
+  content: '＋';
+  color: var(--muted);
+}
+.help-q[open] summary::after {
+  content: '－';
+}
+.help-a {
+  padding: 0 4px 14px;
+  line-height: 1.8;
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+.help-a p {
+  margin: 0 0 6px;
+}
+.help-a ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+.help-a a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.help-box {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.help-box .grow {
+  display: grid;
+  gap: 2px;
+  min-width: 200px;
+}
+.stat.help {
+  padding: 5px 8px;
+}
+
+/* 語言頁分頁：圖示＋文字；手機上改成上下排列 */
+.tabs a .tab-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+@media (max-width: 520px) {
+  .tabs a {
+    flex-direction: column;
+    gap: 2px;
+    padding: 7px 2px;
+    font-size: 0.78rem;
+  }
+}
+
+/* 五十音：平片假名對照 */
+.chart-mode {
+  justify-content: start;
+  max-width: 420px;
+}
+.chart-table.pair .chart-cell {
+  width: 66px;
+  height: 64px;
+}
+.chart-cell .kata {
+  margin-left: 4px;
+  font-size: 0.85em;
+  color: var(--lang);
+}
+.ic-pair {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.ic-pair b {
+  font-size: 1.4rem;
+  color: var(--lang);
+}
+
+/* ───────── 真假快判 ───────── */
+.tf-card {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(100%, 520px);
+  margin: 0 auto;
+  padding: 28px 20px;
+  text-align: center;
+  border: 2px solid var(--line);
+  animation: fade-in 0.15s both;
+}
+.tf-card.ok {
+  border-color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 12%, var(--card));
+}
+.tf-card.bad {
+  border-color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 10%, var(--card));
+  animation: shake 0.35s both;
+}
+.tf-word {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+.tf-eq {
+  color: var(--muted);
+  font-size: 1.2rem;
+}
+.tf-mean {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+.tf-answer {
+  color: var(--ok);
+  font-weight: 700;
+}
+.tf-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  width: min(100%, 520px);
+  margin: 0 auto;
+}
+.tf-btn {
+  display: grid;
+  justify-items: center;
+  padding: 18px 10px;
+  border-radius: 18px;
+  border: 2px solid var(--line);
+  background: var(--card);
+  box-shadow: 0 4px 0 var(--edge);
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.tf-btn small {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.tf-btn.yes {
+  color: var(--ok);
+}
+.tf-btn.no {
+  color: var(--bad);
+}
+.tf-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--edge);
+}
+.tf-btn:disabled {
+  opacity: 0.6;
+}
+
+/* ───────── 記憶翻牌 ───────── */
+.mem-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  width: min(100%, 560px);
+  margin: 0 auto;
+}
+@media (max-width: 520px) {
+  .mem-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.mem-card {
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: 0;
+  background: none;
+  perspective: 700px;
+  cursor: pointer;
+}
+.mem-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.35s;
+  transform-style: preserve-3d;
+}
+.mem-card.shown .mem-inner {
+  transform: rotateY(180deg);
+}
+.mem-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  border-radius: 14px;
+  border: 2px solid var(--line);
+  backface-visibility: hidden;
+  overflow-wrap: anywhere;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.mem-back {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--lang) 55%, var(--card)), color-mix(in srgb, var(--lang) 25%, var(--card)));
+  color: var(--ink);
+  font-size: 1.8rem;
+}
+.mem-front {
+  transform: rotateY(180deg);
+  background: var(--card);
+  font-size: 1rem;
+}
+.mem-front [lang='ja'],
+.mem-front [lang='ko'] {
+  font-size: 1.25rem;
+}
+.mem-card.matched .mem-front {
+  border-color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 14%, var(--card));
+}
+.mem-stats {
+  text-align: center;
+  font-size: 0.88rem;
+}

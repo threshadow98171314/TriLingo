@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { META } from '../content';
 import { fx } from '../core/fx';
 import { sfx } from '../core/sfx';
-import { recordAnswer, useSave, type AnswerMode, type SessionStats } from '../core/store';
+import { markGuide, recordAnswer, useSave, type AnswerMode, type SessionStats } from '../core/store';
 import { listenMuted, muteListening, speak, stopSpeaking } from '../core/tts';
 import type { LangId } from '../core/types';
 import { cx } from '../core/util';
@@ -13,6 +13,7 @@ import { furiPlain } from '../engine/furigana';
 import { checkJa } from '../engine/jaInput';
 import { nav } from '../router';
 import { ChoiceView, MatchView, NoteView, TeachView, TilesView, TypeJaView, TypeView } from './ExerciseViews';
+import { ExHint, exHintOf } from './Guide';
 import { ResultScreen, type ResultData } from './Result';
 import { Bar, ItemCard, Modal } from './ui';
 
@@ -165,6 +166,9 @@ export function Session({
   };
 
   const next = () => {
+    // 這種題型的提示看過一次就好
+    const h = exHintOf(ex);
+    if (h) markGuide(h.id);
     if (idx + 1 < queue.length) {
       setIdx(idx + 1);
       setFb(null);
@@ -249,6 +253,7 @@ export function Session({
 
       <main className="session-body" key={cur.key}>
         {cur.retry > 0 && <span className="retry-tag">再試一次</span>}
+        <ExHint ex={ex} />
         {ex.t === 'choice' && <ChoiceView ex={ex} done={!!fb} picked={fb?.picked ?? null} onPick={(i) => answer(i === ex.answer, i)} onMute={mute} />}
         {ex.t === 'tiles' && <TilesView ex={ex} done={!!fb} onSubmit={(ok) => answer(ok)} />}
         {ex.t === 'type' && <TypeView ex={ex} done={!!fb} onSubmit={(ok) => answer(ok)} />}

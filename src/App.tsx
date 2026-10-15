@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { CelebrationHost } from './components/Celebrations';
 import { CourseGate } from './components/CourseGate';
+import { WelcomeTour } from './components/Guide';
 import { BottomNav, TopBar } from './components/Layout';
 import { Empty } from './components/ui';
 import { nowMs } from './core/date';
@@ -10,14 +11,17 @@ import { useSave } from './core/store';
 import { LANGS, type LangId } from './core/types';
 import { BlitzPage } from './pages/Blitz';
 import { CrosswordPage } from './pages/Crossword';
+import { HelpPage } from './pages/Help';
 import { Home } from './pages/Home';
 import { LangPage } from './pages/LangPage';
 import { MatchPage } from './pages/MatchGame';
+import { MemoryPage } from './pages/Memory';
 import { MockPage } from './pages/Mock';
 import { LessonPage, ListenPage, ReviewPage, TypingPage } from './pages/Practice';
 import { ProfilePage } from './pages/Profile';
 import { SettingsPage } from './pages/Settings';
 import { ShopPage } from './pages/Shop';
+import { TrueFalsePage } from './pages/TrueFalse';
 import { href, useRoute, type Route } from './router';
 
 /** 網址 → 頁面。focus 為 true 的頁面（上課、玩遊戲）不顯示導覽列。 */
@@ -31,6 +35,7 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
   if (p[0] === 'profile') return view(<ProfilePage />);
   if (p[0] === 'shop') return view(<ShopPage />);
   if (p[0] === 'settings') return view(<SettingsPage />);
+  if (p[0] === 'help') return view(<HelpPage />);
 
   if (p[0] === 'l' && (LANGS as string[]).includes(p[1])) {
     const lang = p[1] as LangId;
@@ -59,6 +64,8 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
         if (p[3] === 'blitz') return gated(<BlitzPage lang={lang} />);
         if (p[3] === 'listen') return gated(<ListenPage lang={lang} />);
         if (p[3] === 'typing' && lang === 'ja') return gated(<TypingPage lang={lang} />);
+        if (p[3] === 'truefalse') return gated(<TrueFalsePage lang={lang} />);
+        if (p[3] === 'memory') return gated(<MemoryPage lang={lang} kana={lang === 'ja' && route.query.get('kana') === '1'} />);
     }
   }
 
@@ -75,7 +82,8 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
 
 export function App() {
   const route = useRoute();
-  const { theme, furigana, seasonal, fx: fxSetting } = useSave().settings;
+  const s = useSave();
+  const { theme, furigana, seasonal, fx: fxSetting } = s.settings;
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -106,6 +114,8 @@ export function App() {
       {!focus && <TopBar route={route} />}
       {page}
       {!focus && <BottomNav route={route} />}
+      {/* 第一次打開：新手導覽（上課、玩遊戲中不打擾） */}
+      {!focus && !s.guide.welcome && <WelcomeTour />}
       <CelebrationHost />
     </>
   );

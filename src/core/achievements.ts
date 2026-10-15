@@ -23,6 +23,7 @@ const tiers = (s: Save) => LANGS.map((l) => rankOf(s.xp[l]).tier);
 const maxTier = (s: Save) => Math.max(...tiers(s));
 const minTier = (s: Save) => Math.min(...tiers(s));
 const bestBlitz = (s: Save) => Math.max(...LANGS.map((l) => s.best.blitz[l] ?? 0));
+const bestTf = (s: Save) => Math.max(...LANGS.map((l) => s.best.tf?.[l] ?? 0));
 const eggs = (s: Save) => Object.keys(s.eggs).length;
 const busiestDay = (s: Save) => Math.max(0, ...Object.values(s.days).map((d) => d.lessons));
 const mockBest = (s: Save) => Math.max(0, ...Object.values(s.mocks).map((m) => m.best));
@@ -92,6 +93,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   a('遊戲', 'dailycw_7', '📅', '每日一填', '完成 7 次每日填字', 7, (s) => s.stats.dailyCw, 40),
   a('遊戲', 'match_10', '🃏', '配對高手', '完成 10 次配對消消樂', 10, (s) => s.stats.matches, 30),
   a('遊戲', 'typing_10', '⌨️', '鍵盤武士', '完成 10 次日文打字特訓', 10, (s) => s.stats.typings, 40),
+  a('遊戲', 'tf_300', '✅', '火眼金睛', '真假快判拿到 300 分', 300, bestTf, 40),
+  a('遊戲', 'memory_10', '🃏', '過目不忘', '完成 10 次記憶翻牌', 10, (s) => s.stats.memories, 30),
   a('遊戲', 'blitz_200', '⏱️', '手腦並用', '限時快答拿到 200 分', 200, bestBlitz, 20),
   a('遊戲', 'blitz_500', '🚀', '快答之神', '限時快答拿到 500 分', 500, bestBlitz, 80),
   a('遊戲', 'coins_500', '💰', '小富翁', '累計獲得 500 金幣', 500, (s) => s.coinsEarned, 50),

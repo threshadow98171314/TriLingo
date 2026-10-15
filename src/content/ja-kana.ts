@@ -72,6 +72,7 @@ function toRows(specs: RowSpec[], kata: boolean): CharRow[] {
 const BASIC_GROUPS = [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9, 10]];
 const YOON_GROUPS = [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9, 10]];
 
+// 平假名、片假名交替學：清音 → 濁音 → 拗音，兩種假名都會（單元 id 不變，進度不受影響）
 export const KANA_UNITS: Unit[] = [
   charUnit('ja.kana.h1', 'あ', '平假名：清音', '46 個基本假名', toRows(BASIC, false), BASIC_GROUPS),
   vocabUnit('ja.kana.hread', '🐱', '讀讀看：平假名單字', '用剛學會的假名讀出單字', [
@@ -86,10 +87,10 @@ export const KANA_UNITS: Unit[] = [
     ja('あめ', '雨'),
     ja('ゆき', '雪'),
   ]),
-  charUnit('ja.kana.h2', 'が', '平假名：濁音・半濁音', '右上角加「゛」或「゜」', toRows(DAKUON, false)),
-  charUnit('ja.kana.h3', 'きゃ', '平假名：拗音', '「い段」＋小寫的 ゃ ゅ ょ', toRows(YOON, false), YOON_GROUPS),
   charUnit('ja.kana.k1', 'ア', '片假名：清音', '用來寫外來語、擬聲詞', toRows(BASIC, true), BASIC_GROUPS),
+  charUnit('ja.kana.h2', 'が', '平假名：濁音・半濁音', '右上角加「゛」或「゜」', toRows(DAKUON, false)),
   charUnit('ja.kana.k2', 'ガ', '片假名：濁音・半濁音', '右上角加「゛」或「゜」', toRows(DAKUON, true)),
+  charUnit('ja.kana.h3', 'きゃ', '平假名：拗音', '「い段」＋小寫的 ゃ ゅ ょ', toRows(YOON, false), YOON_GROUPS),
   charUnit('ja.kana.k3', 'キャ', '片假名：拗音', '「イ段」＋小寫的 ャ ュ ョ', toRows(YOON, true), YOON_GROUPS),
   vocabUnit('ja.kana.kread', '📺', '讀讀看：外來語', '唸出來就猜得到意思', [
     ja('カメラ', '相機'),

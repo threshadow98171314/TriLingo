@@ -91,6 +91,8 @@ export interface Stats {
   typings: number;
   /** 完成模擬考的次數 */
   mocks: number;
+  truefalses: number;
+  memories: number;
 }
 
 export interface Save {
@@ -118,8 +120,17 @@ export interface Save {
   eggs: Record<string, number>;
   /** 模擬考成績（id → 紀錄） */
   mocks: Record<string, MockRec>;
+  /** 看過的新手引導與說明（id → 看過的時間），看過就不再跳出 */
+  guide: Record<string, number>;
   stats: Stats;
-  best: { blitz: Record<LangId, number>; match: Partial<Record<LangId, number>> };
+  best: {
+    blitz: Record<LangId, number>;
+    /** 配對消消樂、記憶翻牌：最短秒數 */
+    match: Partial<Record<LangId, number>>;
+    memory: Partial<Record<LangId, number>>;
+    /** 真假快判：最高分 */
+    tf: Record<LangId, number>;
+  };
   /** 各語言上次停留的關卡 */
   stage: Partial<Record<LangId, string>>;
   /** 雲端同步合併用：設定／個人資料最後修改時間 */
@@ -162,6 +173,7 @@ export function defaultSave(now: number): Save {
     ach: {},
     eggs: {},
     mocks: {},
+    guide: {},
     stats: {
       lessons: 0,
       perfect: 0,
@@ -187,8 +199,10 @@ export function defaultSave(now: number): Save {
       goldenChests: 0,
       typings: 0,
       mocks: 0,
+      truefalses: 0,
+      memories: 0,
     },
-    best: { blitz: { en: 0, ja: 0, ko: 0 }, match: {} },
+    best: { blitz: { en: 0, ja: 0, ko: 0 }, match: {}, memory: {}, tf: { en: 0, ja: 0, ko: 0 } },
     stage: {},
     prefsAt: 0,
     coinsAt: 0,
@@ -208,13 +222,14 @@ export function migrate(raw: unknown, now: number): Save {
     xp: { ...d.xp, ...x.xp },
     streak: { ...d.streak, ...x.streak },
     stats: { ...d.stats, ...x.stats },
-    best: { blitz: { ...d.best.blitz, ...x.best?.blitz }, match: { ...x.best?.match } },
+    best: { blitz: { ...d.best.blitz, ...x.best?.blitz }, match: { ...x.best?.match }, memory: { ...x.best?.memory }, tf: { ...d.best.tf, ...x.best?.tf } },
     days: x.days ?? {},
     lessons: x.lessons ?? {},
     items: x.items ?? {},
     ach: x.ach ?? {},
     eggs: x.eggs ?? {},
     mocks: x.mocks ?? {},
+    guide: x.guide ?? {},
     stage: x.stage ?? {},
     prefsAt: x.prefsAt ?? 0,
     coinsAt: x.coinsAt ?? 0,

@@ -76,6 +76,9 @@ export function TopBar({ route }: { route: Route }) {
               {cloud.status === 'error' || cloud.status === 'offline' ? '⚠️' : '☁️'}
             </a>
           )}
+          <a className={cx('stat help', route.parts[0] === 'help' && 'on')} href={href('/help')} title="使用說明" aria-label="使用說明">
+            ❓
+          </a>
           <span className={cx('stat streak', lit && 'lit', flameTier(s.streak.count))} title={lit ? '今天已完成學習' : '今天還沒學習'}>
             🔥 {s.streak.count}
           </span>
