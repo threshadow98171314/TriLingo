@@ -40,7 +40,7 @@ export function unitState(s: Save, stage: Stage, index: number): UnitState {
     total: u.lessons.length,
     complete: starsOf(s, bossOf(u).id) > 0,
     stars,
-    unlocked: !!u.bank || !prev || starsOf(s, bossOf(prev).id) > 0,
+    unlocked: !!u.bank || stage.style === 'town' || !prev || starsOf(s, bossOf(prev).id) > 0,
   };
 }
 

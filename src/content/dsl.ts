@@ -244,6 +244,21 @@ export function deck(id: string, icon: string, title: string, bank: string, raw:
   return vocabUnit(id, icon, title, `${raw.length} 個字`, raw, { bank });
 }
 
+/**
+ * 情境小鎮的一個地點：第一課學單字（附文化與使用時機的說明），第二課練對話，最後是蓋章挑戰。
+ * words 的第一個是地點本身（例如「コンビニ」）；lines 是對話句（sj()／ss()），note 寫說話的人（例如「店員」）。
+ * 單元 id 的最後一段是插畫的名字（例如 ja.town.konbini → konbini）。
+ */
+export function placeUnit(id: string, icon: string, title: string, intro: GrammarNote, words: VocabItem[], lines: SentenceItem[]): Unit {
+  const unit = grammarUnit(id, icon, title, `${words.length} 個單字・${lines.length} 句對話`, [
+    { title: '單字', notes: [intro], items: words },
+    { title: '對話', items: lines },
+  ]);
+  unit.kind = 'phrases';
+  unit.lessons[unit.lessons.length - 1].title = '蓋章挑戰';
+  return unit;
+}
+
 export interface CharRow {
   label: string;
   cells: (VocabItem | null)[];

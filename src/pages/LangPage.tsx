@@ -4,6 +4,7 @@ import { RankLine } from '../components/RankEmblem';
 import { Bar, ItemCard, LangBadge, Modal, Stars } from '../components/ui';
 import { CourseGate } from '../components/CourseGate';
 import { GuideTip } from '../components/Guide';
+import { TownMap } from '../components/TownMap';
 import { kanaPairs } from './Memory';
 import { MockTab } from './Mock';
 import { courseIndex, META, META_LIST, requireCourse } from '../content';
@@ -51,7 +52,7 @@ function StageCard({ lang, stage, s, active }: { lang: LangId; stage: Stage; s: 
       style={{ '--c': stage.color } as CSSProperties}
     >
       {stage.style === 'cert' && <span className="cert-seal" aria-hidden />}
-      {stage.style === 'track' && <span className="stage-icon">{stage.icon}</span>}
+      {(stage.style === 'track' || stage.style === 'town') && <span className="stage-icon">{stage.icon}</span>}
       <b lang={stage.style === 'level' ? lang : undefined}>{stage.short}</b>
       <small>{stage.subtitle}</small>
       <span className="stage-status">{!ss.ready ? '準備中' : ss.complete ? '完成 ✓' : `${Math.round(ss.pct * 100)}%`}</span>
@@ -289,7 +290,11 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
           )}
         </header>
 
-        {stage.units.map((u, ui) => (u.bank ? null : <UnitRow key={u.id} lang={lang} stage={stage} ui={ui} s={s} nextId={up?.lesson.id} />))}
+        {stage.style === 'town' ? (
+          <TownMap lang={lang} stage={stage} s={s} />
+        ) : (
+          stage.units.map((u, ui) => (u.bank ? null : <UnitRow key={u.id} lang={lang} stage={stage} ui={ui} s={s} nextId={up?.lesson.id} />))
+        )}
 
         <BankSection lang={lang} stage={stage} s={s} />
 

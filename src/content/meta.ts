@@ -13,6 +13,7 @@ const EN: CourseMeta = {
   goal: '多益 TOEIC 990 分滿分',
   goals: ['多益 TOEIC 聽力＋閱讀 990 分滿分（金色證書）'],
   pathLabel: '多益證書路線',
+  trackLabel: '主題路線',
   stages: [
     stage({
       id: 'en.orange',
@@ -64,6 +65,17 @@ const EN: CourseMeta = {
       group: 'main',
       style: 'cert',
       planned: ['高階商務字彙', '同義詞替換（Paraphrasing）', '長篇閱讀速讀', '推論題攻略', '高頻陷阱題', '全真模擬測驗', '滿分衝刺'],
+    }),
+    stage({
+      id: 'en.town',
+      short: '小鎮',
+      title: '職場與生活情境',
+      subtitle: '辦公室、機場、飯店、銀行…多益最常考的地方',
+      description: '一張可愛的小鎮地圖：點地點就能學那裡會用到的單字和對話。多益聽力、閱讀的情境幾乎都在這些地方發生（辦公室、機場、飯店、餐廳、銀行…），學會就是在練考試。完成蓋章挑戰集滿印章！',
+      color: '#34d399',
+      group: 'track',
+      style: 'town',
+      icon: '🏘️',
     }),
   ],
 };
@@ -142,6 +154,17 @@ const JA: CourseMeta = {
       group: 'main',
       style: 'level',
       planned: ['N1 文法：書面語', 'N1 單字：抽象詞彙', '慣用句・四字熟語', '讀解：長文與評論', '聽解：講座與新聞', '模擬測驗'],
+    }),
+    stage({
+      id: 'ja.town',
+      short: '小鎮',
+      title: '情境小鎮',
+      subtitle: '便利商店、郵局、車站…邊逛邊學',
+      description: '一張可愛的小鎮地圖：點地點就能學那裡會用到的單字和對話，還有日本當地的文化小知識和「什麼時候這樣說」。完成蓋章挑戰集滿印章！',
+      color: '#34d399',
+      group: 'track',
+      style: 'town',
+      icon: '🏘️',
     }),
     stage({
       id: 'ja.travel',
@@ -254,6 +277,17 @@ const KO: CourseMeta = {
       group: 'main',
       style: 'level',
       planned: ['書面語與公文體', '四字成語', 'TOPIK 6 級單字', '寫作：長篇作文', '模擬測驗'],
+    }),
+    stage({
+      id: 'ko.town',
+      short: '小鎮',
+      title: '情境小鎮',
+      subtitle: '便利商店、郵局、汗蒸幕…邊逛邊學',
+      description: '一張可愛的小鎮地圖：點地點就能學那裡會用到的單字和對話，還有韓國當地的文化小知識和說話的分寸。完成蓋章挑戰集滿印章！',
+      color: '#34d399',
+      group: 'track',
+      style: 'town',
+      icon: '🏘️',
     }),
     stage({
       id: 'ko.travel',

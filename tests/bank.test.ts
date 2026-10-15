@@ -86,7 +86,8 @@ describe('單字庫', () => {
 
   it('單字庫的字不和同一個語言的其他單元重複', () => {
     for (const c of COURSE_LIST) {
-      const units = c.stages.flatMap((st) => st.units);
+      // 情境小鎮是用學過的字練情境對話，本來就會和單字庫重複，不算
+      const units = c.stages.filter((st) => st.style !== 'town').flatMap((st) => st.units);
       const elsewhere = new Map<string, string>();
       for (const u of units.filter((x) => !x.bank)) for (const i of u.items) if ('w' in i) elsewhere.set(i.w, u.id);
       const seen = new Map<string, string>();

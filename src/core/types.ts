@@ -123,7 +123,8 @@ export interface Stage {
   description: string;
   color: string;
   group: 'main' | 'track';
-  style: 'cert' | 'level' | 'track';
+  /** town：情境小鎮，用地圖顯示地點，地點不上鎖 */
+  style: 'cert' | 'level' | 'track' | 'town';
   icon?: string;
   units: Unit[];
   /** 尚未製作內容的關卡：預定的單元大綱 */

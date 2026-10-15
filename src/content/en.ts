@@ -4,6 +4,7 @@ import { cz, en, grammarUnit, note, qa, vocabUnit } from './dsl';
 import { BLUE_UNITS } from './en-blue';
 import { BROWN_UNITS } from './en-brown';
 import { GREEN_UNITS } from './en-green';
+import { TOWN_UNITS } from './en-town';
 
 // ───────── 橘色證書（10–215）：基礎起步 ─────────
 
@@ -293,6 +294,7 @@ export const UNITS: Record<string, Unit[]> = {
   'en.brown': BROWN_UNITS,
   'en.green': GREEN_UNITS,
   'en.blue': BLUE_UNITS,
+  'en.town': TOWN_UNITS,
 };
 
 export { EN_MOCKS as MOCKS } from './en-mock';

@@ -20,7 +20,7 @@ describe('課程結構', () => {
   });
 
   it('英文依多益證書顏色分級，金色最高', () => {
-    expect(byLang('en').stages.map((s) => s.short)).toEqual(['橘色', '棕色', '綠色', '藍色', '金色']);
+    expect(byLang('en').stages.filter((s) => s.group === 'main').map((s) => s.short)).toEqual(['橘色', '棕色', '綠色', '藍色', '金色']);
   });
 
   it('日文有五十音、N5–N1 與兩條主題路線；N4–N2 已開放，N1 先建好頁面', () => {
