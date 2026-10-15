@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { META } from '../content';
 import { fx } from '../core/fx';
 import { sfx } from '../core/sfx';
-import { markGuide, recordAnswer, useSave, type AnswerMode, type SessionStats } from '../core/store';
+import { BURSTS } from '../core/shop';
+import { markGuide, recordAnswer, useSave, spendShield, type AnswerMode, type SessionStats } from '../core/store';
 import { listenMuted, muteListening, speak, stopSpeaking } from '../core/tts';
 import type { LangId } from '../core/types';
 import { cx } from '../core/util';
@@ -38,6 +39,8 @@ interface Feedback {
   retryKey?: number;
   /** 打字題：教怎麼打這個答案 */
   guide?: { lang: 'ja' | 'ko'; answer: string };
+  /** 答錯但用掉連擊護符保住了連擊 */
+  shielded?: boolean;
 }
 
 const PRAISE = ['答對了！', '完全正確！', '漂亮！', '太棒了！', '就是這樣！'];
@@ -72,7 +75,9 @@ export function Session({
   onFinish: (stats: SessionStats) => ResultData;
 }) {
   const course = META[lang];
-  const { autoSpeak } = useSave().settings;
+  const save = useSave();
+  const { autoSpeak } = save.settings;
+  const burstStyle = BURSTS.find((b) => b.id === save.equip.burst);
   const [queue, setQueue] = useState<QueueItem[]>(() => exercises.map((ex, key) => ({ ex, key, retry: 0 })));
   const [idx, setIdx] = useState(0);
   const [fb, setFb] = useState<Feedback | null>(null);
@@ -98,15 +103,19 @@ export function Session({
   };
   const passive = ex.t === 'teach' || ex.t === 'note';
 
-  const bump = (correct: boolean) => {
+  /** 回傳這次是不是用掉了連擊護符 */
+  const bump = (correct: boolean): boolean => {
     st.current.comboBefore = combo;
-    const n = correct ? combo + 1 : 0;
+    // 連擊護符：答錯時連擊不歸零
+    const shielded = !correct && spendShield(combo);
+    const n = correct ? combo + 1 : shielded ? combo : 0;
     setCombo(n);
     st.current.maxCombo = Math.max(st.current.maxCombo, n);
     st.current.answeredAt = Date.now();
     st.current.praise = PRAISE[Math.floor(Math.random() * PRAISE.length)];
     if (correct) sfx.correct(n - 1);
     else sfx.wrong();
+    return shielded;
   };
 
   /** 選擇、字卡、輸入題作答；helped：看了提示才答對（複習會排早一點） */
@@ -118,13 +127,13 @@ export function Session({
       if (correct) st.current.correct++;
       recordAnswer(ex.itemId, correct, mode, helped);
     }
-    bump(correct);
+    const shielded = bump(correct);
     let retryKey: number | undefined;
     if (!correct && retry && cur.retry < 2) {
       retryKey = queue.length;
       setQueue((q) => [...q, { ex: reshuffle(ex, Math.random), key: q.length, retry: cur.retry + 1 }]);
     }
-    setFb({ correct, reveal: ex.reveal, picked, retryKey, ...extra });
+    setFb({ correct, reveal: ex.reveal, picked, retryKey, ...extra, shielded });
     if (autoSpeak && ex.reveal.speak) speak(ex.reveal.speak.text, ex.reveal.speak.lang);
   };
 
@@ -202,7 +211,11 @@ export function Session({
       return;
     }
     const anchor = document.querySelector('.opt.right, .slots.right, .type-input.right, .match-grid');
-    fx.burstAt(anchor, { count: 10 + Math.min(combo, 20), speed: 0.28 + Math.min(combo, 20) * 0.01 });
+    fx.burstAt(anchor, {
+      count: 10 + Math.min(combo, 20),
+      speed: 0.28 + Math.min(combo, 20) * 0.01,
+      ...(burstStyle && { colors: burstStyle.colors, shapes: burstStyle.shapes, glyphs: burstStyle.glyphs }),
+    });
     if (st.current.xpAnswer) fx.floatAt(anchor, '+1 XP', 'xp');
     if (COMBO_MILESTONES[combo]) {
       const level = MILESTONE_LEVELS.indexOf(combo);
@@ -292,6 +305,7 @@ export function Session({
               {fb.correct && fb.reveal && isVocab(fb.reveal.item) && fb.reveal.item.kind !== 'char' && <ExampleBox item={fb.reveal.item} lang={lang} />}
               {fb.reveal?.explain && <p className="fb-explain">💡 {fb.reveal.explain}</p>}
               {fb.note && <p className="fb-explain">✍️ {fb.note}</p>}
+              {fb.shielded && <p className="fb-explain">🛡️ 連擊護符發動：{combo} 連擊保住了！</p>}
               {fb.guide && <KeyGuideView lang={fb.guide.lang} answer={fb.guide.answer} />}
               {fb.canOverride && fb.typed && (
                 <button type="button" className="link-btn fb-override" onClick={override}>

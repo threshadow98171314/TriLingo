@@ -10,7 +10,27 @@ import { newProg, rolloverStreak, srsReview, srsTouch, touchStreak } from './log
 import { CHEST_COINS, questsFor } from './quests';
 import { rankOf } from './ranks';
 import { randInt } from './rng';
+import { STICKER_BY_ID } from '../art/stickers';
 import { defaultSave, emptyDay, migrate, type DayLog, type Save, type Settings } from './save';
+import {
+  AVATAR_COST,
+  CLOVER_LESSONS,
+  CONSUMABLE_BY_ID,
+  cosmeticKey,
+  cosmeticOf,
+  DUPE_REFUND,
+  GACHA10_COST,
+  GACHA_COST,
+  HOURGLASS_MS,
+  mysteryOffer,
+  PREMIUM_AVATAR_COST,
+  PREMIUM_AVATARS,
+  rollSticker,
+  SHOP_AVATARS,
+  type ConsumableId,
+  type CosmeticKind,
+  type MysteryOffer,
+} from './shop';
 import { setSfxEnabled } from './sfx';
 import { setTtsPrefs } from './tts';
 import { LANGS, type LangId, type Lesson, type Unit } from './types';
@@ -355,17 +375,22 @@ export function finishLesson(a: { lang: LangId; unit: Unit; lesson: Lesson; stat
       findEgg(d, 'lucky');
     }
     const reward = grantXp(d, a.lang, total(parts));
-    // 不定時掉落的寶箱：25% 一般寶箱，3% 黃金寶箱
+    // 不定時掉落的寶箱：25% 一般寶箱，3% 黃金寶箱；有幸運草時必定掉寶箱，黃金寶箱 10%
     let chest = 0;
     let golden = false;
     if (passed) {
+      const luck = d.inv.clover > 0;
+      if (luck) {
+        d.inv.clover--;
+        d.coinsAt = Date.now();
+      }
       const r = Math.random();
-      if (r < 0.03) {
+      if (r < (luck ? 0.1 : 0.03)) {
         golden = true;
         chest = randInt(60, 120);
         d.stats.goldenChests++;
         findEgg(d, 'golden');
-      } else if (r < 0.28) {
+      } else if (luck || r < 0.28) {
         chest = randInt(5, 20);
       }
       addCoins(d, chest);
@@ -498,7 +523,7 @@ export function claimChest(): { coins: number; freeze: boolean } | null {
     log.chest = true;
     const coins = randInt(CHEST_COINS[0], CHEST_COINS[1]);
     addCoins(d, coins);
-    const freeze = d.streak.freezes < SHOP.freeze.max && Math.random() < 0.3;
+    const freeze = canHold(d, 'freeze') && Math.random() < 0.3;
     if (freeze) d.streak.freezes++;
     res = { coins, freeze };
   });
@@ -507,16 +532,6 @@ export function claimChest(): { coins: number; freeze: boolean } | null {
 
 // ───────── 商店 ─────────
 
-// 每天把任務做完大約能拿 70–100 金幣；價格以此為基準
-export const SHOP = {
-  freeze: { cost: 100, max: 2 },
-  boost: { cost: 60, minutes: 15 },
-  avatar: { cost: 50 },
-  hint: { cost: 5 },
-};
-
-export const SHOP_AVATARS = ['🐼', '🐯', '🦁', '🐸', '🐧', '🦉', '🦄', '🐲', '🐙', '🤖', '👾', '👻'];
-
 function pay(d: Save, cost: number): boolean {
   if (d.coins < cost) return false;
   d.coins -= cost;
@@ -524,21 +539,59 @@ function pay(d: Save, cost: number): boolean {
   return true;
 }
 
-export function buyFreeze(): boolean {
-  let ok = false;
-  mutate((d) => {
-    if (d.streak.freezes >= SHOP.freeze.max || !pay(d, SHOP.freeze.cost)) return;
-    d.streak.freezes++;
-    ok = true;
-  });
-  return ok;
+/** 目前持有幾個（幸運草換算成幾片：一片管 5 堂課） */
+export function heldOf(s: Save, id: ConsumableId): number {
+  switch (id) {
+    case 'freeze':
+      return s.streak.freezes;
+    case 'shield':
+      return s.inv.shield;
+    case 'clover':
+      return Math.ceil(s.inv.clover / CLOVER_LESSONS);
+    case 'hourglass':
+      return s.inv.hourglass;
+    default:
+      return 0;
+  }
 }
 
-export function buyBoost(): boolean {
+export function canHold(s: Save, id: ConsumableId, n = 1): boolean {
+  const max = CONSUMABLE_BY_ID.get(id)?.max;
+  return max === undefined || heldOf(s, id) + n <= max;
+}
+
+function give(d: Save, id: ConsumableId, n = 1) {
+  const now = nowMs();
+  switch (id) {
+    case 'freeze':
+      d.streak.freezes += n;
+      break;
+    case 'boost':
+      d.boostUntil = Math.max(d.boostUntil, now) + 15 * 60000 * n;
+      break;
+    case 'boost60':
+      d.boostUntil = Math.max(d.boostUntil, now) + 60 * 60000 * n;
+      break;
+    case 'shield':
+      d.inv.shield += n;
+      break;
+    case 'clover':
+      d.inv.clover += CLOVER_LESSONS * n;
+      break;
+    case 'hourglass':
+      d.inv.hourglass += n;
+      break;
+  }
+  d.coinsAt = Date.now();
+}
+
+/** 買道具 */
+export function buyConsumable(id: ConsumableId): boolean {
   let ok = false;
   mutate((d) => {
-    if (!pay(d, SHOP.boost.cost)) return;
-    d.boostUntil = Math.max(d.boostUntil, nowMs()) + SHOP.boost.minutes * 60000;
+    const c = CONSUMABLE_BY_ID.get(id);
+    if (!c || !canHold(d, id) || !pay(d, c.cost)) return;
+    give(d, id);
     ok = true;
   });
   return ok;
@@ -547,13 +600,166 @@ export function buyBoost(): boolean {
 export function buyAvatar(emoji: string): boolean {
   let ok = false;
   mutate((d) => {
-    if (d.avatars.includes(emoji) || !SHOP_AVATARS.includes(emoji) || !pay(d, SHOP.avatar.cost)) return;
+    const cost = PREMIUM_AVATARS.includes(emoji) ? PREMIUM_AVATAR_COST : SHOP_AVATARS.includes(emoji) ? AVATAR_COST : 0;
+    if (!cost || d.avatars.includes(emoji) || !pay(d, cost)) return;
     d.avatars.push(emoji);
     d.avatar = emoji;
     d.prefsAt = Date.now();
     ok = true;
   });
   return ok;
+}
+
+/** 買外觀（頭像框、主題色、答對特效、稱號、喵師父裝扮），買了直接換上 */
+export function buyCosmetic(key: string): boolean {
+  let ok = false;
+  mutate((d) => {
+    const c = cosmeticOf(key);
+    if (!c || c.rare || d.owned.includes(key) || !pay(d, c.cost)) return;
+    d.owned.push(key);
+    d.equip[c.kind] = c.id;
+    d.prefsAt = Date.now();
+    ok = true;
+  });
+  return ok;
+}
+
+/** 換上或拿掉外觀（id 為 null 時拿掉） */
+export function equipCosmetic(kind: CosmeticKind, id: string | null) {
+  mutate((d) => {
+    if (id && !d.owned.includes(cosmeticKey(kind, id))) return;
+    if (id) d.equip[kind] = id;
+    else delete d.equip[kind];
+    d.prefsAt = Date.now();
+  });
+}
+
+export interface GachaPull {
+  id: string;
+  /** 第一次抽到 */
+  fresh: boolean;
+  /** 重複的貼紙換回的金幣 */
+  refund: number;
+}
+
+function addSticker(d: Save, id: string): GachaPull {
+  const fresh = !d.stickers[id];
+  d.stickers[id] = (d.stickers[id] ?? 0) + 1;
+  const st = STICKER_BY_ID.get(id);
+  const refund = fresh || !st ? 0 : DUPE_REFUND[st.rarity];
+  addCoins(d, refund);
+  return { id, fresh, refund };
+}
+
+/** 扭蛋：抽一次或十連抽（十連抽保底一張稀有以上） */
+export function pullGacha(n: 1 | 10): GachaPull[] | null {
+  let out: GachaPull[] | null = null;
+  mutate((d) => {
+    if (!pay(d, n === 10 ? GACHA10_COST : GACHA_COST)) return;
+    const res: GachaPull[] = [];
+    for (let i = 0; i < n; i++) {
+      const last = n === 10 && i === n - 1;
+      const rare = res.some((r) => STICKER_BY_ID.get(r.id)?.rarity !== 'N');
+      res.push(addSticker(d, rollSticker(Math.random, last && !rare ? 'R' : 'N')));
+    }
+    d.stats.gacha += n;
+    out = res;
+  });
+  return out;
+}
+
+/** 揭曉今天的神秘商品（揭曉後一整天固定不變） */
+export function revealMystery(): MysteryOffer {
+  let offer!: MysteryOffer;
+  mutate((d) => {
+    const t = today();
+    if (d.mystery.day !== t) d.mystery = { day: t };
+    d.mystery.offer ??= mysteryOffer(t, (k) => (k.startsWith('avatar:') ? d.avatars.includes(k.slice(7)) : d.owned.includes(k)));
+    offer = d.mystery.offer;
+  });
+  return offer;
+}
+
+export type MysteryResult =
+  | { kind: 'avatar'; id: string }
+  | { kind: 'cosmetic'; key: string }
+  | ({ kind: 'sticker' } & GachaPull)
+  | { kind: 'coins'; n: number }
+  | { kind: 'boost60' }
+  | { kind: 'freeze2' };
+
+/** 神秘商品現在買不買得了（例如連勝保護已經滿了就不行） */
+export function mysteryBlocked(s: Save, offer: MysteryOffer): string | null {
+  if (offer.kind === 'freeze2' && !canHold(s, 'freeze', 2)) return '連勝保護已經滿了';
+  if (offer.kind === 'avatar' && s.avatars.includes(offer.id)) return '已經擁有';
+  if (offer.kind === 'cosmetic' && s.owned.includes(offer.key)) return '已經擁有';
+  return null;
+}
+
+export function buyMystery(): MysteryResult | null {
+  let res: MysteryResult | null = null;
+  mutate((d) => {
+    const t = today();
+    const offer = d.mystery.day === t ? d.mystery.offer : undefined;
+    if (!offer || d.mystery.bought || mysteryBlocked(d, offer) || !pay(d, offer.cost)) return;
+    switch (offer.kind) {
+      case 'avatar':
+        d.avatars.push(offer.id);
+        d.avatar = offer.id;
+        d.prefsAt = Date.now();
+        res = { kind: 'avatar', id: offer.id };
+        break;
+      case 'cosmetic': {
+        const c = cosmeticOf(offer.key);
+        if (c) {
+          d.owned.push(offer.key);
+          d.equip[c.kind] = c.id;
+          d.prefsAt = Date.now();
+        }
+        res = { kind: 'cosmetic', key: offer.key };
+        break;
+      }
+      case 'sticker':
+        res = { kind: 'sticker', ...addSticker(d, rollSticker(Math.random, offer.min)) };
+        break;
+      case 'coins': {
+        const n = randInt(offer.min, offer.max);
+        addCoins(d, n);
+        res = { kind: 'coins', n };
+        break;
+      }
+      case 'boost60':
+        give(d, 'boost60');
+        res = { kind: 'boost60' };
+        break;
+      case 'freeze2':
+        give(d, 'freeze', 2);
+        res = { kind: 'freeze2' };
+        break;
+    }
+    d.mystery.bought = true;
+  });
+  return res;
+}
+
+/** 練習中答錯：有連擊護符而且連擊夠多就用掉一個，連擊不歸零 */
+export function spendShield(combo: number): boolean {
+  if (combo < 3 || save.inv.shield <= 0) return false;
+  mutate((d) => {
+    d.inv.shield--;
+    d.coinsAt = Date.now();
+  });
+  return true;
+}
+
+/** 限時快答開始：有時光沙漏就用掉一個，回傳多出來的毫秒數 */
+export function spendHourglass(): number {
+  if (save.inv.hourglass <= 0) return 0;
+  mutate((d) => {
+    d.inv.hourglass--;
+    d.coinsAt = Date.now();
+  });
+  return HOURGLASS_MS;
 }
 
 export function spendCoins(n: number): boolean {

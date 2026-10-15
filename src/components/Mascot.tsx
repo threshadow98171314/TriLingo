@@ -1,5 +1,6 @@
 // 吉祥物「喵師父」：點一下換一句話，連點會說出秘密，偶爾會變成金色的。
 import { useRef, useState, type FormEvent } from 'react';
+import { MascotArt } from '../art/mascot';
 import { META_LIST } from '../content';
 import { MASCOT_CONFUSED, MASCOT_GOLD, MASCOT_SECRET, mascotLines } from '../content/mascot';
 import { nowMs, today } from '../core/date';
@@ -73,8 +74,7 @@ export function Mascot() {
   return (
     <section className={cx('mascot card', mood)}>
       <button ref={cat} type="button" className="mascot-cat" onClick={tap} aria-label="摸摸喵師父">
-        <span className="mascot-face">🐱</span>
-        <span className="mascot-band">道</span>
+        <MascotArt size={66} gold={mood === 'gold'} outfit={s.equip.outfit} />
       </button>
       <div className="grow">
         <p className="mascot-name">喵師父</p>

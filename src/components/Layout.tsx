@@ -6,6 +6,7 @@ import { tapCount, triggerEgg } from '../core/eggs';
 import { useSave } from '../core/store';
 import { cx, fmtTime } from '../core/util';
 import { href, type Route } from '../router';
+import { Avatar } from './Avatar';
 import { Coin, flameTier } from './ui';
 
 const NAV = [
@@ -86,7 +87,7 @@ export function TopBar({ route }: { route: Route }) {
             <Coin n={s.coins} />
           </a>
           <a className="avatar" href={href('/profile')} title={s.name}>
-            {s.avatar}
+            <Avatar id={s.avatar} frame={s.equip.frame} size={30} />
           </a>
         </div>
       </div>

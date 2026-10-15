@@ -1,5 +1,6 @@
 // 存檔的資料結構。整份存檔放在 localStorage，可以從設定頁匯出／匯入。
 import type { ItemProg, StreakState } from './logic';
+import type { CosmeticKind, MysteryOffer } from './shop';
 import type { LangId } from './types';
 
 export interface Settings {
@@ -95,6 +96,25 @@ export interface Stats {
   mocks: number;
   truefalses: number;
   memories: number;
+  /** 扭蛋抽過的次數 */
+  gacha: number;
+}
+
+/** 道具庫存（連勝保護在 streak.freezes、雙倍 XP 在 boostUntil） */
+export interface Inventory {
+  /** 連擊護符 */
+  shield: number;
+  /** 幸運草：剩下幾堂課必定掉寶箱 */
+  clover: number;
+  /** 時光沙漏 */
+  hourglass: number;
+}
+
+/** 每日神秘商品：揭曉時把當天的商品記下來（之後買了東西，商品也不會變） */
+export interface MysteryState {
+  day: string;
+  offer?: MysteryOffer;
+  bought?: boolean;
 }
 
 export interface Save {
@@ -137,8 +157,16 @@ export interface Save {
   stage: Partial<Record<LangId, string>>;
   /** 雲端同步合併用：設定／個人資料最後修改時間 */
   prefsAt: number;
-  /** 雲端同步合併用：金幣最後變動時間 */
+  /** 雲端同步合併用：金幣（以及道具庫存）最後變動時間 */
   coinsAt: number;
+  /** 擁有的外觀，例如 frame:sakura、skin:matcha */
+  owned: string[];
+  /** 穿戴中的外觀：種類 → id */
+  equip: Partial<Record<CosmeticKind, string>>;
+  inv: Inventory;
+  /** 貼紙收藏：id → 張數 */
+  stickers: Record<string, number>;
+  mystery: MysteryState;
 }
 
 export const FREE_AVATARS = ['🐣', '🐱', '🐶', '🦊'];
@@ -203,11 +231,17 @@ export function defaultSave(now: number): Save {
       mocks: 0,
       truefalses: 0,
       memories: 0,
+      gacha: 0,
     },
     best: { blitz: { en: 0, ja: 0, ko: 0 }, match: {}, memory: {}, tf: { en: 0, ja: 0, ko: 0 } },
     stage: {},
     prefsAt: 0,
     coinsAt: 0,
+    owned: [],
+    equip: {},
+    inv: { shield: 0, clover: 0, hourglass: 0 },
+    stickers: {},
+    mystery: { day: '' },
   };
 }
 
@@ -236,5 +270,10 @@ export function migrate(raw: unknown, now: number): Save {
     prefsAt: x.prefsAt ?? 0,
     coinsAt: x.coinsAt ?? 0,
     avatars: x.avatars?.length ? x.avatars : d.avatars,
+    owned: x.owned ?? [],
+    equip: x.equip ?? {},
+    inv: { ...d.inv, ...x.inv },
+    stickers: x.stickers ?? {},
+    mystery: x.mystery ?? d.mystery,
   };
 }

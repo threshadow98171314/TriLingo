@@ -1,5 +1,8 @@
 // 個人頁：三語段位、段位階梯、統計、學習熱力圖、成就
 import { useState, type CSSProperties } from 'react';
+import { AVATAR_NAME } from '../art/avatars';
+import { STICKERS } from '../art/stickers';
+import { Avatar } from '../components/Avatar';
 import { RankEmblem, RankLine } from '../components/RankEmblem';
 import { Bar, Coin, LangBadge } from '../components/ui';
 import { META_LIST } from '../content';
@@ -8,8 +11,10 @@ import { lastDays, today } from '../core/date';
 import { EGGS } from '../core/eggData';
 import { rankOf, TIERS } from '../core/ranks';
 import type { Save } from '../core/save';
+import { TITLES } from '../core/shop';
 import { setProfile, useSave } from '../core/store';
 import { cx, sum } from '../core/util';
+import { href } from '../router';
 
 const WEEKS = 18;
 
@@ -188,11 +193,13 @@ export function ProfilePage() {
     ['累計金幣', s.coinsEarned.toLocaleString()],
   ];
   const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const title = TITLES.find((t) => t.id === s.equip.title);
+  const stickerCount = STICKERS.filter((x) => s.stickers[x.id]).length;
 
   return (
     <div className="page">
       <section className="card profile-head">
-        <div className="avatar big">{s.avatar}</div>
+        <Avatar id={s.avatar} frame={s.equip.frame} size={84} className="profile-avatar" />
         <div className="grow">
           <input
             className="name-input"
@@ -203,13 +210,22 @@ export function ProfilePage() {
             onBlur={() => setProfile({ name })}
             onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
           />
+          {title && <p className="profile-title">「{title.name}」</p>}
           <div className="avatar-pick">
             {s.avatars.map((a) => (
-              <button key={a} type="button" className={cx('avatar', a === s.avatar && 'on')} onClick={() => setProfile({ avatar: a })}>
-                {a}
+              <button key={a} type="button" className={cx('avatar', a === s.avatar && 'on')} onClick={() => setProfile({ avatar: a })} title={AVATAR_NAME[a]}>
+                <Avatar id={a} size={34} />
               </button>
             ))}
+            <a className="avatar more" href={href('/shop?tab=looks')} title="到商店買更多頭像">
+              ＋
+            </a>
           </div>
+          {stickerCount > 0 && (
+            <a className="profile-stickers" href={href('/shop?tab=gacha')}>
+              🎴 貼紙收藏 {stickerCount} / {STICKERS.length}
+            </a>
+          )}
         </div>
       </section>
 

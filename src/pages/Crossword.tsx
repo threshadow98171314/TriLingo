@@ -8,7 +8,8 @@ import { today } from '../core/date';
 import { crosswordPool, UNLOCK } from '../core/progress';
 import { hashStr, mulberry32, shuffle } from '../core/rng';
 import { sfx } from '../core/sfx';
-import { finishGame, getSave, recordAnswer, SHOP, spendCoins, useSave } from '../core/store';
+import { CROSSWORD_HINT_COST } from '../core/shop';
+import { finishGame, getSave, recordAnswer, spendCoins, useSave } from '../core/store';
 import type { LangId } from '../core/types';
 import { cx, fmtTime } from '../core/util';
 import { cellsOfWord, generateCrossword, type Crossword, type CwEntry } from '../engine/crossword';
@@ -224,7 +225,7 @@ function Game({ lang, daily, puzzle, onAgain }: { lang: LangId; daily: boolean; 
 
   const selectWord = (wi: number) => setSel({ w: wi, k: entryOf(cells, wi) });
 
-  const hintCost = hints >= FREE_HINTS ? SHOP.hint.cost : 0;
+  const hintCost = hints >= FREE_HINTS ? CROSSWORD_HINT_COST : 0;
   /** 提示要揭曉的格子：游標那一格還沒對就揭曉它，否則找這個字裡第一個還沒對的格子 */
   const needs = (j: number) => {
     const c = cells[keyOf(coords[sel.w][j])];

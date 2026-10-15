@@ -6,7 +6,7 @@ import { courseIndex, META } from '../content';
 import { learnedVocab, UNLOCK } from '../core/progress';
 import { pick } from '../core/rng';
 import { sfx } from '../core/sfx';
-import { finishGame, getSave, recordAnswer, useSave } from '../core/store';
+import { finishGame, getSave, recordAnswer, spendHourglass, useSave } from '../core/store';
 import type { LangId, VocabItem } from '../core/types';
 import { clamp, cx } from '../core/util';
 import { isVocab, recall, recog, type ChoiceEx } from '../engine/exercises';
@@ -20,7 +20,9 @@ const PENALTY = 3_000;
 const multOf = (combo: number) => 1 + Math.min(4, Math.floor(combo / 3)) * 0.5;
 
 function Game({ lang, vocab, onAgain }: { lang: LangId; vocab: VocabItem[]; onAgain: () => void }) {
-  const best = useSave().best.blitz[lang];
+  const save = useSave();
+  const best = save.best.blitz[lang];
+  const hourglass = save.inv.hourglass;
   const back = `/l/${lang}/arcade`;
   const idx = courseIndex(lang).items;
   const last = useRef('');
@@ -77,9 +79,15 @@ function Game({ lang, vocab, onAgain }: { lang: LangId; vocab: VocabItem[]; onAg
     return () => clearInterval(t);
   }, [phase, result]);
 
+  /** 這一場的總時間（用了時光沙漏會多 15 秒） */
+  const total = useRef(DURATION);
+  const [bonus, setBonus] = useState(0);
   const start = () => {
     sfx.pop();
-    endAt.current = Date.now() + DURATION;
+    const extra = spendHourglass();
+    total.current = DURATION + extra;
+    setBonus(extra);
+    endAt.current = Date.now() + total.current;
     setPhase('play');
   };
 
@@ -126,7 +134,7 @@ function Game({ lang, vocab, onAgain }: { lang: LangId; vocab: VocabItem[]; onAg
         <div className="session-progress">
           <small>限時快答{best > 0 && `・個人最高 ${best} 分`}</small>
           <div className={cx('bar', left < 10_000 && 'danger')}>
-            <i style={{ width: `${(left / DURATION) * 100}%`, background: left < 10_000 ? 'var(--bad)' : 'var(--lang)', transition: 'width .1s linear' }} />
+            <i style={{ width: `${Math.min(1, left / total.current) * 100}%`, background: left < 10_000 ? 'var(--bad)' : 'var(--lang)', transition: 'width .1s linear' }} />
           </div>
         </div>
         <div className={cx('combo on', combo >= 3 && 'hot')}>{Math.ceil(left / 1000)} 秒</div>
@@ -142,6 +150,7 @@ function Game({ lang, vocab, onAgain }: { lang: LangId; vocab: VocabItem[]; onAg
               <li>每 3 連擊倍率 +0.5，最高 ×3。</li>
               <li>答錯扣 3 秒，連擊歸零。</li>
               <li>可以用鍵盤 1–4 作答。</li>
+              {hourglass > 0 && <li>⏳ 你有 {hourglass} 個時光沙漏，這一場會自動用掉一個，多 15 秒！</li>}
             </ul>
             <button type="button" className="btn primary wide" autoFocus onClick={start}>
               開始！
@@ -150,6 +159,7 @@ function Game({ lang, vocab, onAgain }: { lang: LangId; vocab: VocabItem[]; onAg
         </main>
       ) : (
         <main className="session-body">
+          {bonus > 0 && <p className="blitz-bonus">⏳ 時光沙漏：多 {bonus / 1000} 秒！</p>}
           <div className="blitz-hud">
             <div>
               <small>分數</small>

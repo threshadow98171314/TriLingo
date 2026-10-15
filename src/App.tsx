@@ -7,8 +7,10 @@ import { Empty } from './components/ui';
 import { nowMs } from './core/date';
 import { setEggKeysEnabled } from './core/eggs';
 import { fx, seasonOf } from './core/fx';
+import { SKINS } from './core/shop';
 import { useSave } from './core/store';
 import { LANGS, type LangId } from './core/types';
+import { ArtGallery } from './pages/ArtGallery';
 import { BlitzPage } from './pages/Blitz';
 import { CrosswordPage } from './pages/Crossword';
 import { HelpPage } from './pages/Help';
@@ -37,6 +39,7 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
   if (p[0] === 'shop') return view(<ShopPage />);
   if (p[0] === 'settings') return view(<SettingsPage />);
   if (p[0] === 'help') return view(<HelpPage />);
+  if (p[0] === 'art') return view(<ArtGallery />);
 
   if (p[0] === 'l' && (LANGS as string[]).includes(p[1])) {
     const lang = p[1] as LangId;
@@ -104,6 +107,19 @@ export function App() {
   useEffect(() => {
     document.documentElement.classList.toggle('no-furi', !furigana);
   }, [furigana]);
+
+  // 商店買的主題色：換掉整個網站的強調色
+  const skin = SKINS.find((k) => k.id === s.equip.skin);
+  useEffect(() => {
+    const st = document.documentElement.style;
+    if (skin) {
+      st.setProperty('--accent', skin.a);
+      st.setProperty('--accent-2', skin.b);
+    } else {
+      st.removeProperty('--accent');
+      st.removeProperty('--accent-2');
+    }
+  }, [skin]);
 
   const { page, focus } = resolve(route);
 

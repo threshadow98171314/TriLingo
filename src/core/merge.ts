@@ -5,7 +5,7 @@
 // 限制：兩台裝置在「都沒連網」的情況下各自學習，XP 取的是較大值而不是相加，
 // 其中一台離線期間多拿的 XP 會少算。平常開 App 就會同步，實際上很少發生。
 import type { ItemProg, StreakState } from './logic';
-import type { DayLog, LessonRec, MockRec, Save } from './save';
+import type { DayLog, LessonRec, MockRec, MysteryState, Save } from './save';
 import { LANGS } from './types';
 
 /** 每個數字欄位取較大值（a、b 的欄位都是數字） */
@@ -67,6 +67,12 @@ function mergeStreak(a: StreakState, b: StreakState, newerCoins: StreakState): S
   return { last: a.last, count: Math.max(a.count, b.count), best, freezes: newerCoins.freezes };
 }
 
+/** 神秘商品：日期比較新的那份；同一天就合併「揭曉了」「買了」 */
+function mergeMystery(a: MysteryState, b: MysteryState): MysteryState {
+  if (a.day !== b.day) return a.day > b.day ? a : b;
+  return { day: a.day, offer: a.offer ?? b.offer, bought: a.bought || b.bought || undefined };
+}
+
 export function mergeSaves(a: Save, b: Save): Save {
   const prefs = b.prefsAt > a.prefsAt ? b : a;
   const coins = b.coinsAt > a.coinsAt ? b : a;
@@ -101,5 +107,11 @@ export function mergeSaves(a: Save, b: Save): Save {
     guide: mergeRecord(a.guide, b.guide, Math.min),
     stats: maxKeys(a.stats, b.stats),
     best: { blitz: maxKeys(a.best.blitz, b.best.blitz), match: fastest(a.best.match, b.best.match), memory: fastest(a.best.memory, b.best.memory), tf: maxKeys(a.best.tf, b.best.tf) },
+    // 外觀只增不減；穿戴取最後修改設定的那份；道具和金幣一起取最後變動的那份；貼紙張數取較大值
+    owned: union(a.owned, b.owned),
+    equip: prefs.equip,
+    inv: coins.inv,
+    stickers: maxKeys(a.stickers, b.stickers),
+    mystery: mergeMystery(a.mystery, b.mystery),
   };
 }

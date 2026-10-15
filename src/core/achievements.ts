@@ -1,4 +1,5 @@
 // 成就：value(存檔) 達到 goal 就解鎖，同時可以拿來畫進度條。
+import { STICKERS } from '../art/stickers';
 import { EGGS } from './eggData';
 import { rankOf, TIERS } from './ranks';
 import type { Save } from './save';
@@ -55,6 +56,9 @@ const a = (
 
 const RANK_ICONS = ['', '🥉', '🥈', '🥇', '💠', '💎', '🔮', '🏵️', '🔥', '👑'];
 
+/** 收集到的貼紙種類數 */
+const stickers = (s: Save) => STICKERS.filter((x) => (s.stickers[x.id] ?? 0) > 0).length;
+
 export const ACHIEVEMENTS: Achievement[] = [
   a('學習', 'lesson_1', '🎬', '踏出第一步', '完成第一堂課', 1, (s) => s.stats.lessons, 10),
   a('學習', 'lesson_10', '📘', '漸入佳境', '完成 10 堂課', 10, (s) => s.stats.lessons, 20),
@@ -98,6 +102,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   a('遊戲', 'blitz_200', '⏱️', '手腦並用', '限時快答拿到 200 分', 200, bestBlitz, 20),
   a('遊戲', 'blitz_500', '🚀', '快答之神', '限時快答拿到 500 分', 500, bestBlitz, 80),
   a('遊戲', 'coins_500', '💰', '小富翁', '累計獲得 500 金幣', 500, (s) => s.coinsEarned, 50),
+  a('收藏', 'sticker_1', '🎴', '第一張貼紙', '從扭蛋機抽到第一張貼紙', 1, stickers, 10),
+  a('收藏', 'sticker_12', '📒', '貼紙收藏家', '收集 12 種貼紙', 12, stickers, 60),
+  a('收藏', 'sticker_all', '🌈', '貼紙簿完成', `收集全部 ${STICKERS.length} 種貼紙`, STICKERS.length, stickers, 500),
+  a('收藏', 'looks_3', '🎨', '時尚達人', '擁有 3 件外觀（頭像框、主題色、特效、稱號或裝扮）', 3, (s) => s.owned.length, 40),
 
   ...TIERS.slice(1).map((t, i) =>
     a('段位', `rank_${t.id}`, RANK_ICONS[i + 1], `晉升${t.name}`, `任一語言達到「${t.name}」段位`, i + 1, maxTier, 20 * (i + 1)),
