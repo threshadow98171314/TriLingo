@@ -2,7 +2,7 @@
 // 基本資料（名稱、顏色、關卡大綱，見 meta.ts）隨主程式載入；
 // 各語言的題目放在獨立的檔案，第一次用到時才下載，之後留在記憶體裡（瀏覽器也會快取檔案）。
 import { useEffect, useSyncExternalStore } from 'react';
-import type { Course, Example, Item, LangId, Lesson, MockExam, Stage, Unit, VocabItem } from '../core/types';
+import type { Concept, Course, Example, Item, LangId, Lesson, MockExam, Stage, Unit, VocabItem } from '../core/types';
 import { LANGS } from '../core/types';
 import { corpusOfCourse, examplesOf, type CorpusEntry } from '../engine/examples';
 import { META } from './meta';
@@ -13,6 +13,7 @@ export { META, META_LIST } from './meta';
 export interface LangModule {
   UNITS: Record<string, Unit[]>;
   MOCKS?: MockExam[];
+  CONCEPTS?: Concept[];
 }
 
 const LOADERS: Record<LangId, () => Promise<LangModule>> = {
@@ -24,7 +25,7 @@ const LOADERS: Record<LangId, () => Promise<LangModule>> = {
 /** 基本資料＋題目 → 完整的課程 */
 export function assemble(lang: LangId, mod: LangModule): Course {
   const meta = META[lang];
-  return { ...meta, stages: meta.stages.map((s) => ({ ...s, units: mod.UNITS[s.id] ?? [] })), mocks: mod.MOCKS ?? [] };
+  return { ...meta, stages: meta.stages.map((s) => ({ ...s, units: mod.UNITS[s.id] ?? [] })), mocks: mod.MOCKS ?? [], concepts: mod.CONCEPTS ?? [] };
 }
 
 interface Slot {

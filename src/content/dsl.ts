@@ -7,6 +7,8 @@
 import type {
   ChartRow,
   ClozeItem,
+  Concept,
+  ConceptSection,
   Example,
   GrammarNote,
   Item,
@@ -257,6 +259,30 @@ export function placeUnit(id: string, icon: string, title: string, intro: Gramma
   unit.kind = 'phrases';
   unit.lessons[unit.lessons.length - 1].title = '蓋章挑戰';
   return unit;
+}
+
+// ───────── 觀念講堂 ─────────
+
+/**
+ * 觀念文章的一節。examples 寫成「原文|翻譯」（日文用「漢字[よみ]」標讀音）；
+ * table 第一列是表頭；tip 是解題技巧或易錯提醒。
+ */
+export function sec(h: string, body: string[], o: { ex?: string[]; table?: string[][]; tip?: string; ja?: boolean } = {}): ConceptSection {
+  return { h, body, examples: o.ex?.map((e) => parseEx(e, !!o.ja)!), table: o.table, tip: o.tip };
+}
+
+/** 一篇觀念文章；quiz 用 cz() 寫（第一個選項是正確答案） */
+export function concept(
+  id: string,
+  cat: string,
+  icon: string,
+  title: string,
+  summary: string,
+  sections: ConceptSection[],
+  quiz: ClozeItem[],
+  level?: string,
+): Concept {
+  return { id, cat, icon, title, summary, level, sections, quiz: finalize(id, quiz) };
 }
 
 export interface CharRow {

@@ -5,6 +5,7 @@ import { Bar, ItemCard, LangBadge, Modal, Stars } from '../components/ui';
 import { CourseGate } from '../components/CourseGate';
 import { GuideTip } from '../components/Guide';
 import { TownMap } from '../components/TownMap';
+import { ConceptsTab } from './Concepts';
 import { pictureOf } from '../engine/pictures';
 import { kanaPairs } from './Memory';
 import { MockTab } from './Mock';
@@ -40,7 +41,7 @@ import { furiPlain } from '../engine/furigana';
 import { basicTable } from '../engine/hangul';
 import { href, lessonPath, stagePath } from '../router';
 
-export type LangTab = 'path' | 'arcade' | 'mock' | 'dex' | 'chart';
+export type LangTab = 'path' | 'arcade' | 'mock' | 'concepts' | 'dex' | 'chart';
 
 // ───────── 學習路線 ─────────
 
@@ -779,6 +780,18 @@ function TabGuide({ tab, lang }: { tab: LangTab; lang: LangId }) {
           </ul>
         </GuideTip>
       );
+    case 'concepts':
+      return (
+        <GuideTip id="tab:concepts" title="觀念講堂" icon="💡">
+          <p>
+            {lang === 'en'
+              ? '多益各大題的解題技巧、常考文法觀念與解題思路。先讀觀念再做題，速度和正確率都會提升。'
+              : lang === 'ja'
+                ? '日文文法的觀念、使用習慣，以及「什麼時候該這樣說」。例句都可以播放，文末有小測驗。'
+                : '韓文的發音規則、助詞、語體和變化規則。例句都可以播放，文末有小測驗。'}
+          </p>
+        </GuideTip>
+      );
     case 'dex':
       return (
         <GuideTip id="tab:dex" title="圖鑑" icon="📖">
@@ -808,6 +821,7 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
     { id: 'path', icon: '📚', label: '學習路線', to: `/l/${lang}` },
     { id: 'arcade', icon: '🎮', label: '遊樂場', to: `/l/${lang}/arcade` },
     { id: 'mock', icon: '📝', label: '模擬考', to: `/l/${lang}/mock` },
+    { id: 'concepts', icon: '💡', label: '觀念', to: `/l/${lang}/concepts` },
     { id: 'dex', icon: '📖', label: '圖鑑', to: `/l/${lang}/dex` },
   ];
   if (lang !== 'en') tabs.push({ id: 'chart', icon: lang === 'ja' ? 'あ' : '가', label: lang === 'ja' ? '五十音表' : '字母表', to: `/l/${lang}/chart` });
@@ -855,6 +869,7 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
         {tab === 'path' && <PathTab lang={lang} s={s} stageId={stageId} />}
         {tab === 'arcade' && <ArcadeTab lang={lang} s={s} />}
         {tab === 'mock' && <MockTab lang={lang} s={s} />}
+        {tab === 'concepts' && <ConceptsTab lang={lang} s={s} />}
         {tab === 'dex' && <DexTab lang={lang} s={s} />}
         {tab === 'chart' && <ChartTab lang={lang} s={s} />}
       </CourseGate>

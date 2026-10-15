@@ -13,6 +13,7 @@ import { LANGS, type LangId } from './core/types';
 import { ArtGallery } from './pages/ArtGallery';
 import { BlitzPage } from './pages/Blitz';
 import { CrosswordPage } from './pages/Crossword';
+import { ConceptPage, ConceptQuizPage } from './pages/Concepts';
 import { PicturesPage, SortPage } from './pages/FunGames';
 import { HelpPage } from './pages/Help';
 import { Home } from './pages/Home';
@@ -53,7 +54,15 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
         return view(<LangPage lang={lang} tab="path" stageId={p[3]} />);
       case 'arcade':
       case 'dex':
+      case 'concepts':
         return view(<LangPage lang={lang} tab={p[2]} />);
+      case 'concept':
+        if (p[4] === 'quiz') return gated(<ConceptQuizPage lang={lang} id={p[3] ?? ''} />);
+        return view(
+          <CourseGate lang={lang}>
+            <ConceptPage lang={lang} id={p[3] ?? ''} />
+          </CourseGate>,
+        );
       case 'mock':
         if (p[3]) return gated(<MockPage lang={lang} examId={p[3]} />);
         return view(<LangPage lang={lang} tab="mock" />);

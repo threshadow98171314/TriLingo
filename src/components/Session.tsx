@@ -63,6 +63,7 @@ export function Session({
   mode,
   exitTo,
   retry = true,
+  record = true,
   onFinish,
 }: {
   lang: LangId;
@@ -72,6 +73,8 @@ export function Session({
   exitTo: string;
   /** 答錯的題目排到最後再考一次 */
   retry?: boolean;
+  /** 要不要把對錯記進單字熟練度（觀念講堂的小測驗不記） */
+  record?: boolean;
   onFinish: (stats: SessionStats) => ResultData;
 }) {
   const course = META[lang];
@@ -125,7 +128,7 @@ export function Session({
     if (cur.retry === 0) {
       st.current.graded++;
       if (correct) st.current.correct++;
-      recordAnswer(ex.itemId, correct, mode, helped);
+      if (record) recordAnswer(ex.itemId, correct, mode, helped);
     }
     const shielded = bump(correct);
     let retryKey: number | undefined;
@@ -167,7 +170,7 @@ export function Session({
     if (cur.retry === 0) {
       st.current.correct++;
       st.current.xpAnswer = true;
-      recordAnswer(ex.itemId, true, mode);
+      if (record) recordAnswer(ex.itemId, true, mode);
     }
     const key = fb.retryKey;
     if (key !== undefined) setQueue((q) => q.filter((x) => x.key !== key));

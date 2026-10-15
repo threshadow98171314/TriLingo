@@ -131,6 +131,35 @@ export interface Stage {
   planned: string[];
 }
 
+// ───────── 觀念講堂 ─────────
+
+/** 觀念文章的一節 */
+export interface ConceptSection {
+  /** 小標題 */
+  h: string;
+  /** 段落（日文可以用「漢字[よみ]」標振假名） */
+  body: string[];
+  examples?: Example[];
+  /** 對照表：第一列是表頭 */
+  table?: string[][];
+  /** 解題技巧或易錯提醒 */
+  tip?: string;
+}
+
+/** 一篇觀念文章，最後有小測驗 */
+export interface Concept {
+  id: string;
+  /** 分類，例如「解題技巧」「文法觀念」 */
+  cat: string;
+  icon: string;
+  title: string;
+  summary: string;
+  /** 建議搭配的關卡（例如「N4」「綠色」） */
+  level?: string;
+  sections: ConceptSection[];
+  quiz: ClozeItem[];
+}
+
 export interface Course {
   id: LangId;
   name: string;
@@ -144,13 +173,15 @@ export interface Course {
   stages: Stage[];
   /** 實戰模擬考 */
   mocks: MockExam[];
+  /** 觀念講堂 */
+  concepts: Concept[];
 }
 
 /** 關卡的基本資料（不含題目）：隨主程式載入，畫面不用等題目下載完就能顯示 */
 export type StageMeta = Omit<Stage, 'units'>;
 
 /** 語言的基本資料：名稱、顏色、目標、關卡大綱 */
-export interface CourseMeta extends Omit<Course, 'stages' | 'mocks'> {
+export interface CourseMeta extends Omit<Course, 'stages' | 'mocks' | 'concepts'> {
   stages: StageMeta[];
 }
 

@@ -23,3 +23,4 @@ export const UNITS: Record<string, Unit[]> = {
 };
 
 export { JA_MOCKS as MOCKS } from './ja-mock';
+export { CONCEPTS } from './ja-concepts';

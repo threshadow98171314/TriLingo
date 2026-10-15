@@ -19,3 +19,4 @@ export const UNITS: Record<string, Unit[]> = {
 };
 
 export { KO_MOCKS as MOCKS } from './ko-mock';
+export { CONCEPTS } from './ko-concepts';

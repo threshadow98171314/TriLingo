@@ -101,6 +101,8 @@ export interface Stats {
   /** 完成看圖猜字、分類大挑戰的次數 */
   pics: number;
   sorts: number;
+  /** 完成觀念講堂文章（含小測驗）的次數 */
+  concepts: number;
 }
 
 /** 道具庫存（連勝保護在 streak.freezes、雙倍 XP 在 boostUntil） */
@@ -237,6 +239,7 @@ export function defaultSave(now: number): Save {
       gacha: 0,
       pics: 0,
       sorts: 0,
+      concepts: 0,
     },
     best: { blitz: { en: 0, ja: 0, ko: 0 }, match: {}, memory: {}, tf: { en: 0, ja: 0, ko: 0 } },
     stage: {},

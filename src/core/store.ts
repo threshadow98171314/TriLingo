@@ -479,6 +479,30 @@ export function finishGame(a: {
   return out;
 }
 
+// ───────── 觀念講堂 ─────────
+
+/** 讀完一篇觀念文章並做完小測驗：記星等（存在 lessons 裡，key 是文章 id）並給 XP */
+export function finishConcept(a: { lang: LangId; id: string; stats: SessionStats }): Outcome {
+  let out!: Outcome;
+  mutate((d) => {
+    const { graded, correct } = a.stats;
+    const acc = graded ? correct / graded : 1;
+    const stars = acc >= 0.95 ? 3 : acc >= 0.7 ? 2 : 1;
+    const prev = d.lessons[a.id];
+    const first = !prev?.stars;
+    d.lessons[a.id] = { stars: Math.max(prev?.stars ?? 0, stars), plays: (prev?.plays ?? 0) + 1 };
+    d.stats.concepts++;
+    const parts: Part[] = [
+      ['讀完觀念＋小測驗', 5],
+      ['答對題數', correct],
+    ];
+    if (first) parts.push(['第一次完成', 5]);
+    const reward = grantXp(d, a.lang, total(parts));
+    out = { reward, parts, stars, passed: true, first, chest: 0, record: false, perfect: graded > 0 && correct === graded, lucky: false, golden: false };
+  });
+  return out;
+}
+
 // ───────── 模擬考 ─────────
 
 /** 交卷：記錄成績（答對率 0–100）並給 XP */
