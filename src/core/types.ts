@@ -129,6 +129,8 @@ export interface Stage {
   units: Unit[];
   /** 尚未製作內容的關卡：預定的單元大綱 */
   planned: string[];
+  /** 單元不用依序解鎖（情境小鎮、題庫），想從哪個開始都可以 */
+  open?: boolean;
 }
 
 // ───────── 觀念講堂 ─────────

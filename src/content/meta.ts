@@ -67,6 +67,18 @@ const EN: CourseMeta = {
       planned: ['高階商務字彙', '同義詞替換（Paraphrasing）', '長篇閱讀速讀', '推論題攻略', '高頻陷阱題', '全真模擬測驗', '滿分衝刺'],
     }),
     stage({
+      id: 'en.drill',
+      short: '題庫',
+      title: '多益題庫',
+      subtitle: '各大題分開練，每題都有解析',
+      description: '依多益大題分類的大量練習：Part 5 文法（詞性、時態、語態、分詞、關係詞、連接詞、代名詞、主動一致、比較、假設、不定詞與動名詞、介系詞、商務單字）、Part 2 應答、Part 3／4 聽力、Part 7 閱讀。想加強哪一題型就練哪一個，不用依序解鎖。',
+      color: '#f97316',
+      group: 'track',
+      style: 'track',
+      icon: '🎯',
+      open: true,
+    }),
+    stage({
       id: 'en.town',
       short: '小鎮',
       title: '職場與生活情境',
@@ -76,6 +88,7 @@ const EN: CourseMeta = {
       group: 'track',
       style: 'town',
       icon: '🏘️',
+      open: true,
     }),
   ],
 };
@@ -165,6 +178,7 @@ const JA: CourseMeta = {
       group: 'track',
       style: 'town',
       icon: '🏘️',
+      open: true,
     }),
     stage({
       id: 'ja.travel',
@@ -288,6 +302,7 @@ const KO: CourseMeta = {
       group: 'track',
       style: 'town',
       icon: '🏘️',
+      open: true,
     }),
     stage({
       id: 'ko.travel',

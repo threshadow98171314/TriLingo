@@ -261,6 +261,12 @@ export function placeUnit(id: string, icon: string, title: string, intro: Gramma
   return unit;
 }
 
+/** 題庫單元：一串克漏字或應答題，自動每 per 題切成一課（題庫路線用） */
+export function drillUnit(id: string, icon: string, title: string, subtitle: string, items: Item[], per = 6, kind: UnitKind = 'grammar'): Unit {
+  const parts = chunkEven(items, per).map((g, i) => ({ title: `第 ${i + 1} 組`, items: g }));
+  return grammarUnit(id, icon, title, subtitle, parts, kind);
+}
+
 // ───────── 觀念講堂 ─────────
 
 /**
