@@ -8,6 +8,8 @@ const DOCS = '法務、文件與活動';
 const BIZ = '科技、公司與市場';
 const CORE = '商務必背字';
 
+const COLLOC = '多益搭配詞';
+
 export const GREEN_BANK: Unit[] = [
   deck('en.green.bank.hiring', '🧑‍💼', '人事與招募', PEOPLE, enList(`
     job opening|n.|職缺|We have a job opening in the sales department.|業務部有一個職缺。
@@ -548,5 +550,209 @@ export const GREEN_BANK: Unit[] = [
     upcoming|adj.|即將到來的|Please check the upcoming events.|請查看即將舉行的活動。
     valuable|adj.|有價值的|Thank you for your valuable advice.|感謝您寶貴的建議。
     various|adj.|各種的|We sell various kinds of tea.|我們販售各式各樣的茶。
+  `)),
+  deck('en.green.bank.colloc1', '🧩', '多益搭配詞 ①：動詞＋名詞', COLLOC, enList(`
+    submit a report|phr.|提交報告|Please submit a report by Friday.|請在星期五前提交報告。|※submit（提交）常和 report、application、proposal 搭配。
+    attend a meeting|phr.|出席會議|All managers must attend a meeting on Monday.|所有經理星期一都要出席會議。|※attend 是及物動詞，不加 to。
+    make a decision|phr.|做決定|We need to make a decision today.|我們今天必須做出決定。
+    offer a discount|phr.|提供折扣|We offer a discount to members.|我們提供會員折扣。
+    raise prices|phr.|漲價|The company plans to raise prices next month.|公司打算下個月漲價。|※raise（及物）＋受詞；rise（不及物）：Prices rise.
+    increase sales|phr.|提高銷售|The new ad campaign helped increase sales.|新的廣告活動幫助提升了銷售。
+    launch a product|phr.|推出產品|They will launch a product in Asia next spring.|他們明年春天要在亞洲推出產品。
+    conduct a survey|phr.|進行調查|We will conduct a survey of our customers.|我們將對顧客進行調查。
+    fill a position|phr.|補人；填補職缺|We hope to fill a position in the sales team soon.|我們希望盡快補上業務團隊的職缺。
+    make an appointment|phr.|預約；約時間|I'd like to make an appointment with Dr. Chen.|我想預約陳醫師。
+    cancel an appointment|phr.|取消預約|Please call us if you need to cancel an appointment.|若需取消預約請來電。
+    reschedule a meeting|phr.|重新安排會議時間|Can we reschedule a meeting for next week?|我們可以把會議改到下週嗎？
+    set up a meeting|phr.|安排會議|Let's set up a meeting with the client.|我們和客戶安排一場會議吧。
+    keep track of|phr.|記錄；掌握|Use this sheet to keep track of your expenses.|用這張表記錄你的開支。
+    pay attention to|phr.|注意|Please pay attention to the safety instructions.|請注意安全說明。
+    get in touch with|phr.|和…聯絡|I'll get in touch with you next week.|我下週會和你聯絡。
+    keep in touch|phr.|保持聯絡|Let's keep in touch after the conference.|研討會後保持聯絡吧。
+    make progress|phr.|取得進展|We hope to make progress on the project this week.|我們希望這週在計畫上有進展。
+    find out|phr.|查出；發現|Let me find out when the store opens.|我查一下店幾點開。
+    fill up|phr.|填滿；加滿|Fill up the tank before you return the car.|還車前請把油加滿。
+    catch up with|phr.|趕上；跟上|I need to catch up with my work.|我得趕上工作進度。
+    put up with|phr.|忍受|I can't put up with the noise anymore.|我再也受不了那噪音了。
+    cope with|phr.|應付；處理|The staff can cope with the busy season.|員工應付得了旺季。
+  `)),
+  deck('en.green.bank.colloc2', '🔗', '多益搭配詞 ②：動詞＋介系詞', COLLOC, enList(`
+    apply for|phr.|申請（職位、許可）|She will apply for the manager position.|她要應徵經理職位。|※apply to＋公司／適用於。
+    sign up for|phr.|報名|You can sign up for the workshop online.|研習可以線上報名。
+    register for|phr.|註冊；報名|Please register for the conference by May first.|請在五月一日前報名研討會。
+    enroll in|phr.|註冊入學；報名（課程）|Over fifty employees will enroll in the course.|超過五十名員工會報名這門課。
+    participate in|phr.|參加|Everyone is welcome to participate in the discussion.|歡迎大家參與討論。|※= take part in。
+    comply with|phr.|遵守|All products must comply with safety standards.|所有產品都必須符合安全標準。
+    consist of|phr.|由…組成|The committee will consist of five members.|委員會將由五名成員組成。|※不用被動式。
+    depend on|phr.|依賴；取決於|The price will depend on the size of the order.|價格取決於訂單數量。
+    rely on|phr.|依賴；信賴|We rely on our suppliers to deliver on time.|我們依賴供應商準時交貨。
+    focus on|phr.|專注於|This year we will focus on customer service.|今年我們會專注在客戶服務。
+    insist on|phr.|堅持|The client may insist on a lower price.|客戶可能會堅持要更低的價格。|※後面接名詞或 V-ing。
+    specialize in|phr.|專精於|Our firm will specialize in tax law.|我們事務所將專攻稅法。
+    result in|phr.|導致|The delay could result in higher costs.|延誤可能導致成本增加。|※result from＝起因於。
+    lead to|phr.|導致；通往|Poor planning can lead to mistakes.|規劃不周會導致錯誤。
+    contribute to|phr.|貢獻；促成|Many factors contribute to our success.|許多因素促成了我們的成功。
+    refer to|phr.|參考；指的是|Please refer to the manual for details.|詳情請參閱手冊。
+    respond to|phr.|回應|We will respond to your email within one day.|我們會在一天內回覆您的郵件。
+    object to|phr.|反對|Some residents object to the new parking rules.|有些居民反對新的停車規定。|※to 是介系詞，後面接名詞或 V-ing。
+    apply to|phr.|適用於；向…申請|These rules apply to all employees.|這些規定適用於所有員工。
+    adapt to|phr.|適應|It takes time to adapt to a new job.|適應新工作需要時間。
+    adjust to|phr.|調整以適應|She needs time to adjust to the time difference.|她需要時間適應時差。
+    in spite of|phr.|儘管|In spite of the rain, the event was a success.|儘管下雨，活動還是很成功。|※= despite（despite 後面不加 of）。
+    eligible for|phr.|有資格得到|Full time staff are eligible for the bonus.|全職員工有資格領獎金。
+  `)),
+  deck('en.green.bank.colloc3', '🧷', '多益搭配詞 ③：形容詞＋介系詞', COLLOC, enList(`
+    responsible for|phr.|負責|Ms. Kim is responsible for the budget.|金小姐負責預算。
+    familiar with|phr.|熟悉|Are you familiar with this software?|你熟悉這套軟體嗎？
+    capable of|phr.|能夠|The machine is capable of printing color copies.|這台機器能印彩色。
+    committed to|phr.|致力於|We are committed to protecting your privacy.|我們致力於保護您的隱私。|※to 是介系詞，後面接 V-ing。
+    dedicated to|phr.|致力於；專門用於|The museum is dedicated to modern art.|這間博物館專門展出現代藝術。
+    interested in|phr.|對…有興趣|I'm interested in the marketing position.|我對行銷職位有興趣。
+    satisfied with|phr.|對…滿意|Most customers are satisfied with our service.|大部分顧客對我們的服務很滿意。
+    pleased with|phr.|對…高興、滿意|The manager was pleased with the results.|經理對結果很滿意。
+    concerned about|phr.|擔心|Residents are concerned about the traffic.|居民擔心交通問題。
+    equipped with|phr.|配備有|Every room is equipped with a coffee maker.|每間房都配有咖啡機。
+    located in|phr.|位於|Our office is located in the city center.|我們的辦公室位於市中心。
+    scheduled for|phr.|預定在|The meeting is scheduled for ten o'clock.|會議預定在十點。
+    expected to|phr.|預計會|Sales are expected to rise next quarter.|下一季銷售預計會成長。
+    required to|phr.|被要求；必須|Visitors are required to wear a badge.|訪客必須配戴識別證。
+    supposed to|phr.|應該；照理說|The package was supposed to arrive yesterday.|包裹照理說昨天就該到了。
+    likely to|phr.|可能會|Prices are likely to go up.|價格可能會上漲。
+    eager to|phr.|渴望|We are eager to hear your ideas.|我們很想聽聽你的想法。
+    willing to|phr.|願意|Are you willing to work on weekends?|你願意週末上班嗎？
+    reluctant to|phr.|不願意|He was reluctant to change his plans.|他不太願意改變計畫。
+    accustomed to|phr.|習慣於|She is accustomed to working late.|她習慣工作到很晚。|※to 是介系詞，後面接 V-ing。
+    used to|phr.|過去常常；習慣於（be used to）|I used to live in Kaohsiung.|我以前住在高雄。|※used to V＝過去常常；be used to V-ing＝習慣於。
+  `)),
+  deck('en.green.bank.colloc4', '🪢', '多益搭配詞 ④：常用形容詞片語', COLLOC, enList(`
+    get used to|phr.|漸漸習慣|You will get used to the new system quickly.|你很快就會習慣新系統。
+    proud of|phr.|以…為榮|We are proud of our team.|我們以團隊為榮。
+    famous for|phr.|以…聞名|Tainan is famous for its street food.|台南以小吃聞名。
+    full of|phr.|充滿|The room was full of people.|房間裡擠滿了人。
+    similar to|phr.|和…相似|This model is similar to the old one.|這個型號和舊款很像。
+    different from|phr.|和…不同|The final design is different from the draft.|最後的設計和草稿不一樣。
+    ready for|phr.|準備好|Are you ready for the presentation?|簡報準備好了嗎？
+    short of|phr.|缺少|We are short of staff this week.|這週我們人手不足。
+    afraid of|phr.|害怕|Many people are afraid of public speaking.|很多人害怕公開演講。
+    good at|phr.|擅長|She is good at solving problems.|她很會解決問題。
+    bad at|phr.|不擅長|I'm bad at remembering names.|我不太會記名字。
+    close to|phr.|靠近；接近|The hotel is close to the station.|飯店離車站很近。
+    involved in|phr.|參與；涉及|Five departments are involved in the project.|有五個部門參與這個計畫。
+    qualified for|phr.|有資格勝任|He is qualified for the job.|他有資格勝任這份工作。
+    suitable for|phr.|適合|This room is suitable for small meetings.|這個房間適合小型會議。
+    available for|phr.|可用於；有空|The conference room is available for booking.|會議室可以預約。
+    grateful for|phr.|感激|We are grateful for your support.|我們很感謝您的支持。
+    keen on|phr.|熱衷於|She is keen on learning new skills.|她熱衷於學習新技能。
+    opposed to|phr.|反對|Many staff are opposed to the change.|很多員工反對這項改變。
+    exposed to|phr.|暴露於；接觸到|Workers should not be exposed to loud noise.|工人不應該暴露在噪音中。
+  `)),
+  deck('en.green.bank.tech2', '📱', '科技與網路 ②', BIZ, enList(`
+    smartphone|n.|智慧型手機|You can check in with your smartphone.|可以用智慧型手機報到。
+    app|n.|應用程式|Download our app to order online.|下載我們的 App 線上訂購。
+    software update|n.|軟體更新|Please install the latest software update.|請安裝最新的軟體更新。
+    bug|n.|程式錯誤；蟲|The engineers are fixing a bug in the system.|工程師正在修系統的錯誤。
+    cloud storage|n.|雲端儲存|All files are saved in cloud storage.|所有檔案都存在雲端。
+    encryption|n.|加密|The app uses encryption to protect your data.|這個 App 用加密保護你的資料。
+    firewall|n.|防火牆|The firewall blocks dangerous websites.|防火牆會阻擋危險網站。
+    bandwidth|n.|頻寬|Video calls use a lot of bandwidth.|視訊通話很耗頻寬。
+    reboot|v.|重新開機|Try to reboot your computer.|試著重新開機。
+    malware|n.|惡意軟體|Don't open attachments that might contain malware.|不要打開可能有惡意軟體的附件。
+    cybersecurity|n.|資訊安全|The company hired a cybersecurity expert.|公司請了一位資安專家。
+    user interface|n.|使用者介面|The new user interface is easier to use.|新的使用者介面比較好用。
+    gadget|n.|小裝置|He loves the latest gadgets.|他很愛最新的小玩意兒。
+    toner|n.|碳粉|The printer is out of toner.|印表機沒碳粉了。
+    browser|n.|瀏覽器|Open the link in your browser.|用瀏覽器打開連結。
+    link|n./v.|連結|Click the link in the email to confirm.|點擊郵件中的連結確認。
+    click|v./n.|點擊|Click here to download the form.|點這裡下載表格。
+    touchscreen|n.|觸控螢幕|The kiosk has a touchscreen.|這台資訊站有觸控螢幕。
+    wifi|n.|無線網路|Is there free wifi in the lobby?|大廳有免費無線網路嗎？|※一般寫作 Wi-Fi。
+    bluetooth|n.|藍牙|Connect the speaker by bluetooth.|用藍牙連接喇叭。
+    hardware|n.|硬體|We need to upgrade our hardware.|我們需要升級硬體。
+    glitch|n.|小故障|A small glitch delayed the launch.|一個小故障延誤了上線。
+    crash|v./n.|當機；撞車|My computer crashed during the presentation.|我的電腦在簡報時當機了。
+    freeze|v.|（畫面）當住；結冰|If the screen starts to freeze, restart the app.|如果畫面開始卡住，就重開 App。|※過去式 froze。
+    version|n.|版本|Please use the latest version of the file.|請使用最新版本的檔案。
+    settings|n.|設定|You can change the language in settings.|可以在設定裡改語言。
+    notification|n.|通知|You will get a notification when the order ships.|訂單出貨時會收到通知。
+    print out|v.|印出來|Please print out the agenda.|請把議程印出來。
+    font|n.|字型|Use a larger font for the title.|標題用大一點的字型。
+  `)),
+  deck('en.green.bank.law2', '⚖️', '法律與規範 ②', DOCS, enList(`
+    lawsuit|n.|訴訟|The company is facing a lawsuit.|那家公司面臨一場訴訟。
+    judge|n./v.|法官；判斷|The judge will make a decision next week.|法官下週會做出判決。
+    evidence|n.|證據|There is no evidence of fraud.|沒有詐欺的證據。|※不可數名詞。
+    verdict|n.|判決；裁決|The jury reached a verdict.|陪審團做出了裁決。
+    legislation|n.|法律；立法|New legislation will take effect in July.|新法將在七月生效。
+    statute|n.|法規；條例|The statute requires annual safety checks.|法規要求每年做安全檢查。
+    plaintiff|n.|原告|The plaintiff asked for compensation.|原告要求賠償。
+    defendant|n.|被告|The defendant denied the charges.|被告否認了指控。
+    settlement|n.|和解；結算|Both sides agreed to a settlement.|雙方同意和解。
+    violation|n.|違反|Parking here is a violation of the rules.|在這裡停車違反規定。
+    fine|n./v.|罰款；處以罰款|You will pay a fine for late payment.|延遲付款要繳罰款。|※形容詞 fine 是「好的」，名詞是「罰款」。
+    lawful|adj.|合法的|The contract must be for a lawful purpose.|合約必須是合法目的。
+    illegal|adj.|違法的|It is illegal to smoke in this building.|在這棟大樓抽菸是違法的。
+    rule|n.|規則|Please follow the safety rules.|請遵守安全規則。
+    consent|n./v.|同意|We need your written consent.|我們需要您的書面同意。
+    notarize|v.|公證|The documents must be notarized.|文件必須經過公證。
+  `)),
+  deck('en.green.bank.industry', '🏭', '產業、人事與金融 ②', OPS, enList(`
+    raw materials|n.|原料|The price of raw materials has gone up.|原料價格上漲了。
+    customs clearance|n.|通關|Customs clearance usually takes two days.|通關通常要兩天。
+    conveyor belt|n.|輸送帶|Boxes move along the conveyor belt.|箱子在輸送帶上移動。
+    safety gear|n.|安全裝備|All workers must wear safety gear.|所有工人都必須穿戴安全裝備。
+    unit|n.|單位；一件；單元|Each unit costs twenty dollars.|每件二十美元。
+    production line|n.|生產線|The new production line will open in June.|新生產線六月啟用。
+    distributor|n.|經銷商|We are looking for a distributor in Europe.|我們正在找歐洲的經銷商。
+    wholesaler|n.|批發商|The wholesaler sells only in large quantities.|批發商只做大量販售。
+    manufacturer|n.|製造商|Contact the manufacturer for repairs.|維修請聯絡製造商。
+    recruiter|n.|招募人員|A recruiter called me about a job.|一位招募人員打電話來談工作機會。
+    employ|v.|僱用|The factory employs over two hundred people.|工廠僱用了兩百多人。
+    retirement|n.|退休|He is planning his retirement.|他正在規劃退休。
+    maternity leave|n.|產假|She is on maternity leave until March.|她請產假到三月。
+    team leader|n.|組長|Report any problems to your team leader.|有任何問題請向組長報告。
+    demonstration|n.|示範；遊行|The sales rep gave a demonstration of the product.|業務代表示範了產品。
+    advertising|n.|廣告（業）|We spend a lot on online advertising.|我們在網路廣告上花很多錢。
+    trademark|n.|商標|The logo is a registered trademark.|這個標誌是註冊商標。
+    checking account|n.|支票帳戶；活期帳戶|I'd like to open a checking account.|我想開一個活期帳戶。
+    withdrawal|n.|提款|You can make a withdrawal at any ATM.|你可以在任何一台提款機提款。
+    debit|n./v.|扣款；借方|The amount will be debited from your account.|款項會從你的帳戶扣除。|※debit card＝簽帳金融卡。
+    bookkeeping|n.|記帳|She handles the bookkeeping for a small shop.|她幫一家小店記帳。
+  `)),
+  deck('en.green.bank.events2', '🎪', '會展與活動 ②', DOCS, enList(`
+    exhibitor|n.|參展商|Over two hundred exhibitors will attend the fair.|將有兩百多家參展商參加展覽。
+    caterer|n.|外燴業者|The caterer will provide lunch for all guests.|外燴業者會提供所有來賓午餐。
+    master of ceremonies|n.|司儀|The master of ceremonies introduced the speakers.|司儀介紹了講者。|※常簡稱 MC。
+    auditorium|n.|禮堂|The keynote speech will be in the auditorium.|主題演講在禮堂舉行。
+    expo|n.|博覽會|The travel expo opens on Friday.|旅展星期五開幕。
+    name tag|n.|名牌|Please wear your name tag at all times.|請全程配戴名牌。
+    lanyard|n.|掛繩|Visitor badges come with a lanyard.|訪客證附有掛繩。
+    ticket holder|n.|持票人|Only ticket holders may enter the hall.|只有持票人可以進入會場。
+    entrance fee|n.|入場費|The entrance fee is ten dollars.|入場費十美元。
+    refreshments|n.|點心飲料|Refreshments will be served after the talk.|演講結束後會提供點心飲料。
+  `)),
+  deck('en.green.bank.science', '🔬', '農業與科學', BIZ, enList(`
+    crop|n.|作物；收成|Rice is the main crop in this area.|稻米是這個地區的主要作物。
+    harvest|n./v.|收成；收割|The apple harvest begins in September.|蘋果九月開始採收。
+    farmers market|n.|農夫市集|We buy fresh vegetables at the farmers market.|我們在農夫市集買新鮮蔬菜。
+    organic|adj.|有機的|The cafe uses organic milk.|這家咖啡店用有機牛奶。
+    livestock|n.|家畜|The farm raises livestock such as cows and pigs.|農場飼養牛、豬等家畜。
+    irrigation|n.|灌溉|The new irrigation system saves water.|新的灌溉系統很省水。
+    fertilizer|n.|肥料|Too much fertilizer can harm the soil.|太多肥料會傷害土壤。
+    pesticide|n.|殺蟲劑；農藥|These vegetables are grown without pesticides.|這些蔬菜沒用農藥。
+    greenhouse|n.|溫室|Tomatoes grow well in a greenhouse.|番茄在溫室裡長得很好。
+    orchard|n.|果園|We picked apples at an orchard.|我們在果園採蘋果。
+    vineyard|n.|葡萄園|The tour includes a visit to a vineyard.|行程包含參觀葡萄園。
+    laboratory|n.|實驗室|The samples were sent to the laboratory.|樣本送到了實驗室。|※常簡稱 lab。
+    experiment|n./v.|實驗|The team did an experiment with new materials.|團隊用新材料做了實驗。
+    hypothesis|n.|假設|The results support our hypothesis.|結果支持我們的假設。
+    specimen|n.|標本；樣本|The doctor took a blood specimen.|醫生採了血液樣本。
+    researcher|n.|研究人員|Researchers found a new way to store energy.|研究人員找到了儲存能源的新方法。
+    findings|n.|研究結果|The findings will be published next month.|研究結果下個月發表。
+    theory|n.|理論|The theory has not been tested yet.|這個理論還沒經過驗證。
+    observation|n.|觀察|The patient is under observation.|病人正在觀察中。
+    measurement|n.|測量；尺寸|Please check the measurements of the room.|請確認房間的尺寸。
+    chemical|n./adj.|化學物質；化學的|Store chemicals in a safe place.|化學物品要存放在安全的地方。
+    formula|n.|公式；配方|The company changed the formula of its shampoo.|公司改了洗髮精的配方。
+    molecule|n.|分子|Water molecules are very small.|水分子非常小。
   `)),
 ];

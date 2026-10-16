@@ -6,6 +6,8 @@ const OFFICE = '辦公室與聯絡';
 const LIFE = '旅行與生活';
 const CORE = '多益基礎字';
 
+const PHOTO = 'Part 1 照片描述';
+
 export const BROWN_BANK: Unit[] = [
   deck('en.brown.bank.equipment', '🖨️', '辦公設備與文具', OFFICE, enList(`
     projector|n.|投影機|The projector isn't working.|投影機壞了。
@@ -438,5 +440,234 @@ export const BROWN_BANK: Unit[] = [
     neither|adv./conj.|兩者都不|Neither of us knows the answer.|我們兩個都不知道答案。
     otherwise|adv.|否則|Hurry up, otherwise we'll miss the train.|快點，不然我們會錯過火車。
     besides|adv.|此外|Besides, the hotel is close to the station.|此外，飯店離車站很近。
+  `)),
+  deck('en.brown.bank.office2', '🗄️', '辦公室裡的東西', OFFICE, enList(`
+    staple|n./v.|釘書針；釘起來|Please staple the pages together.|請把這幾頁釘在一起。
+    filing cabinet|n.|檔案櫃|The contracts are in the filing cabinet.|合約放在檔案櫃裡。
+    copier|n.|影印機|The copier on the third floor is out of order.|三樓的影印機故障了。
+    scanner|n.|掃描器|Use the scanner to send the documents by email.|用掃描器把文件掃描後用電子郵件寄出。
+    shredder|n.|碎紙機|Put old documents in the shredder.|把舊文件放進碎紙機。
+    highlighter|n.|螢光筆|She marked the key points with a highlighter.|她用螢光筆標出重點。
+    notepad|n.|便條本|There is a notepad next to the phone.|電話旁有一本便條本。
+    sticky note|n.|便利貼|He left a sticky note on my monitor.|他在我的螢幕上留了一張便利貼。
+    planner|n.|行事曆本；規劃人員|I write all my meetings in my planner.|我把所有會議都寫在行事曆上。
+    cubicle|n.|辦公隔間|My cubicle is next to the window.|我的辦公隔間在窗邊。
+    hallway|n.|走廊|The restroom is at the end of the hallway.|洗手間在走廊盡頭。
+    corridor|n.|走廊（較長、較正式）|The meeting rooms are along this corridor.|會議室在這條走廊上。
+    break room|n.|休息室；茶水間|Coffee is available in the break room.|茶水間有咖啡。
+    keycard|n.|門禁卡|You need a keycard to enter the building.|進大樓需要門禁卡。
+    notice board|n.|公告欄|The schedule is posted on the notice board.|行程表貼在公告欄上。|※美式也常說 bulletin board。
+    cable|n.|電線；纜線|The printer cable is too short.|印表機的線太短了。
+    plug|n./v.|插頭；插上|Make sure the plug is in the socket.|確認插頭有插進插座。
+    webcam|n.|網路攝影機|Please turn on your webcam for the video call.|視訊會議請打開攝影機。
+    inbox|n.|收件匣|I have fifty emails in my inbox.|我的收件匣有五十封信。
+  `)),
+  deck('en.brown.bank.officeact', '🖱️', '辦公室動作 ②', OFFICE, enList(`
+    photocopy|v./n.|影印|Could you photocopy this form for me?|可以幫我影印這張表嗎？
+    shred|v.|用碎紙機銷毀|Shred any papers with customer information.|有客戶資料的紙張都要用碎紙機銷毀。
+    pile|n./v.|一堆；堆放|There is a pile of letters on her desk.|她桌上有一堆信。
+    rearrange|v.|重新安排；重新排列|We rearranged the desks for the workshop.|我們為了研習重新排了桌子。
+    tidy|v./adj.|整理；整齊的|Please tidy your desk before you leave.|下班前請整理桌面。
+    vacuum|v./n.|用吸塵器吸|The cleaners vacuum the carpet every night.|清潔人員每晚吸地毯。
+    take down|v.|拆下；記下|Please take down the old posters.|請把舊海報拆下來。
+    unplug|v.|拔掉插頭|Unplug the heater before you go home.|回家前把暖氣的插頭拔掉。
+    log out|v.|登出|Always log out of your account on shared computers.|在共用電腦上一定要登出帳號。
+    sign in|v.|簽到；登入|Visitors must sign in at the front desk.|訪客必須在櫃台簽到。
+    write down|v.|寫下|Let me write down your phone number.|我把你的電話號碼寫下來。
+    paste|v.|貼上|Copy the link and paste it into the chat.|複製連結貼到聊天室。
+    delete|v.|刪除|I accidentally deleted the file.|我不小心把檔案刪掉了。
+  `)),
+  deck('en.brown.bank.travel2', '🧳', '旅行與交通 ②', LIFE, enList(`
+    visa|n.|簽證|Do I need a visa to visit Japan?|去日本需要簽證嗎？
+    baggage claim|n.|行李提領處|Please pick up your bags at baggage claim.|請到行李提領處領取行李。
+    carousel|n.|行李轉盤|Your luggage will come out on carousel five.|您的行李會在五號轉盤出來。
+    carry on|n.|隨身行李|You can bring one carry on bag.|可以帶一件隨身行李。|※也寫作 carry-on。
+    suitcase|n.|行李箱|My suitcase is too heavy.|我的行李箱太重了。
+    backpack|n.|背包|He travels with just a backpack.|他只帶一個背包旅行。
+    aisle seat|n.|靠走道座位|I'd prefer an aisle seat, please.|我想要靠走道的位子。|※aisle 的 s 不發音。
+    cabin crew|n.|機組人員|The cabin crew will serve drinks shortly.|機組人員即將提供飲料。
+    booking|n.|預訂|I made a booking for two nights.|我訂了兩晚。
+    confirmation|n.|確認；確認信|You will receive a confirmation email.|您會收到一封確認信。
+    concierge|n.|禮賓服務員|Ask the concierge to book a taxi.|請禮賓人員幫忙叫計程車。
+    suite|n.|套房|The suite has a living room and a bedroom.|套房有客廳和臥室。|※和 sweet 同音。
+    minibar|n.|客房小冰箱|Items from the minibar will be charged to your room.|小冰箱的東西會記在房帳上。
+    taxi stand|n.|計程車招呼站|The taxi stand is outside the main exit.|計程車招呼站在大門出口外。
+    timetable|n.|時刻表|Check the bus timetable before you go.|出門前查一下公車時刻表。
+    rush hour|n.|尖峰時段|Avoid driving during rush hour.|盡量避開尖峰時段開車。
+    traffic jam|n.|塞車|We were stuck in a traffic jam for an hour.|我們塞車塞了一小時。
+    detour|n.|繞道|Because of the construction, we had to take a detour.|因為施工，我們只好繞道。
+    toll|n.|通行費|You have to pay a toll on this road.|這條路要付通行費。
+    highway|n.|高速公路|Take the highway to save time.|走高速公路比較省時間。
+    intersection|n.|十字路口|Turn right at the next intersection.|在下一個路口右轉。
+    crosswalk|n.|斑馬線|Always cross the street at the crosswalk.|過馬路一定要走斑馬線。
+    sidewalk|n.|人行道|Don't park your bike on the sidewalk.|不要把腳踏車停在人行道上。
+  `)),
+  deck('en.brown.bank.dining2', '🥗', '餐廳、健康與購物 ②', LIFE, enList(`
+    specials|n.|今日特餐|Today's specials are on the board.|今日特餐寫在黑板上。
+    entree|n.|主菜（美式）|The entree comes with soup or salad.|主菜附湯或沙拉。|※在英國和法國指前菜，注意差別。
+    beverage|n.|飲料（正式）|Beverages are not included in the price.|價格不含飲料。
+    gratuity|n.|小費（正式）|A fifteen percent gratuity is added for large groups.|大型團體會加收百分之十五的服務費。
+    patio|n.|露台|We had lunch on the patio.|我們在露台吃午餐。
+    server|n.|服務生；伺服器|Our server recommended the fish.|服務生推薦了魚。
+    hostess|n.|帶位員；女主人|The hostess showed us to our table.|帶位員帶我們到座位。
+    dishwasher|n.|洗碗機；洗碗工|Put the plates in the dishwasher.|把盤子放進洗碗機。
+    straw|n.|吸管|Many cafes now use paper straws.|很多咖啡店現在改用紙吸管。
+    lid|n.|蓋子|Put a lid on the cup.|把杯蓋蓋上。
+    serving|n.|一人份|This package contains four servings.|這一包有四人份。
+    mild|adj.|溫和的；不辣的|I'll have the mild curry, please.|我要不辣的咖哩。
+    frozen|adj.|冷凍的|Frozen vegetables are in aisle six.|冷凍蔬菜在第六走道。
+    raw|adj.|生的|Do you eat raw fish?|你吃生魚嗎？
+    vegan|adj./n.|純素的；純素者|Do you have any vegan options?|有純素的選擇嗎？
+    stomachache|n.|胃痛|I have a stomachache after lunch.|我午餐後胃痛。
+    crutches|n.|拐杖|He has to walk on crutches for a month.|他得撐拐杖一個月。
+    examination|n.|檢查；考試|The doctor gave me a full examination.|醫生幫我做了完整的檢查。
+    ward|n.|病房|She is staying in the children's ward.|她住在兒童病房。
+    coverage|n.|保險範圍；報導|Does your insurance coverage include dental care?|你的保險有包含牙科嗎？
+    cavity|n.|蛀牙|The dentist found a cavity.|牙醫發現一顆蛀牙。
+    shopper|n.|購物者|The mall was full of holiday shoppers.|購物中心擠滿了假日購物人潮。
+    cash register|n.|收銀機|Please pay at the cash register.|請到收銀台結帳。
+    gift wrap|n./v.|禮品包裝|Would you like it gift wrapped?|需要包裝成禮物嗎？
+    boutique|n.|精品店|She owns a small boutique downtown.|她在市中心開了一家小精品店。
+    sold out|adj.|售完的|The concert tickets are sold out.|演唱會門票賣完了。
+  `)),
+  deck('en.brown.bank.weather2', '🌦️', '天氣與環境', LIFE, enList(`
+    chilly|adj.|涼颼颼的|It's a bit chilly this morning.|今天早上有點冷。
+    drizzle|n./v.|毛毛雨|There will be light drizzle in the afternoon.|下午會有毛毛雨。
+    thunderstorm|n.|雷雨|The flight was delayed because of a thunderstorm.|班機因為雷雨延誤了。
+    heat wave|n.|熱浪|Stay indoors during the heat wave.|熱浪期間請待在室內。
+    foggy|adj.|起霧的|It's too foggy to see the mountains.|霧太大，看不到山。
+    shower|n.|陣雨；淋浴|Scattered showers are expected tomorrow.|明天預計有零星陣雨。
+    breeze|n.|微風|A cool breeze came from the sea.|一陣涼風從海上吹來。
+    freezing|adj.|極冷的|It's freezing outside.|外面冷死了。
+    pollution|n.|污染|Air pollution is a serious problem in big cities.|空氣污染是大城市的嚴重問題。
+    recycle|v.|回收|Please recycle your plastic bottles.|請回收塑膠瓶。
+    recycling|n.|回收|The recycling bins are by the door.|回收桶在門邊。
+    energy|n.|能源；精力|We need to save energy at the office.|辦公室要節省能源。
+    solar|adj.|太陽的|The building uses solar panels.|這棟大樓使用太陽能板。
+    renewable|adj.|可再生的|The company invests in renewable energy.|公司投資再生能源。
+    emission|n.|排放（物）|The new cars have lower emissions.|新車的排放量比較低。
+    landfill|n.|垃圾掩埋場|Most of this waste ends up in a landfill.|這些垃圾大部分最後進了掩埋場。
+    conserve|v.|節約；保育|Please conserve water during the dry season.|乾季請節約用水。
+    environment|n.|環境|We should protect the environment.|我們應該保護環境。
+    environmental|adj.|環境的|The project passed the environmental review.|這個計畫通過了環境評估。
+    sustainable|adj.|永續的|The company uses sustainable materials.|這家公司使用永續材料。
+    eco friendly|adj.|環保的|These bags are eco friendly.|這些袋子很環保。|※一般寫作 eco-friendly。
+    climate|n.|氣候|The climate here is warm all year.|這裡一年四季氣候溫暖。
+    carbon|n.|碳|The goal is to reduce carbon emissions.|目標是減少碳排放。
+    garbage|n.|垃圾|Take out the garbage on Tuesday.|星期二把垃圾拿出去。
+    trash|n.|垃圾|Throw the trash in the bin.|把垃圾丟進垃圾桶。
+    compost|n./v.|堆肥|We compost our food waste.|我們把廚餘做成堆肥。
+    plastic|n./adj.|塑膠|The store no longer offers plastic bags.|這家店不再提供塑膠袋。
+    reusable|adj.|可重複使用的|Bring a reusable cup to get a discount.|帶環保杯可以打折。
+  `)),
+  deck('en.brown.bank.community', '📰', '社區與媒體', LIFE, enList(`
+    parade|n.|遊行|The city holds a parade every New Year.|市政府每年新年都舉辦遊行。
+    fair|n./adj.|博覽會；公平的|We met many employers at the job fair.|我們在就業博覽會見了很多雇主。
+    carnival|n.|嘉年華|The carnival will be held in the park.|嘉年華會在公園舉行。
+    celebration|n.|慶祝活動|There will be a celebration for the store's anniversary.|商店週年會有慶祝活動。
+    donation|n.|捐款；捐贈|All donations will go to the children's hospital.|所有捐款都會捐給兒童醫院。
+    donate|v.|捐贈|Employees donated books to the library.|員工捐書給圖書館。
+    charity|n.|慈善機構；慈善|The company supports a local charity.|公司贊助一個在地慈善機構。
+    fundraising|n.|募款|The fundraising event raised ten thousand dollars.|募款活動籌到一萬美元。
+    resident|n.|居民|Residents can park here for free.|居民可以免費在這裡停車。
+    community|n.|社區；團體|The library is open to the whole community.|圖書館對整個社區開放。
+    broadcast|v./n.|播出；廣播|The game will be broadcast live.|比賽會現場直播。
+    headline|n.|頭條|The news made the headlines.|這則新聞上了頭條。
+    episode|n.|（一）集|The final episode airs tonight.|最後一集今晚播出。
+    channel|n.|頻道|What channel is the news on?|新聞在哪一台？
+    subscriber|n.|訂閱者|The channel has a million subscribers.|這個頻道有一百萬訂閱者。
+    podcast|n.|播客；Podcast|I listen to a business podcast on my way to work.|我上班途中聽商業 Podcast。
+    newsletter|n.|電子報；通訊|Sign up for our monthly newsletter.|訂閱我們的每月電子報。
+    article|n.|文章；條款|Did you read the article about the merger?|你看了那篇合併的報導嗎？
+    editor|n.|編輯|The editor checked the article for errors.|編輯檢查了文章的錯誤。
+    journalist|n.|記者|The journalist asked the mayor a tough question.|記者問了市長一個尖銳的問題。
+    publisher|n.|出版社|The publisher will release the book in May.|出版社五月會出版這本書。
+    viewer|n.|觀眾|The show attracted millions of viewers.|這個節目吸引了數百萬觀眾。
+    listener|n.|聽眾|Thank you to all our listeners.|謝謝所有的聽眾。
+    critic|n.|評論家|Film critics loved the movie.|影評人都很喜歡這部電影。
+    rating|n.|評分；收視率|The hotel has a five star rating.|這家飯店有五星評價。
+  `)),
+  deck('en.brown.bank.housing2', '🏡', '住家與修繕 ②', LIFE, enList(`
+    studio|n.|套房；工作室|I rent a small studio near the station.|我在車站附近租了一間小套房。
+    unfurnished|adj.|沒附家具的|The apartment is unfurnished.|這間公寓沒附家具。
+    balcony|n.|陽台|Our room has a balcony with a sea view.|我們的房間有看得到海的陽台。
+    backyard|n.|後院|The kids are playing in the backyard.|孩子們在後院玩。
+    fence|n.|圍籬|They painted the fence white.|他們把圍籬漆成白色。
+    ceiling|n.|天花板|There is a leak in the ceiling.|天花板在漏水。
+    remodel|v.|改建；翻修|We are remodeling the kitchen.|我們正在翻修廚房。
+    plumbing|n.|水管系統|The old building has plumbing problems.|這棟老建築的水管有問題。
+    faucet|n.|水龍頭|The faucet in the bathroom is dripping.|浴室的水龍頭在滴水。
+    pipe|n.|管子|A water pipe burst last night.|昨晚有一條水管爆了。
+    wiring|n.|電線配置|The electrician checked the wiring.|電工檢查了配線。
+  `)),
+  deck('en.brown.bank.photo1', '📷', 'Part 1 照片描述：人物動作（進行式）', PHOTO, enList(`
+    leaning over|v.|彎身探向|A woman is leaning over the counter.|一位女士正彎身靠向櫃台。
+    piled up|adj.|堆起來|The boxes are piled up near the door.|箱子堆在門邊。
+    browse|v.|瀏覽；隨意看看|Some shoppers are browsing in a bookstore.|有些顧客在書店裡隨意翻看。
+    kneel|v.|跪下|A man is kneeling to fix a tire.|一名男子跪著修輪胎。
+    bending over|v.|彎腰|She is bending over to pick up a pen.|她彎腰撿起一支筆。
+    reaching for|v.|伸手拿|He is reaching for a book on the top shelf.|他伸手去拿最上層的書。
+    resting on|v.|擱在…上|Her hands are resting on the keyboard.|她的手擱在鍵盤上。
+    tow|v.|拖吊|A truck is towing a car.|一輛卡車正在拖吊一部車。
+    mow|v.|割草|A man is mowing the lawn.|一名男子在割草。
+    rake|v./n.|用耙子耙；耙子|Someone is raking leaves in the yard.|有人在院子裡耙落葉。
+    prune|v.|修剪（樹枝）|A gardener is pruning the bushes.|園丁正在修剪灌木。
+    watering the plants|v.|澆花|A woman is watering the plants.|一位女士正在澆花。
+    sweeping the floor|v.|掃地|A worker is sweeping the floor.|一名工作人員正在掃地。
+    wiping the counter|v.|擦櫃台|A server is wiping the counter.|一位服務生在擦櫃台。
+    pushing a cart|v.|推推車|A shopper is pushing a cart.|一位購物者在推推車。
+    carrying a box|v.|搬箱子|Two men are carrying a box.|兩名男子正在搬一個箱子。
+    holding a railing|v.|扶著欄杆|A woman is holding a railing on the stairs.|一位女士扶著樓梯的欄杆。
+    crossing the street|v.|過馬路|People are crossing the street.|人們正在過馬路。
+    waiting in line|v.|排隊等候|Customers are waiting in line.|顧客正在排隊。
+    standing in line|v.|排隊|Passengers are standing in line at the gate.|乘客在登機門前排隊。
+    sitting on a bench|v.|坐在長椅上|An elderly man is sitting on a bench.|一位老先生坐在長椅上。
+    lying on the grass|v.|躺在草地上|Some people are lying on the grass.|有些人躺在草地上。
+    walking along|v.|沿著…走|A couple is walking along the beach.|一對情侶沿著海灘散步。
+    stroll|v.|散步|Tourists are strolling through the market.|觀光客在市場裡閒逛。
+    jog|v.|慢跑|A man is jogging in the park.|一名男子在公園慢跑。
+    pedal|v.|踩（腳踏車）|A cyclist is pedaling up a hill.|一位騎士正踩著腳踏車上坡。
+    row|v./n.|划（船）；一排|Two people are rowing a boat.|兩個人在划船。|※in a row＝一排、連續。
+    paddle|v./n.|用槳划；槳|A man is paddling a canoe.|一名男子在划獨木舟。
+    anchor|v./n.|下錨；錨|A boat is anchored in the harbor.|一艘船停泊在港口。
+    hanging on the wall|v.|掛在牆上|A clock is hanging on the wall.|一個時鐘掛在牆上。
+    leaning on the fence|v.|靠在圍籬上|A bicycle is leaning on the fence.|一輛腳踏車靠在圍籬上。
+  `)),
+  deck('en.brown.bank.photo2', '🏗️', 'Part 1 照片描述：物品與場景', PHOTO, enList(`
+    scaffolding|n.|鷹架|Scaffolding has been put up around the building.|大樓四周搭起了鷹架。
+    wheelbarrow|n.|手推車（獨輪）|A worker is pushing a wheelbarrow.|一名工人在推獨輪手推車。
+    crane|n.|起重機|A crane is lifting steel beams.|起重機正在吊起鋼樑。
+    trolley|n.|手推車；路面電車|Luggage trolleys are lined up at the entrance.|行李推車在入口排成一排。
+    railing|n.|欄杆|The railing is made of glass.|欄杆是玻璃做的。
+    staircase|n.|樓梯|A spiral staircase leads to the second floor.|螺旋樓梯通往二樓。
+    escalator|n.|手扶梯|People are riding the escalator.|人們正在搭手扶梯。
+    statue|n.|雕像|There is a statue in the middle of the square.|廣場中央有一座雕像。
+    pier|n.|碼頭；棧橋|Some boats are tied to the pier.|有幾艘船繫在碼頭邊。
+    harbor|n.|港口|Ships are docked in the harbor.|船隻停泊在港口。
+    canopy|n.|遮篷；天篷|A canopy has been set up over the tables.|桌子上方搭起了遮篷。
+    awning|n.|（店門口的）雨篷|The cafe has a striped awning.|咖啡店有一個條紋雨篷。
+    potted plant|n.|盆栽|Potted plants are placed by the window.|盆栽擺在窗邊。
+    vase|n.|花瓶|Flowers have been arranged in a vase.|花插在花瓶裡。
+    bookshelf|n.|書架|The bookshelf is full of binders.|書架上擺滿了資料夾。
+    microscope|n.|顯微鏡|A scientist is looking through a microscope.|一位科學家正在用顯微鏡觀察。
+    beaker|n.|燒杯|The beakers are filled with liquid.|燒杯裡裝著液體。
+    apron|n.|圍裙|The chef is wearing an apron.|廚師穿著圍裙。
+    helmet|n.|安全帽|Workers must wear a helmet on site.|工人在工地必須戴安全帽。
+    goggles|n.|護目鏡|He is wearing safety goggles.|他戴著護目鏡。
+    lined up|adj.|排成一排的|Cars are lined up at the traffic light.|車子在紅綠燈前排成一排。
+    propped against|adj.|靠在…上|A ladder is propped against the wall.|一把梯子靠在牆上。
+    suspended from|adj.|懸掛在…|Lamps are suspended from the ceiling.|燈從天花板垂吊下來。
+    occupied|adj.|有人使用的|All the seats are occupied.|所有座位都有人坐了。
+    unoccupied|adj.|沒人使用的|Some of the tables are unoccupied.|有些桌子沒人坐。
+    deserted|adj.|空無一人的|The street is deserted.|街上空無一人。
+    shaded|adj.|有遮蔭的|The benches are shaded by trees.|長椅有樹蔭遮著。
+    reflected in|adj.|倒映在…|The buildings are reflected in the water.|大樓倒映在水面上。
+    stacked|adj.|疊起來的|Chairs are stacked in the corner.|椅子疊在角落。
+    on display|adj.|陳列中|Some items are on display in the window.|有些商品陳列在櫥窗裡。
+    leaning against|adj.|靠著…|A bicycle is leaning against a tree.|一輛腳踏車靠在樹上。
+    facing each other|adj.|面對面|Two people are sitting facing each other.|兩個人面對面坐著。
+    side by side|adv.|並排|Two cars are parked side by side.|兩輛車並排停著。
+    in a row|adv.|成一排；連續|The bottles are arranged in a row.|瓶子排成一排。
+    overlooking|adj.|俯瞰…的|The hotel has rooms overlooking the lake.|飯店有看得到湖景的房間。
   `)),
 ];

@@ -6,6 +6,10 @@ const LIFE = '生活基礎';
 const TOWN = '城市與交通';
 const BODY = '身體與學習';
 
+const ACTION = '日常動作';
+const PEOPLE2 = '人物與心情';
+const NATURE2 = '動物、自然與興趣';
+
 export const ORANGE_BANK: Unit[] = [
   deck('en.orange.bank.people', '👪', '家人與人物', LIFE, enList(`
     family|n.|家人；家庭|My family lives in Tainan.|我的家人住在台南。
@@ -330,5 +334,268 @@ export const ORANGE_BANK: Unit[] = [
     practice|v./n.|練習|Practice makes perfect.|熟能生巧。
     understand|v.|理解；懂|I don't understand this word.|我不懂這個字。
     university|n.|大學|My brother goes to university in Taipei.|我哥哥在台北讀大學。
+  `)),
+  deck('en.orange.bank.actions1', '🪥', '日常動作 ①：家裡', ACTION, enList(`
+    wake|v.|醒來；叫醒|I usually wake up at six thirty.|我通常六點半醒來。|※常用片語 wake up；過去式 woke。
+    brush|v./n.|刷；刷子|Brush your teeth before bed.|睡前要刷牙。
+    wash|v.|洗|Please wash your hands before lunch.|午餐前請洗手。
+    comb|v./n.|梳；梳子|She combs her hair every morning.|她每天早上梳頭髮。|※b 不發音。
+    shave|v.|刮（鬍子）|My father shaves every morning.|爸爸每天早上刮鬍子。
+    chop|v.|切碎|Chop the onions into small pieces.|把洋蔥切成小塊。
+    peel|v.|削皮；剝|Can you peel the apples for me?|你可以幫我削蘋果皮嗎？
+    pour|v.|倒（液體）|Pour the milk into the glass.|把牛奶倒進杯子裡。
+    stir|v.|攪拌|Stir the soup slowly.|慢慢攪拌湯。
+    smell|v./n.|聞；氣味|The bread smells wonderful.|麵包聞起來好香。
+    hear|v.|聽到|I can't hear you very well.|我聽不太清楚你說的話。|※hear 是「聽到」，listen 是「專心聽」。
+    listen|v.|聽|Listen carefully to the announcement.|仔細聽廣播。|※後面接人或東西要加 to：listen to music。
+    look|v.|看|Look at this picture.|看這張照片。
+    see|v.|看見|Can you see the sign over there?|你看得到那邊的標誌嗎？
+    touch|v./n.|觸摸|Please do not touch the paintings.|請勿觸摸畫作。
+    hold|v.|拿著；舉行|Hold the door for the next person.|幫後面的人扶著門。
+    carry|v.|搬；攜帶|He is carrying a heavy box.|他正在搬一個重箱子。
+    push|v.|推|Push the button to start.|按下按鈕開始。
+    pull|v.|拉|Pull the door to open it.|把門拉開。
+    throw|v.|丟；扔|Don't throw trash on the street.|不要在路上亂丟垃圾。
+    catch|v.|接住；趕上|I need to catch the eight o'clock bus.|我得趕上八點的公車。
+    kick|v.|踢|The boy kicks the ball very hard.|男孩用力踢球。
+    hit|v.|打；撞|The car hit a tree.|車子撞到了一棵樹。
+    drop|v./n.|掉落；放下|Be careful not to drop the glasses.|小心別把杯子摔了。
+    pick|v.|挑選；摘|Pick one card from the box.|從盒子裡挑一張卡。|※pick up＝撿起、接（人）。
+  `)),
+  deck('en.orange.bank.actions2', '✍️', '日常動作 ②：手邊的事', ACTION, enList(`
+    put|v.|放|Put your bag on the shelf.|把包包放在架子上。
+    place|v./n.|放置；地方|Place the vase on the table.|把花瓶放在桌上。
+    set|v.|擺放；設定|Set the alarm for six.|把鬧鐘設定在六點。
+    lay|v.|放平；鋪|Lay the map on the desk.|把地圖攤在桌上。
+    fold|v.|摺疊|Please fold the towels.|請把毛巾摺好。
+    cut|v.|剪；切|Cut the paper in half.|把紙剪成一半。
+    tear|v.|撕|Don't tear the receipt.|不要把收據撕掉。|※當名詞「眼淚」時念法不同。
+    build|v.|建造|They are building a new bridge.|他們正在蓋一座新橋。
+    draw|v.|畫（線條）|Can you draw a map for me?|你可以幫我畫張地圖嗎？
+    write|v.|寫|Write your name at the top.|在最上面寫上你的名字。
+    read|v.|讀|I read the newspaper every morning.|我每天早上看報紙。
+    spell|v.|拼字|How do you spell your last name?|你的姓怎麼拼？
+    count|v.|數；計算|Please count the chairs in the room.|請數一下房間裡的椅子。
+    add|v.|加；增加|Add some salt to the soup.|在湯裡加點鹽。
+    give|v.|給|Please give this letter to Ms. Lee.|請把這封信交給李小姐。
+    take|v.|拿；帶走；花（時間）|It takes ten minutes to walk there.|走過去要十分鐘。
+    bring|v.|帶來|Please bring your ID card tomorrow.|明天請帶身分證來。|※bring 是「帶來」，take 是「帶走」。
+    refuse|v.|拒絕|He refused to sign the paper.|他拒絕在文件上簽名。
+    argue|v.|爭論；吵架|The two brothers often argue.|那兩兄弟常常吵架。
+    shout|v.|大喊|Please don't shout in the library.|在圖書館請不要大聲喊叫。
+    whisper|v.|小聲說|She whispered the answer to me.|她小聲告訴我答案。
+    laugh|v.|笑（出聲）|Everyone laughed at his joke.|大家都被他的笑話逗笑了。
+    smile|v./n.|微笑|She always smiles at customers.|她總是對客人微笑。
+    cry|v.|哭；大叫|The baby started to cry.|嬰兒開始哭了。
+    sing|v.|唱歌|We sing songs at the party.|我們在派對上唱歌。
+  `)),
+  deck('en.orange.bank.actions3', '🏃', '日常動作 ③：出門在外', ACTION, enList(`
+    dance|v./n.|跳舞|Let's dance together.|我們一起跳舞吧。
+    play|v.|玩；打（球）；演奏|The children play in the park.|孩子們在公園玩。
+    join|v.|加入|Would you like to join us for lunch?|要不要跟我們一起吃午餐？
+    wait|v.|等待|Please wait here for a moment.|請在這裡稍等。|※wait for＋人／東西。
+    hurry|v.|趕快|Hurry up, or we'll miss the train.|快一點，不然會錯過火車。
+    rush|v.|衝；急忙|Don't rush. We have plenty of time.|別急，我們時間很多。
+    run|v.|跑；經營|I run in the park every morning.|我每天早上在公園跑步。|※run a store＝經營一家店。
+    jump|v.|跳|The cat jumped onto the sofa.|貓跳到沙發上。
+    climb|v.|爬|We climbed the mountain last weekend.|我們上週末去爬山。|※b 不發音。
+    swim|v.|游泳|Can you swim?|你會游泳嗎？
+    fly|v.|飛；搭飛機|I will fly to Tokyo next week.|我下週要飛東京。
+    sail|v.|航行|The ship will sail at noon.|船中午出航。
+    travel|v./n.|旅行|I like to travel by train.|我喜歡搭火車旅行。
+    enter|v.|進入|Please enter through the side door.|請從側門進入。
+    lock|v./n.|鎖|Don't forget to lock the door.|別忘了鎖門。
+    unlock|v.|開鎖|Use this key to unlock the office.|用這把鑰匙打開辦公室的鎖。
+    knock|v.|敲（門）|Please knock before you come in.|進來前請敲門。|※k 不發音。
+    ask|v.|問；要求|Can I ask you a question?|我可以問你一個問題嗎？
+    describe|v.|描述|Please describe the man you saw.|請描述你看到的那個男人。
+    warn|v.|警告|The sign warns drivers about the ice.|告示提醒駕駛注意結冰。
+    promise|v./n.|承諾|I promise to call you tonight.|我保證今晚打給你。
+    thank|v.|感謝|Thank you for your help.|謝謝你的幫忙。
+    greet|v.|打招呼；迎接|The host greets every guest at the door.|主人在門口迎接每位客人。
+    welcome|v./adj.|歡迎|Welcome to our hotel.|歡迎來到我們飯店。
+    meet|v.|見面；認識|Nice to meet you.|很高興認識你。
+    marry|v.|和…結婚|She will marry her boyfriend next year.|她明年要和男友結婚。|※marry 後面直接接人，不加 with。
+  `)),
+  deck('en.orange.bank.kitchen2', '🍳', '廚房與家用品', LIFE, enList(`
+    noodle|n.|麵條|I'd like a bowl of beef noodles.|我想要一碗牛肉麵。|※通常用複數 noodles。
+    pepper|n.|胡椒；青椒|Add a little salt and pepper.|加一點鹽和胡椒。
+    oil|n.|油|Heat the oil in a pan.|在鍋裡把油加熱。
+    sauce|n.|醬汁|This sauce is a little spicy.|這醬汁有點辣。
+    orange|n./adj.|柳橙；橘色|I drink a glass of orange juice every day.|我每天喝一杯柳橙汁。
+    grape|n.|葡萄|These grapes are very sweet.|這些葡萄很甜。
+    lemon|n.|檸檬|I'd like tea with lemon.|我想要檸檬茶。
+    onion|n.|洋蔥|Cutting onions makes me cry.|切洋蔥會讓我流眼淚。
+    carrot|n.|紅蘿蔔|Rabbits love carrots.|兔子喜歡紅蘿蔔。
+    cabbage|n.|高麗菜|Cabbage is cheap in winter.|冬天高麗菜很便宜。
+    bean|n.|豆子|I put beans in the soup.|我在湯裡加了豆子。
+    corn|n.|玉米|We had corn soup for dinner.|我們晚餐喝玉米濃湯。
+    mushroom|n.|蘑菇|I'd like a mushroom pizza.|我想要一份蘑菇披薩。
+    shrimp|n.|蝦子|The shrimp fried rice is delicious.|蝦仁炒飯很好吃。
+    crab|n.|螃蟹|We ate crab at the seafood restaurant.|我們在海鮮餐廳吃了螃蟹。
+    chopsticks|n.|筷子|Can you use chopsticks?|你會用筷子嗎？
+    pot|n.|鍋子（深）|Boil the water in a large pot.|用大鍋子把水煮開。
+    pan|n.|平底鍋|Fry the eggs in a pan.|用平底鍋煎蛋。
+    stove|n.|爐子|Don't leave the stove on.|不要讓爐子一直開著。
+    fridge|n.|冰箱|Put the milk back in the fridge.|把牛奶放回冰箱。|※refrigerator 的口語說法。
+    sheet|n.|床單；一張（紙）|Please give me a sheet of paper.|請給我一張紙。
+    couch|n.|長沙發|The cat is sleeping on the couch.|貓在沙發上睡覺。
+    armchair|n.|扶手椅|My grandfather is reading in his armchair.|爺爺坐在扶手椅上看書。
+    stool|n.|凳子|Sit on the stool by the counter.|坐在櫃台旁的凳子上。
+    bucket|n.|水桶|Fill the bucket with water.|把水桶裝滿水。
+    broom|n.|掃把|Use the broom to clean the floor.|用掃把掃地。
+    shampoo|n.|洗髮精|We're out of shampoo.|洗髮精用完了。
+    toothpaste|n.|牙膏|Don't forget to buy toothpaste.|別忘了買牙膏。
+    glue|n./v.|膠水；黏|Glue the picture onto the card.|把圖片黏在卡片上。
+  `)),
+  deck('en.orange.bank.jobs', '👷', '人物與職業', PEOPLE2, enList(`
+    nephew|n.|姪子；外甥|My nephew is five years old.|我的姪子五歲。
+    niece|n.|姪女；外甥女|I bought a gift for my niece.|我買了禮物給姪女。
+    kid|n.|小孩|The kids are playing outside.|孩子們在外面玩。
+    stranger|n.|陌生人|Don't talk to strangers.|不要和陌生人說話。
+    classmate|n.|同學|She is my classmate from high school.|她是我的高中同學。
+    roommate|n.|室友|My roommate is from Japan.|我的室友來自日本。
+    farmer|n.|農夫|The farmer grows rice and vegetables.|那位農夫種稻米和蔬菜。
+    mechanic|n.|技工|The mechanic fixed my car.|技師修好了我的車。
+    electrician|n.|電工|We need an electrician to fix the lights.|我們需要電工來修燈。
+    carpenter|n.|木匠|The carpenter made a new table.|木匠做了一張新桌子。
+    firefighter|n.|消防員|The firefighters arrived quickly.|消防員很快就到了。
+    police officer|n.|警察|Ask the police officer for directions.|向警察問路。
+    soldier|n.|軍人|My uncle was a soldier.|我叔叔以前是軍人。
+    artist|n.|藝術家|The artist painted this picture.|這幅畫是那位藝術家畫的。
+    singer|n.|歌手|She is a famous singer in Korea.|她是韓國的知名歌手。
+    actor|n.|演員|That actor is very popular.|那個演員很受歡迎。
+    writer|n.|作家|My dream is to become a writer.|我的夢想是成為作家。
+    reporter|n.|記者|A reporter interviewed the mayor.|一位記者採訪了市長。
+    photographer|n.|攝影師|The photographer took many pictures.|攝影師拍了很多照片。
+    designer|n.|設計師|She works as a fashion designer.|她是一位時裝設計師。
+    scientist|n.|科學家|The scientist works in a lab.|那位科學家在實驗室工作。
+  `)),
+  deck('en.orange.bank.feelings', '😊', '心情與個性', PEOPLE2, enList(`
+    happy|adj.|開心的|I'm happy to see you.|很高興見到你。
+    sad|adj.|難過的|She looks sad today.|她今天看起來很難過。
+    angry|adj.|生氣的|The customer was angry about the delay.|客人對延誤很生氣。
+    afraid|adj.|害怕的|I'm afraid of dogs.|我怕狗。|※I'm afraid＋句子＝恐怕…（委婉說壞消息）。
+    scared|adj.|害怕的|The child was scared of the dark.|那孩子怕黑。
+    nervous|adj.|緊張的|I always get nervous before an interview.|我面試前總是很緊張。
+    excited|adj.|興奮的|We are excited about the trip.|我們對這趟旅行很興奮。|※人感到興奮用 excited；事情令人興奮用 exciting。
+    bored|adj.|無聊的（人覺得）|I'm bored. Let's go out.|好無聊，我們出去吧。|※boring 是事情無聊。
+    sleepy|adj.|想睡的|I feel sleepy after lunch.|吃完午餐我覺得想睡。
+    ill|adj.|生病的|He is ill and can't come to work.|他生病了，不能來上班。
+    worried|adj.|擔心的|My mother is worried about me.|媽媽很擔心我。
+    surprised|adj.|驚訝的|I was surprised by the news.|我對這個消息很驚訝。
+    proud|adj.|驕傲的；自豪的|We are proud of you.|我們以你為榮。
+    shy|adj.|害羞的|He is too shy to speak in class.|他太害羞了，不敢在課堂上發言。
+    lonely|adj.|寂寞的|She felt lonely in the new city.|她在新城市覺得很寂寞。
+    jealous|adj.|嫉妒的|He is jealous of his brother.|他嫉妒他的哥哥。
+    calm|adj.|冷靜的|Stay calm and listen to me.|保持冷靜，聽我說。|※l 不發音。
+    upset|adj.|不高興的；心煩的|She was upset about the mistake.|她因為那個錯誤很不高興。
+    glad|adj.|高興的|I'm glad you came.|很高興你來了。
+    sorry|adj.|抱歉的；遺憾的|I'm sorry I'm late.|抱歉我遲到了。
+    kind|adj./n.|親切的；種類|It's very kind of you.|你人真好。
+    friendly|adj.|友善的|The staff here are very friendly.|這裡的員工都很友善。
+    rude|adj.|沒禮貌的|It's rude to talk on the phone in a meeting.|開會時講電話很沒禮貌。
+    honest|adj.|誠實的|Please give me an honest answer.|請誠實回答我。|※h 不發音，所以說 an honest。
+    lazy|adj.|懶惰的|My cat is very lazy.|我的貓很懶。
+    careful|adj.|小心的|Be careful with the hot water.|小心熱水。
+    brave|adj.|勇敢的|The brave girl saved the dog.|勇敢的女孩救了那隻狗。
+    clever|adj.|聰明的|That's a clever idea.|那是個聰明的點子。
+    smart|adj.|聰明的|She is a smart student.|她是個聰明的學生。
+    funny|adj.|好笑的|The movie was really funny.|那部電影真的很好笑。
+    serious|adj.|嚴肅的；嚴重的|This is a serious problem.|這是個嚴重的問題。
+    noisy|adj.|吵鬧的|The street is very noisy at night.|這條街晚上很吵。
+  `)),
+  deck('en.orange.bank.colors', '🎨', '顏色與形狀', LIFE, enList(`
+    red|adj./n.|紅色|She is wearing a red dress.|她穿著紅色洋裝。
+    blue|adj./n.|藍色|The sky is clear and blue.|天空晴朗湛藍。|※feel blue＝心情低落。
+    green|adj./n.|綠色|Turn left at the green building.|在綠色大樓左轉。
+    yellow|adj./n.|黃色|I bought a yellow umbrella.|我買了一把黃色雨傘。
+    white|adj./n.|白色|The walls are painted white.|牆壁漆成白色。
+    black|adj./n.|黑色|I'd like a black coffee, please.|我要一杯黑咖啡。
+    brown|adj./n.|棕色|He has brown eyes.|他有棕色的眼睛。
+    gray|adj./n.|灰色|He wore a gray suit to the interview.|他穿灰色西裝去面試。|※英式拼法 grey。
+    purple|adj./n.|紫色|Purple is my favorite color.|紫色是我最喜歡的顏色。
+    pink|adj./n.|粉紅色|The cherry blossoms are pink.|櫻花是粉紅色的。
+    gold|adj./n.|金色；黃金|She won a gold medal.|她得了一面金牌。
+    silver|adj./n.|銀色；銀|I have a silver car.|我有一輛銀色的車。
+    circle|n.|圓形|Draw a circle on the paper.|在紙上畫一個圓。
+    square|n./adj.|正方形；廣場|The table is square.|這張桌子是方的。
+    triangle|n.|三角形|A triangle has three sides.|三角形有三個邊。
+    rectangle|n.|長方形|The room is shaped like a rectangle.|這個房間是長方形的。
+    dot|n.|點|Her dress has white dots.|她的洋裝上有白色圓點。
+    shape|n.|形狀|What shape is the box?|那個箱子是什麼形狀？
+  `)),
+  deck('en.orange.bank.animals', '🐶', '動物', NATURE2, enList(`
+    dog|n.|狗|I walk my dog every evening.|我每天傍晚遛狗。
+    cat|n.|貓|Our cat likes to sleep in the sun.|我們家的貓喜歡曬太陽睡覺。
+    bird|n.|鳥|A bird is singing in the tree.|一隻鳥在樹上唱歌。
+    horse|n.|馬|Have you ever ridden a horse?|你騎過馬嗎？
+    cow|n.|乳牛；母牛|The cows are eating grass.|乳牛在吃草。
+    pig|n.|豬|The pig is sleeping in the mud.|豬在泥巴裡睡覺。
+    sheep|n.|羊|There are many sheep on the farm.|農場裡有很多羊。|※單複數同形。
+    goat|n.|山羊|Goats can climb steep hills.|山羊能爬陡坡。
+    duck|n.|鴨子|The ducks are swimming in the pond.|鴨子在池塘裡游泳。
+    rabbit|n.|兔子|The rabbit has long ears.|兔子有長長的耳朵。
+    mouse|n.|老鼠；滑鼠|A mouse ran across the kitchen.|一隻老鼠跑過廚房。|※複數 mice。
+    bear|n.|熊|We saw a bear in the mountains.|我們在山裡看到一隻熊。
+    tiger|n.|老虎|The tiger is a big cat.|老虎是大型貓科動物。
+    lion|n.|獅子|The lion is called the king of animals.|獅子被稱為萬獸之王。
+    elephant|n.|大象|Elephants have long noses.|大象有長鼻子。
+    monkey|n.|猴子|The monkey took my banana.|猴子拿走了我的香蕉。
+    snake|n.|蛇|I'm afraid of snakes.|我怕蛇。
+    frog|n.|青蛙|A frog jumped into the water.|一隻青蛙跳進水裡。
+    turtle|n.|烏龜|The turtle moves very slowly.|烏龜爬得很慢。
+    whale|n.|鯨魚|We went whale watching in Hualien.|我們在花蓮賞鯨。
+    dolphin|n.|海豚|Dolphins are very smart.|海豚很聰明。
+    shark|n.|鯊魚|You can see sharks at the aquarium.|在水族館可以看到鯊魚。
+    insect|n.|昆蟲|Ants and bees are insects.|螞蟻和蜜蜂是昆蟲。
+    bee|n.|蜜蜂|Bees make honey.|蜜蜂會釀蜂蜜。
+    butterfly|n.|蝴蝶|A butterfly landed on the flower.|一隻蝴蝶停在花上。
+    ant|n.|螞蟻|There are ants on the table.|桌上有螞蟻。
+    spider|n.|蜘蛛|A spider is making a web.|一隻蜘蛛在織網。
+  `)),
+  deck('en.orange.bank.nature', '🌳', '大自然', NATURE2, enList(`
+    tree|n.|樹|There is a big tree in front of the school.|學校前面有一棵大樹。
+    flower|n.|花|He gave her some flowers.|他送給她一些花。
+    grass|n.|草；草地|Please keep off the grass.|請勿踐踏草地。
+    leaf|n.|葉子|The leaves turn red in autumn.|秋天葉子會變紅。|※複數 leaves。
+    forest|n.|森林|We walked through the forest.|我們穿過森林。
+    hill|n.|小山；山丘|The school is on top of the hill.|學校在山丘上。
+    lake|n.|湖|Sun Moon Lake is very beautiful.|日月潭非常美。
+    sea|n.|海|The hotel has a view of the sea.|飯店看得到海景。
+    ocean|n.|海洋|The Pacific Ocean is huge.|太平洋很大。
+    island|n.|島|Taiwan is an island.|台灣是一座島。|※s 不發音。
+    desert|n.|沙漠|It rarely rains in the desert.|沙漠很少下雨。|※dessert（甜點）多一個 s。
+    sun|n.|太陽|The sun rises in the east.|太陽從東邊升起。
+    moon|n.|月亮|The moon is very bright tonight.|今晚月亮很亮。
+    star|n.|星星|I can see many stars in the countryside.|在鄉下可以看到很多星星。
+    rainbow|n.|彩虹|Look! There's a rainbow.|你看！有彩虹。
+  `)),
+  deck('en.orange.bank.sports', '⚽', '運動與興趣', NATURE2, enList(`
+    soccer|n.|足球|We play soccer after school.|我們放學後踢足球。|※英式英文叫 football。
+    baseball|n.|棒球|Baseball is very popular in Taiwan.|棒球在台灣很受歡迎。
+    basketball|n.|籃球|Let's play basketball this weekend.|這週末去打籃球吧。
+    tennis|n.|網球|She plays tennis every Sunday.|她每個星期天打網球。
+    golf|n.|高爾夫|My boss loves to play golf.|我老闆很愛打高爾夫。
+    running|n.|跑步|Running is good for your health.|跑步對健康有益。
+    cycling|n.|騎自行車|Cycling around the lake is fun.|環湖騎車很好玩。
+    skiing|n.|滑雪|We went skiing in Hokkaido.|我們去北海道滑雪。
+    skating|n.|溜冰|Ice skating is popular in winter.|溜冰在冬天很受歡迎。
+    yoga|n.|瑜伽|I do yoga every morning.|我每天早上做瑜伽。
+    player|n.|選手；播放器|He is the best player on the team.|他是隊上最好的選手。
+    coach|n.|教練；長途巴士|Our coach is very strict.|我們的教練很嚴格。
+    score|n./v.|分數；得分|What's the score now?|現在比數是多少？
+    ball|n.|球|Throw the ball to me.|把球丟給我。
+    racket|n.|球拍|I need a new tennis racket.|我需要一支新的網球拍。
+    bat|n.|球棒；蝙蝠|He swung the bat and hit the ball.|他揮棒擊中了球。
+    field|n.|田野；運動場；領域|The players are on the field.|選手們在球場上。
+    trophy|n.|獎盃|Our team won the trophy.|我們隊贏得了獎盃。
+    medal|n.|獎牌|She won three medals.|她贏得了三面獎牌。
+    music|n.|音樂|What kind of music do you like?|你喜歡什麼樣的音樂？
+    drama|n.|戲劇；連續劇|I'm watching a Korean drama.|我在看韓劇。
+    comic|n.|漫畫|My son reads comics every night.|我兒子每晚看漫畫。
+    photography|n.|攝影|Photography is my hobby.|攝影是我的嗜好。
+    gardening|n.|園藝|My mother enjoys gardening.|我媽媽喜歡園藝。
+    cooking|n.|烹飪|She takes cooking classes on weekends.|她週末上烹飪課。
   `)),
 ];
