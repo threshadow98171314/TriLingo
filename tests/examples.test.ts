@@ -71,5 +71,6 @@ describe('課程裡的例句數量', () => {
       console.log(`${c.id}: ${words.length} 個單字，兩句以上 ${(two * 100).toFixed(0)}%，三句 ${(three * 100).toFixed(0)}%`);
       if (c.id === 'ja') expect(two).toBeGreaterThan(0.3);
     }
-  });
+    // 每個字都要掃過整個課程的句子，單字庫變大之後比較花時間
+  }, 30_000);
 });

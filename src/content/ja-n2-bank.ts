@@ -6,5 +6,8 @@ import { N2_BANK_2 } from './ja-n2-bank2';
 import { N2_BANK_3 } from './ja-n2-bank3';
 import { N2_BANK_4 } from './ja-n2-bank4';
 import { N2_BANK_5 } from './ja-n2-bank5';
+import { N2_BANK_6 } from './ja-n2-bank6';
+import { N2_BANK_7 } from './ja-n2-bank7';
+import { N2_BANK_8 } from './ja-n2-bank8';
 
-export const N2_BANK: Unit[] = [...N2_BANK_1, ...N2_BANK_2, ...N2_BANK_3, ...N2_BANK_4, ...N2_BANK_5];
+export const N2_BANK: Unit[] = [...N2_BANK_1, ...N2_BANK_2, ...N2_BANK_3, ...N2_BANK_4, ...N2_BANK_5, ...N2_BANK_6, ...N2_BANK_7, ...N2_BANK_8];
