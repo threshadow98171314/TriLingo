@@ -7,6 +7,7 @@ import { K1_BANK } from './ko-k1-bank';
 import { K2_UNITS } from './ko-k2';
 import { K2_BANK } from './ko-k2-bank';
 import { K3_UNITS } from './ko-k3';
+import { K3_BANK } from './ko-k3-bank';
 import { KO_MORE } from './ko-more';
 import { TOWN_UNITS } from './ko-town';
 import { KO_DRAMA_UNITS, KO_TRAVEL_UNITS } from './ko-tracks';
@@ -16,7 +17,7 @@ export const UNITS: Record<string, Unit[]> = {
   'ko.hangul': HANGUL_UNITS,
   'ko.k1': [...K1_UNITS, ...K1_BANK],
   'ko.k2': [...K2_UNITS, ...K2_BANK],
-  'ko.k3': K3_UNITS,
+  'ko.k3': [...K3_UNITS, ...K3_BANK],
   'ko.town': TOWN_UNITS,
   'ko.travel': KO_TRAVEL_UNITS,
   'ko.drama': KO_DRAMA_UNITS,
