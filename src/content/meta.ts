@@ -268,7 +268,7 @@ const KO: CourseMeta = {
       color: '#a78bfa',
       group: 'main',
       style: 'level',
-      planned: ['中級文法：-더라고요・-(으)ㄹ 텐데', '漢字詞擴充', 'TOPIK 4 級單字', '閱讀：報導', '聽力：討論'],
+      planned: ['中級文法：-더라고요・-(으)ㄹ 텐데', '漢字詞擴充', '閱讀：報導', '聽力：討論'],
     }),
     stage({
       id: 'ko.k5',
