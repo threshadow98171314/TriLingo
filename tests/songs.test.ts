@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SONGS } from '../src/content/songs';
+import { CLASSICS, SONGS } from '../src/content/songs';
 import { activeLine, fmtSec, parseLyrics, syncedCount, youtubeIdOf } from '../src/core/songs';
 
 describe('歌單', () => {
@@ -8,6 +8,28 @@ describe('歌單', () => {
     for (const s of SONGS) expect(s.yt, s.id).toMatch(/^[\w-]{11}$/);
     const ranks = SONGS.map((s) => s.rank);
     expect([...ranks].sort((a, b) => a - b)).toEqual(ranks);
+  });
+
+  it('排行榜的歌都附官方授權歌詞頁（不放歌詞本身）', () => {
+    for (const s of SONGS) {
+      expect(s.lyricsUrl, s.id).toMatch(/^https:\/\/www\.uta-net\.com\/song\/\d+\/$/);
+      expect('lines' in s, s.id).toBe(false);
+    }
+  });
+
+  it('經典歌曲：id 不和排行榜重複、每句都有翻譯、漢字都標了讀音', () => {
+    const ids = [...SONGS, ...CLASSICS].map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const s of CLASSICS) {
+      expect(s.yt, s.id).toMatch(/^[\w-]{11}$/);
+      expect(s.credit, s.id).toBeTruthy();
+      expect(s.lines.length, s.id).toBeGreaterThan(3);
+      for (const l of s.lines) {
+        expect(l.zh, `${s.id}：${l.ja}`).toBeTruthy();
+        const rest = l.ja.replace(/[㐀-鿿々]+\[[ぁ-ゖァ-ヺー]+\]/g, '');
+        expect(rest, `${s.id}：${l.ja}`).not.toMatch(/[㐀-鿿々\[\]]/);
+      }
+    }
   });
 });
 

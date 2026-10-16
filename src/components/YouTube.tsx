@@ -38,7 +38,7 @@ export interface YTHandle {
   time(): number;
 }
 
-export function YouTubePlayer({ videoId, onReady, onPlaying }: { videoId: string; onReady?: (h: YTHandle) => void; onPlaying?: (playing: boolean) => void }) {
+export function YouTubePlayer({ videoId, onReady, onPlaying, cc }: { videoId: string; onReady?: (h: YTHandle) => void; onPlaying?: (playing: boolean) => void; cc?: boolean }) {
   const host = useRef<HTMLDivElement>(null);
   const cb = useRef({ onReady, onPlaying });
   cb.current = { onReady, onPlaying };
@@ -54,7 +54,8 @@ export function YouTubePlayer({ videoId, onReady, onPlaying }: { videoId: string
       player = new YT.Player(el, {
         videoId,
         host: 'https://www.youtube-nocookie.com',
-        playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+        // cc：打開影片本身提供的日文字幕（官方 MV 常附歌詞字幕）
+        playerVars: { playsinline: 1, rel: 0, modestbranding: 1, ...(cc ? { cc_load_policy: 1, cc_lang_pref: 'ja', hl: 'ja' } : {}) },
         events: {
           onReady: () =>
             cb.current.onReady?.({
@@ -75,7 +76,7 @@ export function YouTubePlayer({ videoId, onReady, onPlaying }: { videoId: string
       player?.destroy?.();
       if (box) box.innerHTML = '';
     };
-  }, [videoId]);
+  }, [videoId, cc]);
 
   return (
     <div className="yt-wrap">

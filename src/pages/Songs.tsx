@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type FormEvent, type MutableRefObject } fr
 import { GuideTip } from '../components/Guide';
 import { Empty, Ruby, SpeakBtn } from '../components/ui';
 import { YouTubePlayer, type YTHandle } from '../components/YouTube';
-import { CHART_DATE, CHART_NAME, SONG_BY_ID, SONGS, type Song } from '../content/songs';
+import { CHART_DATE, CHART_NAME, CLASSIC_BY_ID, CLASSICS, SONG_BY_ID, SONGS, type Song } from '../content/songs';
 import type { Save } from '../core/save';
 import { activeLine, fmtSec, parseLyrics, syncedCount, youtubeIdOf, type SongLine } from '../core/songs';
 import { addCustomSong, removeCustomSong, saveLyrics, useSave } from '../core/store';
@@ -22,9 +22,16 @@ function findSong(s: Save, id: string): Song | null {
   return mine ? { id: mine.id, title: mine.title, artist: mine.artist, zh: '', yt: mine.yt, rank: 0 } : null;
 }
 
+/** 這首歌目前的歌詞：自己存的（含對時）優先，經典歌曲沒存過就用網站附的歌詞 */
+function lyricsOf(s: Save, id: string): SongLine[] {
+  const mine = s.songs[id]?.lines;
+  if (mine?.length) return mine;
+  return CLASSIC_BY_ID.get(id)?.lines.map((l) => ({ ...l })) ?? [];
+}
+
 function LyricsStatus({ s, id }: { s: Save; id: string }) {
   const ly = s.songs[id];
-  if (!ly?.lines.length) return <small className="muted">還沒有歌詞</small>;
+  if (!ly?.lines.length) return <small className="muted">{CLASSIC_BY_ID.has(id) ? '✓ 附歌詞與翻譯' : '還沒有歌詞'}</small>;
   const synced = syncedCount(ly.lines);
   return (
     <small className={cx('song-status', synced === ly.lines.length && 'done')}>
@@ -49,9 +56,10 @@ export function SongsTab({ s }: { s: Save }) {
     <>
       <GuideTip id="tab:songs" title="聽日文歌學日語" icon="🎵">
         <ul>
-          <li>點一首歌打開官方 MV。歌詞有版權，網站不提供，請從有授權的歌詞網站複製貼上；貼上的歌詞只存在你的瀏覽器（有開雲端同步的話，也會存進你自己的私人 Gist）。</li>
+          <li>排行榜的歌：點進去打開官方 MV，再按「📄 官方授權歌詞」到 Uta-Net 複製歌詞貼上。流行歌的歌詞有版權，網站是公開的，不能直接放進來；貼上的歌詞只存在你的瀏覽器（有開雲端同步的話，也會存進你自己的私人 Gist）。</li>
+          <li>中文翻譯按「🌐 自動翻譯」一鍵產生：Chrome 用瀏覽器內建的翻譯（在裝置上翻譯），其他瀏覽器用免費的 MyMemory 翻譯服務。</li>
+          <li>經典童謠・唱歌的歌詞已是公有領域，網站直接附上日文、讀音與中文翻譯，打開就能學。</li>
           <li>按「對時」跟著歌一句一句按，之後點任一句歌詞就會從那一句開始唱。</li>
-          <li>中文翻譯可以自己貼；用 Chrome 的話也可以用瀏覽器內建的翻譯自動產生。</li>
         </ul>
       </GuideTip>
       <section className="panel">
@@ -67,6 +75,29 @@ export function SongsTab({ s }: { s: Save }) {
               <span className="song-thumb">
                 <img src={thumb(song.yt)} alt="" loading="lazy" />
                 <b className="song-rank">#{song.rank}</b>
+              </span>
+              <span className="song-info">
+                <b lang="ja">{song.title}</b>
+                <small lang="ja">{song.artist}</small>
+                <small className="muted">{song.zh}</small>
+                <LyricsStatus s={s} id={song.id} />
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section className="panel">
+        <header className="panel-head">
+          <h2>經典童謠・唱歌</h2>
+          <small className="muted">歌詞已是公有領域：附日文歌詞、讀音、中文翻譯與文法說明</small>
+        </header>
+        <div className="song-grid">
+          {CLASSICS.map((song) => (
+            <a key={song.id} className="song-card card" href={href(songPath(song.id))}>
+              <span className="song-thumb">
+                <img src={thumb(song.yt)} alt="" loading="lazy" />
+                <b className="song-rank classic">名曲</b>
               </span>
               <span className="song-info">
                 <b lang="ja">{song.title}</b>
@@ -130,7 +161,41 @@ function translatorApi(): any {
   return typeof window !== 'undefined' ? (window as any).Translator : undefined;
 }
 
+/** 沒有內建翻譯的瀏覽器：用免費的 MyMemory 翻譯服務，一句一句翻 */
+async function myMemory(texts: string[], onProgress: (msg: string) => void): Promise<string[]> {
+  const out: string[] = [];
+  for (let i = 0; i < texts.length; i++) {
+    onProgress(`翻譯中 ${i + 1} / ${texts.length}（MyMemory）`);
+    const q = texts[i].slice(0, 450);
+    if (!q.trim()) {
+      out.push('');
+      continue;
+    }
+    const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=ja|zh-TW`);
+    if (!r.ok) throw new Error(`翻譯服務沒有回應（${r.status}）`);
+    const j = (await r.json()) as { responseData?: { translatedText?: string }; quotaFinished?: boolean };
+    if (j.quotaFinished) throw new Error('今天的免費翻譯額度用完了，明天再試，或改用 Google 翻譯。');
+    out.push(j.responseData?.translatedText ?? '');
+  }
+  return out;
+}
+
+/** 在 Google 翻譯打開（自己複製結果貼回來） */
+export const googleTranslateUrl = (text: string) => `https://translate.google.com/?sl=ja&tl=zh-TW&op=translate&text=${encodeURIComponent(text.slice(0, 1800))}`;
+
+/** 一鍵翻譯：先用 Chrome 內建的翻譯（在裝置上翻譯），不支援或失敗時改用 MyMemory */
 async function translateAll(texts: string[], onProgress: (msg: string) => void): Promise<string[]> {
+  if (translatorApi()) {
+    try {
+      return await chromeTranslate(texts, onProgress);
+    } catch {
+      // 例如沒有日文翻繁中的模型：改用線上服務
+    }
+  }
+  return myMemory(texts, onProgress);
+}
+
+async function chromeTranslate(texts: string[], onProgress: (msg: string) => void): Promise<string[]> {
   const T = translatorApi();
   let target = 'zh-Hant';
   let avail = await T.availability({ sourceLanguage: 'ja', targetLanguage: target });
@@ -157,8 +222,10 @@ async function translateAll(texts: string[], onProgress: (msg: string) => void):
 export function SongPage({ id }: { id: string }) {
   const s = useSave();
   const song = findSong(s, id);
-  const lyrics = s.songs[id]?.lines ?? [];
+  const lyrics = lyricsOf(s, id);
+  const classic = CLASSIC_BY_ID.get(id);
   const [mode, setMode] = useState<'play' | 'sync' | 'edit'>(lyrics.length ? 'play' : 'edit');
+  const [cc, setCc] = useState(false);
   const player = useRef<YTHandle | null>(null);
   const [ready, setReady] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -203,6 +270,17 @@ export function SongPage({ id }: { id: string }) {
               <Ruby s={song.note} />
             </p>
           )}
+          {classic && <p className="muted small">{classic.credit}・歌詞已是公有領域，影片為 YouTube 上可嵌入的演唱版本。</p>}
+          <div className="song-links">
+            {song.lyricsUrl && (
+              <a className="btn small" href={song.lyricsUrl} target="_blank" rel="noreferrer">
+                📄 官方授權歌詞（Uta-Net）↗
+              </a>
+            )}
+            <label className="lyrics-toggle">
+              <input type="checkbox" checked={cc} onChange={(e) => setCc(e.target.checked)} /> 顯示影片字幕（有提供時）
+            </label>
+          </div>
         </div>
         {mine && (
           <button
@@ -223,6 +301,7 @@ export function SongPage({ id }: { id: string }) {
       <div className="song-player">
         <YouTubePlayer
           videoId={song.yt}
+          cc={cc}
           onReady={(h) => {
             player.current = h;
             setReady(true);
@@ -317,14 +396,24 @@ function PlayView({
         <label className="lyrics-toggle">
           <input type="checkbox" checked={showZh} onChange={(e) => setShowZh(e.target.checked)} /> 顯示中文
         </label>
-        {missingZh > 0 && translatorApi() && (
+        {missingZh > 0 && (
           <button type="button" className="btn small" onClick={translate} disabled={!!busy}>
-            🌐 用瀏覽器翻譯補上中文
+            🌐 自動翻譯補上中文
           </button>
+        )}
+        {missingZh > 0 && (
+          <a className="link-btn" href={googleTranslateUrl(lines.map((l) => furiPlain(l.ja)).join('\n'))} target="_blank" rel="noreferrer">
+            用 Google 翻譯開啟 ↗
+          </a>
         )}
       </div>
       {busy && <p className="muted small">{busy}</p>}
-      {missingZh > 0 && !translatorApi() && <p className="muted small">中文翻譯可以在「貼歌詞」自己貼上；用電腦版 Chrome 的話，也能用瀏覽器內建的翻譯自動產生。</p>}
+      {missingZh > 0 && !busy && (
+        <p className="muted small">
+          {translatorApi() ? '用 Chrome 內建的翻譯，在你的裝置上翻譯，不會上傳。' : '會把歌詞一句一句送到免費的 MyMemory 翻譯服務。'}
+          翻得不順的地方，可以在「貼歌詞」自己改；或用 Google 翻譯開啟，把結果貼回中文欄。
+        </p>
+      )}
       <ol className="lyric-list" ref={list}>
         {lines.map((l, i) => (
           <li key={i} className={cx('lyric', i === active && 'on', l.t === undefined && 'unsynced')}>
@@ -451,13 +540,13 @@ function EditView({ id, song, lines, onDone }: { id: string; song: Song; lines: 
   const [ja, setJa] = useState(() => lines.map((l) => l.ja).join('\n'));
   const [zh, setZh] = useState(() => (lines.some((l) => l.zh) ? lines.map((l) => l.zh ?? '').join('\n') : ''));
   const parsed = parseLyrics(ja, zh, lines);
-  const search = `https://www.google.com/search?q=${encodeURIComponent(`${song.title} ${song.artist} 歌詞`)}`;
+  const search = song.lyricsUrl ?? `https://www.uta-net.com/search/?target=sn&type=in&keyword=${encodeURIComponent(song.title)}`;
   return (
     <section className="card lyric-edit">
       <p className="muted">
-        歌詞有版權，網站不提供歌詞。請到有授權的歌詞網站（例如 Uta-Net、UtaTen、KKBOX、Apple Music）找到這首歌，複製日文歌詞貼在下面。
+        流行歌的歌詞有版權，網站是公開的，所以不能直接放進來。請打開官方授權的歌詞頁（Uta-Net 有 JASRAC 授權），複製日文歌詞貼在下面；中文翻譯可以留空，之後按「🌐 自動翻譯」。
         <a href={search} target="_blank" rel="noreferrer">
-          搜尋這首歌的歌詞 ↗
+          {song.lyricsUrl ? '打開這首歌的官方授權歌詞 ↗' : '在 Uta-Net 搜尋這首歌 ↗'}
         </a>
       </p>
       <p className="muted small">歌詞只存在你的瀏覽器；開了雲端同步的話，也會存進你自己的私人 Gist，不會給別人看。想看讀音可以把漢字寫成「漢字[よみ]」，例如「夜[よる]」。</p>

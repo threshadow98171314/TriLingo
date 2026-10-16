@@ -5749,3 +5749,15 @@ p.small {
   line-height: 1.7;
   resize: vertical;
 }
+
+/* 日文歌：官方歌詞連結、經典歌曲標籤 */
+.song-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.song-rank.classic {
+  background: linear-gradient(90deg, #f5b82e, #ff8a3d);
+}
