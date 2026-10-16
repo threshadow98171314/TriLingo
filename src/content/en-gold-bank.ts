@@ -333,4 +333,214 @@ export const GOLD_BANK: Unit[] = [
     advise|v.|建議；通知|I advise you to book early.|我建議你早點訂。|※advise 是動詞（s 發 z 音）；advice 是名詞。
     advice|n.|建議|Thank you for your advice.|謝謝你的建議。|※advice 是不可數名詞，不說 an advice；動詞是 advise。
   `)),
+  deck('en.gold.bank.verbs5', '🏃', '高階動詞 ⑤', VERB, enList(`
+    assert|v.|斷言；主張|The CEO asserted that the company was in good shape.|執行長斷言公司狀況良好。
+    confide|v.|吐露（祕密）|She confided her concerns to her manager.|她向主管吐露了她的擔憂。
+    construe|v.|解讀|His silence was construed as agreement.|他的沉默被解讀為同意。
+    elicit|v.|引出（反應、資訊）|The survey is designed to elicit honest answers.|這份問卷是為了引出真實的回答。
+    ensue|v.|接著發生|A long discussion ensued.|接著是一場冗長的討論。
+    instill|v.|灌輸|Good leaders instill confidence in their teams.|好的領導者能讓團隊產生信心。
+    invoke|v.|援引（法律、條款）|The company invoked the force majeure clause.|公司援引了不可抗力條款。
+    negate|v.|使無效；否定|The extra costs negate the benefits of the plan.|額外的成本抵銷了計畫的好處。
+    obligate|v.|使有義務|The contract obligates us to deliver by June.|合約規定我們必須在六月前交貨。
+    orchestrate|v.|精心策劃|She orchestrated the entire product launch.|她一手策劃了整場產品發表。
+    prosecute|v.|起訴|Shoplifters will be prosecuted.|竊盜者將被起訴。
+    prosper|v.|繁榮；成功|The town prospered after the factory opened.|工廠開幕後，小鎮變得繁榮。
+    redeem|v.|兌換；贖回|You can redeem your points for gift cards.|點數可以兌換禮物卡。
+    substantiate|v.|證實|Can you substantiate these claims with data?|你能用數據證實這些說法嗎？
+    transcribe|v.|謄寫；轉錄|Please transcribe the interview into a report.|請把訪談謄寫成報告。
+    abide|v.|遵守|All members must abide by the rules.|所有會員都必須遵守規定。|※abide by＝comply with。
+    abolish|v.|廢除|The government abolished the old tax.|政府廢除了舊稅。
+    affirm|v.|確認；斷言|The court affirmed the earlier decision.|法院維持了原判決。
+    aggravate|v.|使惡化|Stress can aggravate health problems.|壓力會使健康問題惡化。
+    allege|v.|聲稱（無證據）|The report alleges that the data was changed.|報導聲稱數據遭到竄改。
+  `)),
+  deck('en.gold.bank.verbs6', '🏃', '高階動詞 ⑥', VERB, enList(`
+    amplify|v.|放大；增強|Social media can amplify customer complaints.|社群媒體會放大顧客的抱怨。
+    annul|v.|宣告無效|The contract was annulled by the court.|法院宣告合約無效。
+    appease|v.|安撫|The company offered refunds to appease customers.|公司提供退款來安撫顧客。
+    cede|v.|讓出|The firm ceded control of the project.|公司交出了這個計畫的主導權。
+    chronicle|v./n.|記錄；編年史|The book chronicles the history of the company.|這本書記錄了公司的歷史。
+    coerce|v.|強迫|No employee should be coerced into working overtime.|不應強迫任何員工加班。
+    condone|v.|容忍；寬恕|The company does not condone discrimination.|公司不容許任何歧視。
+    confiscate|v.|沒收|Security may confiscate prohibited items.|保全可能會沒收違禁品。
+    contest|v./n.|對…提出異議；比賽|The company plans to contest the decision.|公司打算對決定提出異議。
+    contradict|v.|與…矛盾；反駁|The new data contradicts the earlier report.|新數據和先前的報告矛盾。
+    counteract|v.|抵銷；對抗|Lower prices helped counteract the drop in demand.|降價有助於抵銷需求的下滑。
+    decipher|v.|解讀（難懂的東西）|I couldn't decipher his handwriting.|我看不懂他的字跡。
+    defraud|v.|詐騙|He was accused of defrauding investors.|他被控詐騙投資人。
+    dictate|v.|口述；決定|Market demand dictates the price.|市場需求決定價格。
+    dismantle|v.|拆除；瓦解|The old system will be dismantled next year.|舊系統明年會拆除。
+    divulge|v.|洩露|Employees must not divulge client information.|員工不得洩露客戶資料。
+    earmark|v.|指定（款項）用途|The funds are earmarked for new equipment.|這筆錢指定用於購買新設備。
+    embezzle|v.|盜用（公款）|The accountant was caught embezzling money.|那名會計被發現盜用公款。
+    emulate|v.|仿效|Many startups try to emulate successful companies.|很多新創公司試著仿效成功企業。
+    endow|v.|捐贈（基金）；賦予|The foundation endowed a new scholarship.|基金會捐設了一項新獎學金。
+  `)),
+  deck('en.gold.bank.verbs7', '🏃', '高階動詞 ⑦', VERB, enList(`
+    entrust|v.|委託|We entrusted the project to an outside firm.|我們把這個計畫委託給外部公司。
+    enumerate|v.|列舉|The report enumerates the main risks.|報告列舉了主要風險。
+    equate|v.|將…等同|Many people equate price with quality.|很多人把價格和品質畫上等號。
+    evade|v.|逃避|He was fined for trying to evade taxes.|他因逃稅被罰款。
+    exemplify|v.|作為…的典範|Her work exemplifies our company values.|她的工作是公司價值的典範。
+    expel|v.|驅逐；開除|Members who break the rules may be expelled.|違規的會員可能會被開除會籍。
+    falter|v.|動搖；衰退|Sales began to falter in the third quarter.|第三季銷售開始下滑。
+    flourish|v.|蓬勃發展|The tourism industry is flourishing.|觀光業正在蓬勃發展。
+    forge|v.|建立（關係）；偽造|We hope to forge a partnership with them.|我們希望和他們建立合作關係。
+    forgo|v.|放棄（享受）|She decided to forgo her bonus to save jobs.|她決定放棄獎金來保住大家的工作。
+    galvanize|v.|激勵；鍍鋅|The speech galvanized the staff into action.|那場演講激勵員工採取行動。
+    garner|v.|獲得（支持、讚賞）|The campaign garnered a lot of attention.|這次活動獲得許多關注。
+    hone|v.|磨練|The workshop helps you hone your writing skills.|這個研習幫助你磨練寫作技巧。
+    impart|v.|傳授|Senior staff impart their knowledge to new employees.|資深員工把知識傳授給新進員工。
+    inaugurate|v.|舉行就職典禮；開幕|The new library will be inaugurated in May.|新圖書館將在五月啟用。
+    infringe|v.|侵犯（權利）|The product may infringe on a patent.|這項產品可能侵犯專利。
+    levy|v./n.|徵收（稅）|The city will levy a tax on hotel stays.|市政府將對住宿徵稅。
+    linger|v.|逗留；徘徊|Customers lingered in the shop after closing time.|打烊後顧客還在店裡逗留。
+    loom|v.|逼近（威脅）|A strike is looming at the factory.|工廠即將面臨罷工。
+    manipulate|v.|操縱|The figures were manipulated to look better.|這些數字被動過手腳，看起來比較好看。
+  `)),
+  deck('en.gold.bank.verbs8', '🏃', '高階動詞 ⑧', VERB, enList(`
+    nullify|v.|使無效|A missing signature can nullify the agreement.|缺少簽名可能使協議無效。
+    persevere|v.|堅持不懈|You must persevere to succeed.|要成功就得堅持不懈。
+    peruse|v.|細讀；瀏覽|Please peruse the contract before signing.|簽約前請仔細閱讀合約。
+    placate|v.|安撫|The manager tried to placate the angry customer.|經理試著安撫生氣的顧客。
+    ponder|v.|仔細考慮|She pondered the job offer for a week.|她考慮了這份工作邀約一週。
+    presume|v.|假定|I presume you have read the report.|我想你已經看過報告了。
+    procrastinate|v.|拖延|Don't procrastinate on important tasks.|重要的工作不要拖延。
+    proclaim|v.|宣告|The company proclaimed record profits.|公司宣布獲利創新高。
+    provoke|v.|引起；激怒|The price increase provoked complaints.|漲價引起了抱怨。
+    reap|v.|獲得（成果）|We are now reaping the benefits of the new system.|我們現在正享受新系統帶來的好處。
+    rebut|v.|反駁|The spokesperson rebutted the claims.|發言人反駁了那些說法。
+    recede|v.|後退；減弱|The flood waters slowly receded.|洪水慢慢退去。
+    reciprocate|v.|回報|We hope to reciprocate your kindness.|希望能回報您的好意。
+    recoup|v.|收回（損失、成本）|It will take two years to recoup the investment.|要兩年才能回收投資。
+    refrain|v.|克制；避免|Please refrain from smoking.|請勿吸菸。|※refrain from＋V-ing，常見於告示。
+  `)),
+  deck('en.gold.bank.verbs9', '🏃', '高階動詞 ⑨', VERB, enList(`
+    refute|v.|駁斥|The study refutes the earlier claims.|這項研究駁斥了先前的說法。
+    rejuvenate|v.|使恢復活力|The new park helped rejuvenate the neighborhood.|新公園讓這一區重新恢復活力。
+    remunerate|v.|給報酬|Staff will be remunerated for overtime.|員工加班會有報酬。
+    renounce|v.|放棄（權利）|He renounced his claim to the property.|他放棄了對財產的主張。
+    repeal|v./n.|廢除（法律）|Lawmakers voted to repeal the tax.|議員投票廢除這項稅。
+    resonate|v.|引起共鳴|The ad resonated with young customers.|廣告引起年輕顧客的共鳴。
+    retract|v.|撤回|The newspaper retracted the story.|報社撤回了那篇報導。
+    shun|v.|避開|Many consumers shun products with plastic packaging.|很多消費者避開塑膠包裝的產品。
+    skew|v.|使偏斜|A few large orders skewed the results.|幾筆大訂單讓結果失真。
+    spearhead|v.|帶頭|She will spearhead the new marketing campaign.|她將帶頭推動新的行銷活動。
+    stagnate|v.|停滯|Wages have stagnated for years.|薪資停滯多年。
+    succumb|v.|屈服；不敵|Many small shops succumbed to competition.|許多小店不敵競爭倒閉了。|※b 不發音。
+    supplant|v.|取代|Online shopping has supplanted many stores.|網路購物取代了許多實體店。
+    surmount|v.|克服|The team surmounted many obstacles.|團隊克服了許多障礙。
+    tarnish|v.|玷污（名聲）|The scandal tarnished the company's image.|醜聞損害了公司形象。
+  `)),
+  deck('en.gold.bank.adj4', '🎨', '高階形容詞 ④', ADJ, enList(`
+    eminent|adj.|著名的；傑出的|An eminent economist will speak at the conference.|一位知名經濟學家將在研討會演講。
+    empirical|adj.|實證的|The conclusion is based on empirical data.|結論是根據實證資料。
+    sparse|adj.|稀疏的|Information about the company is sparse.|關於這家公司的資訊很少。
+    spontaneous|adj.|自發的；即興的|The audience burst into spontaneous applause.|觀眾自發地鼓起掌來。
+    abrupt|adj.|突然的|The meeting came to an abrupt end.|會議突然結束了。
+    absurd|adj.|荒謬的|The idea seemed absurd at first.|這個想法一開始看起來很荒謬。
+    adamant|adj.|堅決的|She was adamant that the report was correct.|她堅持報告是正確的。
+    aesthetic|adj./n.|美感的|The design has great aesthetic appeal.|這個設計很有美感。
+    agile|adj.|敏捷的|The startup is small and agile.|這家新創公司小而靈活。
+    amiable|adj.|和藹可親的|The receptionist was amiable and helpful.|接待員親切又熱心。
+    analogous|adj.|類似的|The situation is analogous to last year's crisis.|情況和去年的危機類似。
+    anonymous|adj.|匿名的|The survey is completely anonymous.|這份問卷完全匿名。
+    apprehensive|adj.|憂慮的|Staff are apprehensive about the merger.|員工對合併感到憂心。
+    astute|adj.|精明的|She is an astute businesswoman.|她是一位精明的女企業家。
+    audacious|adj.|大膽的|The company announced an audacious plan.|公司宣布了一個大膽的計畫。
+    auspicious|adj.|吉利的；順利的|The new store had an auspicious start.|新店有個好的開始。
+    austere|adj.|樸素的；嚴苛的|The government introduced austere budget measures.|政府推出了緊縮的預算措施。
+    avid|adj.|熱衷的|He is an avid reader of business books.|他非常愛讀商業書。
+    benevolent|adj.|仁慈的|The foundation was started by a benevolent donor.|這個基金會是一位善心人士創立的。
+    biased|adj.|有偏見的|The article was clearly biased.|這篇文章明顯帶有偏見。
+  `)),
+  deck('en.gold.bank.adj5', '🎨', '高階形容詞 ⑤', ADJ, enList(`
+    blatant|adj.|明目張膽的|It was a blatant violation of the rules.|這是公然違反規定。
+    buoyant|adj.|蓬勃的；有浮力的|The housing market remains buoyant.|房市依然熱絡。
+    chronic|adj.|慢性的；長期的|The company suffers from chronic staff shortages.|公司長期人手不足。
+    cumbersome|adj.|笨重的；繁瑣的|The old approval process was cumbersome.|舊的審核流程很繁瑣。
+    cursory|adj.|草率的；粗略的|He gave the report only a cursory glance.|他只草草看了一眼報告。
+    daunting|adj.|令人怯步的|Starting a business can be a daunting task.|創業可能是令人望而生畏的事。
+    deficient|adj.|不足的；有缺陷的|The audit found the safety system deficient.|稽核發現安全系統有缺失。
+    devoid|adj.|完全沒有的|The room was devoid of furniture.|房間裡空無家具。|※devoid of＝完全缺乏。
+    drastic|adj.|激烈的；大幅的|The company took drastic measures to cut costs.|公司採取激烈手段削減成本。
+    dubious|adj.|可疑的|The claims in the ad are dubious.|廣告裡的說法很可疑。
+    earnest|adj.|認真的；誠摯的|They made an earnest effort to fix the problem.|他們認真努力解決問題。
+    eccentric|adj.|古怪的|The founder was known as an eccentric genius.|創辦人以古怪的天才聞名。
+    elusive|adj.|難以捉摸的|Success remained elusive for the startup.|那家新創公司一直難以成功。
+    erratic|adj.|不穩定的|The machine's performance has been erratic.|機器的表現一直不穩定。
+    esteemed|adj.|受尊敬的|We welcome our esteemed guests.|歡迎各位貴賓。
+    exorbitant|adj.|過高的（價格）|The hotel charges exorbitant prices.|那家飯店收費過高。
+    expedient|adj.|權宜的|It was more expedient to hire a contractor.|請承包商比較方便省事。
+    fleeting|adj.|短暫的|The product enjoyed only fleeting popularity.|這項產品只紅了一陣子。
+    frugal|adj.|節儉的|The company is frugal with its budget.|公司對預算很節省。
+    futile|adj.|徒勞的|Further negotiation seemed futile.|再談判下去似乎是白費力氣。
+  `)),
+  deck('en.gold.bank.adj6', '🎨', '高階形容詞 ⑥', ADJ, enList(`
+    hypothetical|adj.|假設的|Let's consider a hypothetical situation.|我們來考慮一個假設的情況。
+    impeccable|adj.|無可挑剔的|The staff provided impeccable service.|員工提供了無可挑剔的服務。
+    impromptu|adj.|即興的|The manager gave an impromptu speech.|經理即興發表了一段談話。
+    inadvertent|adj.|不經意的|The error was inadvertent.|這個錯誤是無心造成的。
+    incessant|adj.|不停的|The incessant noise made it hard to work.|不停的噪音讓人很難工作。
+    indicative|adj.|顯示的；表明的|The rise in orders is indicative of strong demand.|訂單增加顯示需求強勁。
+    indifferent|adj.|漠不關心的|Customers were indifferent to the new design.|顧客對新設計不太在意。
+    innate|adj.|天生的|She has an innate talent for sales.|她天生就有銷售天分。
+    insolvent|adj.|無力償債的|The company was declared insolvent.|公司被宣告無力償債。
+    instrumental|adj.|起重要作用的|He was instrumental in closing the deal.|他在談成這筆交易中扮演關鍵角色。
+    intermittent|adj.|間歇的|There will be intermittent showers today.|今天會有間歇性陣雨。
+    judicious|adj.|明智的|A judicious use of resources saved money.|明智地運用資源省下了錢。
+    lavish|adj.|奢華的|The company held a lavish party for its anniversary.|公司為週年舉辦了奢華的派對。
+    lucid|adj.|清晰易懂的|She gave a lucid explanation of the plan.|她把計畫解釋得很清楚。
+    meager|adj.|微薄的|The workers received meager wages.|工人領著微薄的薪水。
+    mediocre|adj.|平庸的|The restaurant got mediocre reviews.|那家餐廳的評價很普通。
+    menial|adj.|卑微的；粗活的|Interns should not only do menial tasks.|實習生不應該只做雜事。
+    momentous|adj.|重大的|It was a momentous decision for the company.|這對公司是個重大的決定。
+    mundane|adj.|平凡的；日常的|Automation can handle mundane tasks.|自動化可以處理日常瑣事。
+    ominous|adj.|不祥的|There were ominous signs of a slowdown.|出現了經濟放緩的不祥徵兆。
+  `)),
+  deck('en.gold.bank.noun3', '🧩', '高階名詞 ③', NOUN, enList(`
+    acumen|n.|敏銳；精明|She is known for her business acumen.|她以敏銳的商業頭腦聞名。
+    affinity|n.|喜愛；親和力|Young people have an affinity for mobile apps.|年輕人偏愛手機 App。
+    allegation|n.|指控|The company denied the allegations.|公司否認了那些指控。
+    ambiguity|n.|模稜兩可|Please remove any ambiguity from the contract.|請消除合約中任何模稜兩可之處。
+    analogy|n.|類比|He used an analogy to explain the idea.|他用類比來解釋這個概念。
+    catalyst|n.|催化劑；促成因素|The new CEO was a catalyst for change.|新任執行長促成了改變。
+    cohesion|n.|凝聚力|Team building improves group cohesion.|團隊建立活動能提升凝聚力。
+    conjecture|n.|推測|The report is based on conjecture, not facts.|這份報告是根據推測，而非事實。
+    contention|n.|爭論；論點|The main point of contention was the price.|主要爭議點在價格。
+    conundrum|n.|難題|Finding enough staff is a real conundrum.|找到足夠的人手真是個難題。
+    dearth|n.|缺乏|There is a dearth of skilled workers.|缺乏技術工人。
+    deadlock|n.|僵局|The talks ended in deadlock.|談判陷入僵局。
+    deterrent|n.|嚇阻；遏止的事物|High fines act as a deterrent.|高額罰款有嚇阻作用。
+    dilemma|n.|兩難|The manager faced a difficult dilemma.|經理面臨兩難的抉擇。
+    disparity|n.|差距|There is a wide disparity in wages.|薪資差距很大。
+    exodus|n.|大批離開|The policy caused an exodus of talent.|這項政策造成人才大量出走。
+    facet|n.|方面|We considered every facet of the problem.|我們考慮了問題的每個面向。
+    fallacy|n.|謬誤|It is a fallacy that cheap products always sell better.|便宜的產品一定賣得比較好是個謬論。
+    fiasco|n.|慘敗|The product launch was a complete fiasco.|產品發表會徹底失敗。
+    foresight|n.|遠見|Thanks to her foresight, we avoided the problem.|多虧她的遠見，我們避開了問題。
+  `)),
+  deck('en.gold.bank.noun4', '🧩', '高階名詞 ④', NOUN, enList(`
+    hiatus|n.|中斷；暫停|The project resumed after a short hiatus.|計畫在短暫中斷後重新開始。
+    incidence|n.|發生率|The incidence of accidents has decreased.|事故發生率降低了。|※incident 是「事件」。
+    jargon|n.|術語；行話|Avoid using technical jargon with customers.|和顧客說話時避免用專業術語。
+    lapse|n./v.|失誤；（時間）流逝；失效|A lapse in security led to the data leak.|安全上的疏失導致資料外洩。
+    livelihood|n.|生計|Fishing is the main livelihood in the village.|捕魚是村裡主要的生計。
+    loophole|n.|漏洞|The new law closes a tax loophole.|新法堵住了一個稅務漏洞。
+    nuance|n.|細微差別|Translators must understand cultural nuance.|譯者必須了解文化上的細微差異。
+    onset|n.|開始（不好的事）|The onset of winter slowed construction.|入冬後施工變慢了。
+    paradox|n.|矛盾；悖論|It is a paradox that more choice can reduce sales.|選擇越多反而銷量越少，這是個矛盾。
+    pitfall|n.|陷阱；隱患|The guide explains common pitfalls for new managers.|這本指南說明新手主管常犯的錯誤。
+    plight|n.|困境|The article describes the plight of small farmers.|這篇文章描述小農的困境。
+    predicament|n.|窘境|The delay put us in a difficult predicament.|延誤讓我們陷入困境。
+    prestige|n.|聲望|The award brought prestige to the firm.|這個獎為公司帶來聲望。
+    proponent|n.|支持者|She is a strong proponent of remote work.|她是遠距工作的堅定支持者。
+    quandary|n.|困惑；為難|The board is in a quandary over the offer.|董事會對這項提議左右為難。
+    rationale|n.|理由；根據|Please explain the rationale for the decision.|請說明做這個決定的理由。
+    realm|n.|領域；範疇|This is outside the realm of our expertise.|這超出我們的專業範疇。
+    turmoil|n.|混亂|The market was in turmoil after the news.|消息傳出後市場一片混亂。
+    upheaval|n.|劇變|The merger caused major upheaval in the company.|合併在公司內引發巨大動盪。
+    windfall|n.|意外之財|The company used the windfall to pay off debt.|公司用這筆意外之財還清債務。
+  `)),
 ];

@@ -549,4 +549,180 @@ export const BLUE_BANK: Unit[] = [
     take part in|v.|參加|Everyone is welcome to take part in the event.|歡迎大家參加這場活動。
     look over|v.|瀏覽；檢查|Could you look over my report?|你可以幫我看一下報告嗎？
   `)),
+  deck('en.blue.bank.verbs5', '🏃', '進階動詞 ⑤', VERB, enList(`
+    appraise|v.|估價；評估|An expert will appraise the property next week.|專家下週會來評估房產價值。
+    assure|v.|向…保證|I assure you that the order will arrive on time.|我向您保證訂單會準時送達。|※assure＋人；ensure＋事情。
+    broaden|v.|擴大；拓寬|The company wants to broaden its customer base.|公司想擴大客群。
+    calibrate|v.|校準|Technicians calibrate the machines every month.|技術人員每月校準機器。
+    capitalize|v.|利用；資本化|We should capitalize on the growing demand.|我們應該好好利用不斷成長的需求。|※capitalize on＝利用（機會）。
+    cater|v.|迎合；承辦外燴|The hotel caters to business travelers.|這家飯店以商務旅客為主要客群。
+    cease|v.|停止|The factory will cease operations in May.|工廠將在五月停止營運。
+    certify|v.|證明；認證|The lab is certified to test food safety.|這間實驗室有食品安全檢驗的認證。
+    circulate|v.|傳閱；流通|Please circulate this memo to all staff.|請把這份備忘錄傳給所有員工。
+    conclude|v.|結束；得出結論|The meeting concluded at five.|會議在五點結束。
+    confine|v.|限制在…範圍內|Please confine your comments to the topic.|請把發言限制在主題內。
+    consult|v.|諮詢；查閱|Consult your doctor before taking this medicine.|服用此藥前請諮詢醫生。
+    contemplate|v.|考慮；沉思|The firm is contemplating a move to Singapore.|公司正在考慮搬到新加坡。
+    cultivate|v.|培養；耕種|Good managers cultivate strong teams.|好的主管會培養堅強的團隊。
+    demolish|v.|拆除|The old warehouse will be demolished next year.|舊倉庫明年會拆除。
+    deteriorate|v.|惡化|The road conditions deteriorated after the storm.|暴風雨後路況變差了。
+    deviate|v.|偏離|Do not deviate from the safety procedures.|不要偏離安全程序。
+    dispense|v.|分配；（機器）售出|The machine dispenses hot and cold drinks.|這台機器提供冷熱飲料。|※dispense with＝省去。
+    disrupt|v.|擾亂；使中斷|The strike disrupted train services.|罷工使火車服務中斷。
+    dominate|v.|主導；支配|Two companies dominate the market.|兩家公司主導這個市場。
+    eliminate|v.|消除；淘汰|The new system will eliminate paperwork.|新系統會免除紙本作業。
+    embark|v.|著手；登船|The company is embarking on a new project.|公司正著手進行一項新計畫。|※embark on＝開始（重大的事）。
+  `)),
+  deck('en.blue.bank.verbs6', '🏃', '進階動詞 ⑥', VERB, enList(`
+    embrace|v.|欣然接受；擁抱|Staff have embraced the new software.|員工欣然接受了新軟體。
+    emphasize|v.|強調|The CEO emphasized the need for teamwork.|執行長強調團隊合作的必要。
+    enlist|v.|爭取（幫助）；招募|We enlisted the help of a consultant.|我們請了一位顧問協助。
+    excel|v.|擅長；表現優異|She excels at negotiating with clients.|她很擅長和客戶談判。
+    exert|v.|施加（壓力、影響）|Rising costs exert pressure on small businesses.|成本上升對小企業造成壓力。
+    extract|v./n.|提取；摘錄|The software extracts data from the forms.|軟體會從表單中擷取資料。
+    fluctuate|v.|波動|Fuel prices fluctuate from week to week.|油價每週都在波動。
+    illustrate|v.|說明；畫插圖|The chart illustrates last year's sales.|這張圖說明了去年的銷售。
+    innovate|v.|創新|Companies must innovate to stay competitive.|企業必須創新才能保持競爭力。
+    integrate|v.|整合|We will integrate the two systems.|我們會整合這兩套系統。
+    maximize|v.|使最大化|The new layout maximizes storage space.|新的配置讓收納空間最大化。
+    mediate|v.|調解|A third party was asked to mediate the dispute.|請了第三方來調解糾紛。
+    minimize|v.|使減到最少|Back up your files to minimize the risk of data loss.|備份檔案，把資料遺失的風險降到最低。
+    motivate|v.|激勵|Bonuses motivate employees to work harder.|獎金激勵員工更努力工作。
+    nurture|v.|培育；養育|The program nurtures young talent.|這個計畫培育年輕人才。
+    optimize|v.|最佳化|We need to optimize our website for mobile users.|我們需要針對手機使用者優化網站。
+    perceive|v.|察覺；認為|Customers perceive the brand as reliable.|顧客認為這個品牌很可靠。
+    persist|v.|持續；堅持|If the problem persists, contact technical support.|如果問題持續，請聯絡技術支援。
+    pertain|v.|與…有關|The questions pertain to the new policy.|這些問題與新政策有關。|※pertain to＝relate to。
+    pinpoint|v.|準確找出|Engineers are trying to pinpoint the cause of the failure.|工程師正試著找出故障原因。
+    pioneer|v./n.|開創；先驅|The company pioneered online banking in Asia.|這家公司在亞洲首創網路銀行。
+    plummet|v.|暴跌|Sales plummeted after the recall.|召回之後銷售暴跌。
+  `)),
+  deck('en.blue.bank.verbs7', '🏃', '進階動詞 ⑦', VERB, enList(`
+    possess|v.|擁有|Applicants must possess a valid driver's license.|應徵者必須持有有效的駕照。
+    refine|v.|改進；提煉|We refined the design based on user feedback.|我們根據使用者回饋改良了設計。
+    restore|v.|恢復；修復|Power was restored after two hours.|兩小時後恢復供電。
+    restrain|v.|抑制；約束|The government is trying to restrain inflation.|政府正試圖抑制通膨。
+    speculate|v.|推測；投機|Analysts speculate that the firm will be sold.|分析師推測這家公司會被出售。
+    withstand|v.|承受；抵擋|The building can withstand strong earthquakes.|這棟建築能承受強烈地震。
+    accelerate|v.|加速|We need to accelerate the approval process.|我們需要加快審核流程。
+    align|v.|使一致；對齊|Our goals must align with the company's strategy.|我們的目標必須和公司策略一致。
+    convert|v.|轉換；改裝|The old factory was converted into apartments.|舊工廠被改建成公寓。
+    devote|v.|奉獻；專用於|She devotes her weekends to volunteer work.|她把週末都投入志工服務。|※devote to＋V-ing。
+    govern|v.|管理；規範|Strict rules govern the use of client data.|客戶資料的使用受嚴格規範管理。
+    overlap|v./n.|重疊|The two meetings overlap by thirty minutes.|兩場會議重疊了三十分鐘。
+    override|v.|推翻；凌駕|Safety concerns override cost considerations.|安全考量優先於成本考量。
+    thrive|v.|興旺；茁壯|Small businesses thrive in this neighborhood.|小型商家在這一區生意興隆。
+    warrant|v./n.|使有正當理由；保證書|The results warrant further study.|這些結果值得進一步研究。
+    salvage|v./n.|搶救|The team managed to salvage most of the data.|團隊設法搶救了大部分資料。
+    simulate|v.|模擬|The program simulates real flight conditions.|這個程式模擬真實的飛行狀況。
+    solidify|v.|鞏固；凝固|The deal will solidify our position in Asia.|這筆交易會鞏固我們在亞洲的地位。
+    subsidize|v.|補貼|The city subsidizes public transportation.|市政府補貼大眾運輸。
+    summon|v.|召集；傳喚|The manager summoned the team to a meeting.|經理召集團隊開會。
+    recount|v.|敘述；重新計算|He recounted his experience in Japan.|他講述了他在日本的經歷。
+    replicate|v.|複製；重現|Other labs could not replicate the results.|其他實驗室無法重現這些結果。
+  `)),
+  deck('en.blue.bank.adj5', '🎨', '進階形容詞 ⑤', ADJ, enList(`
+    accountable|adj.|負責的；有責任交代的|Managers are accountable for their team's results.|主管要為團隊的成果負責。
+    ambitious|adj.|有雄心的|The company has ambitious plans for expansion.|公司有宏大的擴張計畫。
+    compulsory|adj.|強制的|Attendance at the safety training is compulsory.|安全訓練必須參加。
+    conspicuous|adj.|顯眼的|Place the sign in a conspicuous location.|把告示放在顯眼的地方。
+    credible|adj.|可信的|We need credible data to support the claim.|我們需要可信的數據來支持這個說法。
+    deliberate|adj./v.|刻意的；深思熟慮的|It was a deliberate decision to delay the launch.|延後上市是刻意的決定。
+    distinct|adj.|明顯的；不同的|There is a distinct difference between the two models.|兩款型號有明顯的差別。
+    dynamic|adj.|充滿活力的|We are looking for a dynamic sales manager.|我們正在找一位有活力的業務經理。
+    equivalent|adj./n.|相等的；等值物|The fee is equivalent to one month's rent.|這筆費用相當於一個月的房租。
+    exhaustive|adj.|詳盡的|The report includes an exhaustive list of suppliers.|報告附有詳盡的供應商名單。
+    incremental|adj.|逐步增加的|We made incremental improvements to the product.|我們逐步改良產品。
+    influential|adj.|有影響力的|She is one of the most influential leaders in the industry.|她是業界最有影響力的領袖之一。
+    intuitive|adj.|直覺的；易懂的|The app has an intuitive design.|這個 App 的設計很直覺好用。
+    negligible|adj.|微不足道的|The difference in price is negligible.|價差微乎其微。
+    noteworthy|adj.|值得注意的|The most noteworthy change is the new logo.|最值得注意的改變是新標誌。
+    prevalent|adj.|普遍的|Remote work is now prevalent in the tech industry.|遠距工作現在在科技業很普遍。
+    provisional|adj.|暫時的|This is a provisional schedule.|這是暫定的行程表。
+    remarkable|adj.|非凡的|The team made remarkable progress this year.|團隊今年進步驚人。
+    sizable|adj.|相當大的|The company made a sizable donation.|公司捐了一大筆錢。
+    superb|adj.|極好的|The hotel offers superb service.|這家飯店的服務一流。
+    voluntary|adj.|自願的|Participation in the survey is voluntary.|參加問卷調查是自願的。
+    widespread|adj.|廣泛的|The new policy received widespread support.|新政策獲得廣泛支持。
+    cautious|adj.|謹慎的|Investors are cautious about the market.|投資人對市場持謹慎態度。
+  `)),
+  deck('en.blue.bank.adj6', '🎨', '進階形容詞 ⑥', ADJ, enList(`
+    competent|adj.|能幹的；勝任的|We need a competent accountant.|我們需要一位能幹的會計。
+    constructive|adj.|建設性的|Thank you for your constructive feedback.|謝謝您有建設性的回饋。
+    gradual|adj.|逐漸的|There has been a gradual increase in sales.|銷售逐漸增加。
+    precise|adj.|精確的|Please give precise measurements.|請提供精確的尺寸。
+    timely|adj.|及時的|Thank you for your timely reply.|謝謝您及時回覆。|※timely 是形容詞，不是副詞。
+    vague|adj.|模糊的|The instructions were too vague.|說明太含糊了。
+    vulnerable|adj.|易受傷害的|Old computers are vulnerable to viruses.|舊電腦容易中毒。
+    hectic|adj.|忙亂的|It was a hectic week at the office.|這週辦公室忙翻了。
+    hostile|adj.|敵意的|The company rejected the hostile takeover.|公司拒絕了惡意收購。
+    idle|adj.|閒置的|The machines were idle during the holiday.|假期間機器都閒置著。
+    immense|adj.|巨大的|The project requires an immense amount of work.|這個計畫需要龐大的工作量。
+    refundable|adj.|可退款的|The deposit is fully refundable.|押金可全額退還。
+    seamless|adj.|順暢無縫的|We want a seamless transition to the new system.|我們希望順利無縫地轉換到新系統。
+    sole|adj.|唯一的|He is the sole owner of the company.|他是公司唯一的老闆。
+    upscale|adj.|高檔的|The hotel is in an upscale neighborhood.|飯店位於高級住宅區。
+    flawless|adj.|完美無瑕的|Her presentation was flawless.|她的簡報完美無缺。
+    definitive|adj.|最終的；權威的|We will give you a definitive answer next week.|我們下週會給您最終答覆。
+    culinary|adj.|烹飪的|The hotel is known for its culinary excellence.|這家飯店以廚藝聞名。
+    diplomatic|adj.|圓滑的；外交的|She gave a diplomatic answer.|她給了一個圓滑的回答。
+    ethical|adj.|道德的|The company follows strict ethical standards.|公司遵守嚴格的道德標準。
+    rational|adj.|理性的|We need a rational approach to the problem.|我們需要理性地處理這個問題。
+    trivial|adj.|瑣碎的|Don't waste time on trivial details.|不要浪費時間在瑣碎細節上。
+    subtle|adj.|細微的|There are subtle differences between the two colors.|兩個顏色有細微差異。|※b 不發音。
+  `)),
+  deck('en.blue.bank.noun5', '🧩', '進階名詞 ⑤', NOUN, enList(`
+    accreditation|n.|認證|The school received accreditation last year.|這所學校去年獲得認證。
+    anticipation|n.|期待；預期|Sales rose in anticipation of the holiday season.|因為預期假期旺季，銷售上升。
+    concession|n.|讓步；特許經營|Both sides made concessions during the talks.|雙方在談判中都做了讓步。
+    constraint|n.|限制|Budget constraints delayed the project.|預算限制延誤了計畫。
+    contribution|n.|貢獻；捐款|Thank you for your contribution to the project.|謝謝您對這個計畫的貢獻。
+    criterion|n.|標準|Price is not the only criterion.|價格不是唯一的標準。|※複數 criteria。
+    critique|n./v.|評論|The editor wrote a detailed critique of the book.|編輯寫了一篇詳細的書評。
+    curriculum|n.|課程|The training curriculum includes safety and sales.|訓練課程包含安全與銷售。
+    depreciation|n.|折舊；貶值|Depreciation reduces the value of the equipment.|折舊會降低設備的價值。
+    designation|n.|指定；名稱|The area has a historic designation.|這一區被指定為歷史保存區。
+    disclosure|n.|揭露；公開|The law requires full disclosure of fees.|法律要求費用完全公開。
+    drawback|n.|缺點|The main drawback is the high price.|主要的缺點是價格太高。
+    entrepreneur|n.|企業家；創業者|She is a young entrepreneur in the food industry.|她是食品業的年輕創業家。
+    framework|n.|架構|The plan provides a framework for growth.|這個計畫提供了成長的架構。
+    innovation|n.|創新|The company is known for innovation.|這家公司以創新聞名。
+    negligence|n.|疏忽|The accident was caused by negligence.|事故是疏忽造成的。
+    parameter|n.|參數；限定範圍|We must work within the budget parameters.|我們必須在預算範圍內工作。
+    patent|n.|專利|The company holds a patent on the design.|公司擁有這項設計的專利。
+    perception|n.|看法；感知|Customer perception of the brand has improved.|顧客對品牌的觀感改善了。
+    precedent|n.|先例|There is no precedent for such a large order.|這麼大的訂單沒有先例。
+    premise|n.|前提；（複數）場所|Smoking is not allowed on the premises.|場所內禁止吸菸。
+    remittance|n.|匯款|Please send your remittance by the end of the month.|請在月底前匯款。
+    scrutiny|n.|詳細審查|The budget is under close scrutiny.|預算正受到嚴格審查。
+    setback|n.|挫折；阻礙|The delay was a major setback for the project.|延誤是這個計畫的一大挫折。
+    transition|n.|轉變；過渡|The transition to the new system went smoothly.|轉換到新系統很順利。
+  `)),
+  deck('en.blue.bank.noun6', '🧩', '進階名詞 ⑥', NOUN, enList(`
+    consequence|n.|後果|Late payment may have serious consequences.|延遲付款可能會有嚴重後果。
+    credential|n.|資歷證明；憑證|Please bring your credentials to the interview.|面試請攜帶資歷證明。
+    cutback|n.|削減|Budget cutbacks led to fewer staff.|預算削減導致人手減少。
+    downside|n.|缺點；不利的一面|The downside of the plan is the cost.|這個計畫的缺點是成本。
+    implication|n.|影響；含意|The new law has major implications for our business.|新法對我們的業務有重大影響。
+    legacy|n.|遺產；傳承|The founder left a strong legacy.|創辦人留下了深遠的影響。
+    overview|n.|概述|The report gives an overview of the market.|報告概述了市場狀況。
+    scenario|n.|情境；方案|In the worst scenario, we will lose the contract.|最糟的情況下我們會失去合約。
+    utility|n.|公用事業（水電瓦斯）；實用|Rent includes utilities.|房租包含水電瓦斯費。
+    forum|n.|論壇|The company held a forum on workplace safety.|公司舉辦了職場安全論壇。
+    interval|n.|間隔|Buses run at fifteen minute intervals.|公車每十五分鐘一班。
+    outage|n.|停電；服務中斷|The power outage lasted three hours.|停電持續了三小時。
+    rebate|n.|退款；折扣|You can get a rebate on energy saving appliances.|購買節能家電可以退款。
+    referral|n.|推薦；轉介|Most of our new clients come from referrals.|我們大部分新客戶來自推薦。
+    mileage|n.|里程數；（好處）|The rental car has unlimited mileage.|這輛租車不限里程。
+    stockpile|n./v.|儲備|The factory has a stockpile of raw materials.|工廠囤有一批原料。
+    surge|n./v.|激增|There was a surge in online orders.|線上訂單激增。
+    tradeoff|n.|取捨；權衡|There is a tradeoff between speed and quality.|速度和品質之間需要取捨。|※也寫作 trade-off。
+    etiquette|n.|禮儀|Business etiquette varies from country to country.|商務禮儀因國家而異。
+    ethics|n.|倫理；道德規範|The company has a strict code of ethics.|公司有嚴格的道德規範。
+    fraud|n.|詐欺|The bank detected credit card fraud.|銀行偵測到信用卡詐騙。
+    bias|n.|偏見；偏差|The survey results show a clear bias.|調查結果顯示明顯的偏差。
+    domain|n.|領域；網域|Data security is his domain.|資料安全是他的專業領域。
+    magnitude|n.|規模；重大|We did not expect a problem of this magnitude.|我們沒料到問題這麼嚴重。
+    memorandum|n.|備忘錄|A memorandum was sent to all departments.|一份備忘錄已發給所有部門。|※常簡稱 memo；複數 memoranda。
+  `)),
 ];
