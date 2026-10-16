@@ -1,13 +1,18 @@
 // 課程內容的完整性檢查。之後新增 N4、棕色證書等內容時，這些測試能抓出常見的筆誤。
 import { describe, expect, it } from 'vitest';
 import { COURSE_LIST } from '../src/content/all';
-import type { Course, Item, Unit } from '../src/core/types';
+import { moreTable } from '../src/content/dsl';
+import { JA_MORE } from '../src/content/ja-more';
+import type { Course, Example, Item, LangId, Unit, VocabItem } from '../src/core/types';
+import { corpusOfCourse, examplesOf } from '../src/engine/examples';
 import { isVocab } from '../src/engine/exercises';
 import { furiKana, furiPlain } from '../src/engine/furigana';
 
 const units = (c: Course): Unit[] => c.stages.flatMap((s) => s.units);
 const items = (c: Course): Item[] => units(c).flatMap((u) => u.items);
 const byLang = (id: string) => COURSE_LIST.find((c) => c.id === id)!;
+/** 單字自己的例句與更多例句 */
+const exsOf = (it: VocabItem): Example[] => [it.ex, ...(it.more ?? [])].filter((e): e is Example => !!e);
 
 // 允許出現在讀音裡的非假名字元
 const KANA_OK = /^[ぁ-ゖァ-ヺー、。？！?!0-9A-Za-z\s]+$/;
@@ -97,11 +102,35 @@ describe('項目內容', () => {
         if (!isVocab(it)) continue;
         expect(it.w.trim(), it.id).toBe(it.w);
         expect(it.m.length, it.id).toBeGreaterThan(0);
-        if (it.ex) {
-          expect(it.ex.s.length, it.id).toBeGreaterThan(0);
-          expect(it.ex.t.length, it.id).toBeGreaterThan(0);
+        for (const e of exsOf(it)) {
+          expect(e.s.length, it.id).toBeGreaterThan(0);
+          expect(e.t.length, it.id).toBeGreaterThan(0);
         }
       }
+    }
+  });
+
+  it('補充例句表的原文都對得到單字（打錯字的話例句會默默接不上）', () => {
+    const tables: [LangId, string][] = [['ja', JA_MORE]];
+    for (const [lang, text] of tables) {
+      const keys = new Set(items(byLang(lang)).filter(isVocab).map((it) => (lang === 'ja' ? (it.furi ?? it.w) : it.w)));
+      for (const k of moreTable(text).keys()) expect(keys.has(k), `${lang}：${k}`).toBe(true);
+    }
+  });
+
+  it('學習路線上的日文單字都有三句例句（答對時隨機挑一句顯示）', () => {
+    for (const lang of ['ja'] as LangId[]) {
+      const c = byLang(lang);
+      const corpus = corpusOfCourse(c);
+      const few: string[] = [];
+      for (const st of c.stages) {
+        if (st.style === 'town') continue;
+        for (const u of st.units) {
+          if (u.bank) continue;
+          for (const it of u.items) if (isVocab(it) && it.kind === 'word' && examplesOf(it, lang, corpus).length < 3) few.push(it.id);
+        }
+      }
+      expect(few, lang).toEqual([]);
     }
   });
 
@@ -140,7 +169,7 @@ describe('項目內容', () => {
           expect(it.r!, it.id).toMatch(KANA_OK);
         }
         check(it.furi ?? it.w, it.id);
-        if (it.ex) check(it.ex.furi ?? it.ex.s, `${it.id} 例句`);
+        for (const e of exsOf(it)) check(e.furi ?? e.s, `${it.id} 例句`);
         for (const t of it.tokens ?? []) check(t, `${it.id} 分詞`);
       } else if (it.kind === 'sentence') {
         check(it.furi ?? it.s, it.id);
@@ -163,7 +192,7 @@ describe('項目內容', () => {
       if (!isVocab(it)) continue;
       expect(it.w, it.id).toMatch(HANGUL_OK);
       expect(it.rm, it.id).toMatch(/^[a-z' ]+$/);
-      if (it.ex) expect(it.ex.s, it.id).toMatch(/[가-힣]/);
+      for (const e of exsOf(it)) expect(e.s, it.id).toMatch(/[가-힣]/);
     }
   });
 
@@ -174,6 +203,7 @@ describe('項目內容', () => {
       // 取字根前幾個字母比對，容許 leave → leaves、delay → delayed 之類的變化
       const stem = it.w.slice(0, Math.max(3, it.w.length - 2));
       expect(it.ex?.s.toLowerCase(), it.id).toContain(stem);
+      for (const e of it.more ?? []) expect(e.s.toLowerCase(), `${it.id} 更多例句`).toContain(stem);
     }
   });
 });

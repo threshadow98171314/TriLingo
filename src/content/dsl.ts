@@ -145,6 +145,44 @@ export function koList(text: string): VocabItem[] {
   });
 }
 
+// ───────── 補充例句表 ─────────
+
+/**
+ * 補充例句表：一行一個「原文|例句|翻譯|例句2|翻譯2…」，「#」開頭的行是分段標題。
+ * 原文要和單字的寫法一模一樣（日文含讀音標註，例如 冷[ひ]やす）。
+ */
+export function moreTable(text: string): Map<string, string[]> {
+  const body = text
+    .split('\n')
+    .filter((l) => !l.trim().startsWith('#'))
+    .join('\n');
+  const out = new Map<string, string[]>();
+  for (const [key, ...f] of rows(body, 3)) {
+    if (f.length % 2) throw new Error(`例句和翻譯要成對：${key}`);
+    const exs: string[] = [];
+    for (let i = 0; i < f.length; i += 2) exs.push(`${f[i]}|${f[i + 1]}`);
+    out.set(key, [...(out.get(key) ?? []), ...exs]);
+  }
+  return out;
+}
+
+/**
+ * 把補充例句接到各單元裡同一個字的「更多例句」後面（答對時隨機挑一句顯示）。
+ * 只加例句、不動單字本身，所以 id 與學習進度不受影響。
+ */
+export function attachMore(units: Iterable<Unit[]>, table: Map<string, string[]>, isJa: boolean): void {
+  const done = new Set<VocabItem>();
+  for (const list of units)
+    for (const u of list)
+      for (const it of u.items) {
+        if (it.kind !== 'word' && it.kind !== 'phrase') continue;
+        if (done.has(it)) continue;
+        done.add(it);
+        const extra = parseMore(table.get(isJa ? (it.furi ?? it.w) : it.w), isJa);
+        if (extra) it.more = [...(it.more ?? []), ...extra];
+      }
+}
+
 /** 字母。spec 寫成「字 拼音|其他可接受輸入」，例如 'し shi|si' */
 export function ch(spec: string, o: { note?: string; say?: string; sound?: string } = {}): VocabItem {
   const [w, rest] = spec.split(' ');
