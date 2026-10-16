@@ -401,7 +401,7 @@ export function finishLesson(a: { lang: LangId; unit: Unit; lesson: Lesson; stat
   return out;
 }
 
-export type GameId = 'review' | 'crossword' | 'match' | 'blitz' | 'listen' | 'typing' | 'truefalse' | 'memory' | 'pics' | 'sort';
+export type GameId = 'review' | 'crossword' | 'match' | 'blitz' | 'listen' | 'typing' | 'truefalse' | 'memory' | 'pics' | 'sort' | 'duel' | 'wordle' | 'chain';
 
 export function finishGame(a: {
   lang: LangId;
@@ -415,6 +415,10 @@ export function finishGame(a: {
   seconds?: number;
   maxCombo?: number;
   daily?: boolean;
+  /** 額外給的金幣（卡牌對決通關等） */
+  coins?: number;
+  /** 卡牌對決通關、接龍對戰獲勝、猜詞猜中 */
+  win?: boolean;
 }): Outcome {
   let out!: Outcome;
   mutate((d) => {
@@ -460,6 +464,28 @@ export function finishGame(a: {
         record = (d.best.tf[a.lang] ?? 0) > 0;
         d.best.tf[a.lang] = score;
       }
+    } else if (a.game === 'duel') {
+      d.stats.duels++;
+      if (a.win) d.stats.duelWins++;
+      const floor = a.score ?? 0;
+      if (floor > (d.best.duel[a.lang] ?? 0)) {
+        record = (d.best.duel[a.lang] ?? 0) > 0;
+        d.best.duel[a.lang] = floor;
+      }
+    } else if (a.game === 'chain') {
+      d.stats.chains++;
+      if (a.win) d.stats.chainWins++;
+      const score = a.score ?? 0;
+      if (score > (d.best.chain[a.lang] ?? 0)) {
+        record = (d.best.chain[a.lang] ?? 0) > 0;
+        d.best.chain[a.lang] = score;
+      }
+    } else if (a.game === 'wordle') {
+      if (a.win) d.stats.wordles++;
+      if (a.daily && !log.dailyWordle?.[a.lang]) {
+        log.dailyWordle = { ...log.dailyWordle, [a.lang]: true };
+        if (a.win) parts.push(['每日猜詞獎勵', 15]);
+      }
     } else if (a.game === 'memory') {
       d.stats.memories++;
       const best = d.best.memory[a.lang];
@@ -475,6 +501,10 @@ export function finishGame(a: {
       d.stats.maxCombo = Math.max(d.stats.maxCombo, a.maxCombo);
     }
     const reward = grantXp(d, a.lang, total(parts));
+    if (a.coins) {
+      addCoins(d, a.coins);
+      reward.coins += a.coins;
+    }
     out = { reward, parts, stars: 0, passed: true, first: false, chest: 0, record, perfect: false, lucky: false, golden: false };
   });
   return out;

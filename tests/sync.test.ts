@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mergeSaves } from '../src/core/merge';
-import { defaultSave, emptyDay, type Save } from '../src/core/save';
+import { defaultSave, emptyDay, migrate, type Save } from '../src/core/save';
 
 const base = (patch: Partial<Save> = {}): Save => ({ ...defaultSave(1000), ...patch });
 const item = (s: number, t: number, ok = 1, ng = 0) => ({ s, due: 100, ok, ng, t });
@@ -81,6 +81,35 @@ describe('存檔合併', () => {
     expect(m.claimed?.sort()).toEqual(['lessons', 'xp']);
     expect(m.dailyCw).toEqual({ en: true });
     expect(m.goal).toBe(true);
+  });
+
+  it('挑戰型遊戲：卡牌對決層數、接龍最高分取較大值，每日猜詞兩邊都保留', () => {
+    const a = base();
+    a.best.duel = { en: 3, ja: 10, ko: 0 };
+    a.best.chain = { en: 0, ja: 120, ko: 0 };
+    a.stats.duels = 4;
+    a.days = { '2026-10-17': { ...emptyDay(), dailyWordle: { ja: true } } };
+    const b = base();
+    b.best.duel = { en: 7, ja: 2, ko: 1 };
+    b.best.chain = { en: 50, ja: 80, ko: 0 };
+    b.stats.duels = 2;
+    b.days = { '2026-10-17': { ...emptyDay(), dailyWordle: { en: true } } };
+    const m = mergeSaves(a, b);
+    expect(m.best.duel).toEqual({ en: 7, ja: 10, ko: 1 });
+    expect(m.best.chain).toEqual({ en: 50, ja: 120, ko: 0 });
+    expect(m.stats.duels).toBe(4);
+    expect(m.days['2026-10-17'].dailyWordle).toEqual({ ja: true, en: true });
+  });
+
+  it('舊存檔沒有新遊戲的紀錄：讀進來時補上預設值', () => {
+    const old = JSON.parse(JSON.stringify(defaultSave(1000)));
+    delete old.best.duel;
+    delete old.best.chain;
+    delete old.stats.duels;
+    const s = migrate(old, 2000);
+    expect(s.best.duel).toEqual({ en: 0, ja: 0, ko: 0 });
+    expect(s.best.chain).toEqual({ en: 0, ja: 0, ko: 0 });
+    expect(s.stats.duels).toBe(0);
   });
 
   it('自己貼的歌詞：每首歌取最後修改的那份；自己加的歌兩邊都保留', () => {

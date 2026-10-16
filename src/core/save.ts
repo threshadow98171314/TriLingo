@@ -46,6 +46,8 @@ export interface DayLog {
   /** 這天沒學習，靠連勝保護撐住 */
   frozen?: boolean;
   dailyCw?: Partial<Record<LangId, boolean>>;
+  /** 每日猜詞完成了沒 */
+  dailyWordle?: Partial<Record<LangId, boolean>>;
   /** 已領取獎勵的任務 id */
   claimed?: string[];
   chest?: boolean;
@@ -104,6 +106,14 @@ export interface Stats {
   sorts: number;
   /** 完成觀念講堂文章（含小測驗）的次數 */
   concepts: number;
+  /** 單字卡牌對決：結束的冒險次數、通關次數 */
+  duels: number;
+  duelWins: number;
+  /** 猜詞：猜中的次數 */
+  wordles: number;
+  /** 接龍對戰：玩完的場數、贏的場數 */
+  chains: number;
+  chainWins: number;
 }
 
 /** 道具庫存（連勝保護在 streak.freezes、雙倍 XP 在 boostUntil） */
@@ -158,6 +168,10 @@ export interface Save {
     memory: Partial<Record<LangId, number>>;
     /** 真假快判：最高分 */
     tf: Record<LangId, number>;
+    /** 單字卡牌對決：抵達的最高層數（通關為 10） */
+    duel: Record<LangId, number>;
+    /** 接龍對戰：最高分 */
+    chain: Record<LangId, number>;
   };
   /** 各語言上次停留的關卡 */
   stage: Partial<Record<LangId, string>>;
@@ -245,8 +259,13 @@ export function defaultSave(now: number): Save {
       pics: 0,
       sorts: 0,
       concepts: 0,
+      duels: 0,
+      duelWins: 0,
+      wordles: 0,
+      chains: 0,
+      chainWins: 0,
     },
-    best: { blitz: { en: 0, ja: 0, ko: 0 }, match: {}, memory: {}, tf: { en: 0, ja: 0, ko: 0 } },
+    best: { blitz: { en: 0, ja: 0, ko: 0 }, match: {}, memory: {}, tf: { en: 0, ja: 0, ko: 0 }, duel: { en: 0, ja: 0, ko: 0 }, chain: { en: 0, ja: 0, ko: 0 } },
     stage: {},
     prefsAt: 0,
     coinsAt: 0,
@@ -273,7 +292,14 @@ export function migrate(raw: unknown, now: number): Save {
     xp: { ...d.xp, ...x.xp },
     streak: { ...d.streak, ...x.streak },
     stats: { ...d.stats, ...x.stats },
-    best: { blitz: { ...d.best.blitz, ...x.best?.blitz }, match: { ...x.best?.match }, memory: { ...x.best?.memory }, tf: { ...d.best.tf, ...x.best?.tf } },
+    best: {
+      blitz: { ...d.best.blitz, ...x.best?.blitz },
+      match: { ...x.best?.match },
+      memory: { ...x.best?.memory },
+      tf: { ...d.best.tf, ...x.best?.tf },
+      duel: { ...d.best.duel, ...x.best?.duel },
+      chain: { ...d.best.chain, ...x.best?.chain },
+    },
     days: x.days ?? {},
     lessons: x.lessons ?? {},
     items: x.items ?? {},

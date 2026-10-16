@@ -7,6 +7,7 @@ import { initEggs } from './core/eggs';
 import { initStore } from './core/store';
 import './styles.css';
 import './fx.css';
+import './games.css';
 
 initStore();
 initCloud();

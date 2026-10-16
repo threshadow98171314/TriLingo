@@ -361,6 +361,16 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
       hot: due > 0,
     },
     {
+      icon: '⚔️',
+      title: '單字卡牌對決',
+      desc: '回合制卡牌冒險：用學過的單字組牌組、一路打上 10 層。出牌前要答對牌上的字，連對 3 題會心一擊；看怪物的意圖決定攻守，挑牌、升級、收集遺物。',
+      to: `/l/${lang}/play/duel`,
+      need: UNLOCK.duel,
+      have: words,
+      badge: (s.best.duel?.[lang] ?? 0) >= 10 ? '已通關 👑' : (s.best.duel?.[lang] ?? 0) > 0 ? `最高第 ${s.best.duel[lang]} 層` : '新・挑戰',
+      hot: s.stats.duels === 0 && words >= UNLOCK.duel,
+    },
+    {
       icon: '🧩',
       title: '填字遊戲',
       desc: '看中文提示，把學過的單字填進交叉的格子裡。每次都是新的盤面。',

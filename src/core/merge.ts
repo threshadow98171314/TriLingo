@@ -43,6 +43,9 @@ function mergeDay(a: DayLog, b: DayLog): DayLog {
   const cw = { ...a.dailyCw };
   for (const l of LANGS) if (b.dailyCw?.[l]) cw[l] = true;
   if (Object.keys(cw).length) out.dailyCw = cw;
+  const wd = { ...a.dailyWordle };
+  for (const l of LANGS) if (b.dailyWordle?.[l]) wd[l] = true;
+  if (Object.keys(wd).length) out.dailyWordle = wd;
   const claimed = union(a.claimed, b.claimed);
   if (claimed.length) out.claimed = claimed;
   return out;
@@ -120,7 +123,14 @@ export function mergeSaves(a: Save, b: Save): Save {
     mocks: mergeRecord(a.mocks, b.mocks, pickMock),
     guide: mergeRecord(a.guide, b.guide, Math.min),
     stats: maxKeys(a.stats, b.stats),
-    best: { blitz: maxKeys(a.best.blitz, b.best.blitz), match: fastest(a.best.match, b.best.match), memory: fastest(a.best.memory, b.best.memory), tf: maxKeys(a.best.tf, b.best.tf) },
+    best: {
+      blitz: maxKeys(a.best.blitz, b.best.blitz),
+      match: fastest(a.best.match, b.best.match),
+      memory: fastest(a.best.memory, b.best.memory),
+      tf: maxKeys(a.best.tf, b.best.tf),
+      duel: maxKeys(a.best.duel, b.best.duel),
+      chain: maxKeys(a.best.chain, b.best.chain),
+    },
     // 外觀只增不減；穿戴取最後修改設定的那份；道具和金幣一起取最後變動的那份；貼紙張數取較大值
     owned: union(a.owned, b.owned),
     equip: prefs.equip,

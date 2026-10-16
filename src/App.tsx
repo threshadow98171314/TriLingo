@@ -12,6 +12,7 @@ import { useSave } from './core/store';
 import { LANGS, type LangId } from './core/types';
 import { ArtGallery } from './pages/ArtGallery';
 import { BlitzPage } from './pages/Blitz';
+import { CardDuelPage } from './pages/CardDuel';
 import { CrosswordPage } from './pages/Crossword';
 import { ConceptPage, ConceptQuizPage } from './pages/Concepts';
 import { PicturesPage, SortPage } from './pages/FunGames';
@@ -82,6 +83,7 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
       case 'play':
         if (p[3] === 'crossword') return gated(<CrosswordPage lang={lang} daily={route.query.get('daily') === '1'} />);
         if (p[3] === 'match') return gated(<MatchPage lang={lang} />);
+        if (p[3] === 'duel') return gated(<CardDuelPage lang={lang} />);
         if (p[3] === 'blitz') return gated(<BlitzPage lang={lang} />);
         if (p[3] === 'listen') return gated(<ListenPage lang={lang} />);
         if (p[3] === 'typing' && lang !== 'en') return gated(<TypingPage lang={lang} />);

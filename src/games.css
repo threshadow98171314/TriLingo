@@ -1,0 +1,677 @@
+/* 挑戰型遊戲的樣式：單字卡牌對決、猜詞、接龍對戰 */
+
+/* ───────── 單字卡牌對決 ───────── */
+.duel {
+  --atk: #ff6b81;
+  --def: #5aa9ff;
+  --skill: #3fd39a;
+  --power: #b48cff;
+}
+.duel-top .combo {
+  cursor: pointer;
+}
+.dfloors {
+  display: flex;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dfloors li {
+  flex: 1;
+  min-width: 0;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--card-2);
+  font-size: 0.66rem;
+  color: var(--muted);
+}
+.dfloors li.done {
+  background: color-mix(in srgb, var(--lang) 45%, var(--card));
+  color: #fff;
+}
+.dfloors li.now {
+  background: var(--lang);
+  color: #fff;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--lang) 70%, transparent);
+}
+.duel-bar {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 16px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-weight: 800;
+}
+.duel-relics {
+  display: flex;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-size: 1.1rem;
+}
+.duel-body {
+  flex: 1;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 4px 12px 24px;
+  display: flex;
+  flex-direction: column;
+}
+.duel-panel {
+  padding: 22px 18px;
+  text-align: center;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+.duel-panel h2 {
+  margin: 0;
+}
+.duel-panel p {
+  margin: 0;
+  line-height: 1.7;
+}
+.duel-big-icon {
+  font-size: 3rem;
+  line-height: 1;
+  animation: bump 0.4s both;
+}
+.duel-nodes {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.duel-node {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  padding: 18px 14px;
+  border: 2px solid var(--line);
+  text-align: center;
+  transition:
+    transform 0.12s,
+    border-color 0.12s;
+}
+.duel-node:hover:not(:disabled) {
+  transform: translateY(-3px);
+  border-color: var(--lang);
+}
+.duel-node:disabled {
+  opacity: 0.5;
+}
+.duel-node-icon {
+  font-size: 2.2rem;
+  line-height: 1.2;
+}
+.duel-node.n-elite {
+  border-color: color-mix(in srgb, var(--bad) 55%, var(--line));
+}
+.duel-node.n-boss {
+  border-color: var(--gold);
+}
+.duel-map {
+  display: grid;
+  gap: 10px;
+  text-align: center;
+  padding-top: 12px;
+}
+.duel-map h2,
+.duel-map p {
+  margin: 0;
+}
+.duel-event-btns {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+}
+
+/* 開始畫面 */
+.duel-hero {
+  padding: 22px 20px;
+  text-align: center;
+}
+.duel-hero h1 {
+  margin: 6px 0;
+}
+.duel-hero-art {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 4px;
+}
+.duel-hero-art svg:nth-child(2) {
+  animation: bob 2.6s ease-in-out infinite;
+}
+.duel-rules {
+  text-align: left;
+  line-height: 1.75;
+  padding-left: 1.2em;
+  margin: 12px 0;
+}
+.duel-start-btns {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 10px;
+}
+
+/* 卡牌 */
+.dcard {
+  --t: var(--atk);
+  position: relative;
+  width: 118px;
+  min-height: 168px;
+  padding: 26px 8px 8px;
+  border-radius: 14px;
+  border: 2px solid color-mix(in srgb, var(--t) 70%, var(--line));
+  background:
+    linear-gradient(170deg, color-mix(in srgb, var(--t) 22%, var(--card)) 0%, var(--card) 60%),
+    var(--card);
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--t) 40%, var(--edge));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  color: var(--text);
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s,
+    opacity 0.12s;
+}
+.dcard.t-def {
+  --t: var(--def);
+}
+.dcard.t-skill {
+  --t: var(--skill);
+}
+.dcard.t-power {
+  --t: var(--power);
+}
+button.dcard:hover:not(.dim) {
+  transform: translateY(-8px) rotate(-1deg);
+  box-shadow: 0 12px 18px color-mix(in srgb, var(--t) 35%, transparent);
+}
+.dcard.dim {
+  opacity: 0.5;
+  filter: saturate(0.6);
+}
+.dcard.sel {
+  animation: shake 0.35s both;
+}
+.dcard.plus {
+  border-style: double;
+  border-width: 4px;
+}
+.dcard.plus .dcard-name {
+  color: #7be08f;
+}
+.dcard.r-rare {
+  box-shadow:
+    0 5px 0 color-mix(in srgb, var(--t) 40%, var(--edge)),
+    0 0 16px color-mix(in srgb, var(--gold) 45%, transparent);
+}
+.dcard.r-rare::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.22) 45%, transparent 60%);
+  background-size: 250% 100%;
+  animation: dshine 3.5s linear infinite;
+  pointer-events: none;
+}
+@keyframes dshine {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+.dcard-cost {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6b0, #f5b82e 60%, #c98a1a);
+  color: #4a2e00;
+  font-weight: 900;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.dcard-icon {
+  position: absolute;
+  top: 4px;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+.dcard-name {
+  font-size: 0.98rem;
+  line-height: 1.3;
+}
+.dcard-type {
+  font-size: 0.68rem;
+  color: var(--t);
+  font-weight: 800;
+}
+.dcard-text {
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.dcard-word {
+  margin-top: auto;
+  width: 100%;
+  padding: 5px 4px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--t) 14%, var(--bg));
+  font-weight: 800;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.dcard-word rt {
+  font-size: 0.55em;
+}
+.dcard.small {
+  width: 104px;
+  min-height: 132px;
+}
+.dhand {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 10px;
+  padding: 14px 0 6px;
+  min-height: 190px;
+  align-items: flex-start;
+}
+.dchoices,
+.ddeck {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 10px;
+  padding: 8px 0;
+}
+.ddeck {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* 戰鬥 */
+.dbattle {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.denemies {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 26px;
+}
+.denemy {
+  position: relative;
+  width: 168px;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  background: none;
+  color: var(--text);
+}
+.denemy.targeted {
+  border-color: color-mix(in srgb, var(--bad) 60%, transparent);
+  background: color-mix(in srgb, var(--bad) 8%, transparent);
+}
+.denemy-art {
+  width: 118px;
+  height: 118px;
+  animation: bob 3s ease-in-out infinite;
+}
+.denemy.elite .denemy-art {
+  width: 134px;
+  height: 134px;
+}
+.denemy.boss {
+  width: 230px;
+}
+.denemy.boss .denemy-art {
+  width: 180px;
+  height: 180px;
+}
+.denemy.hurt .denemy-art {
+  animation: shake 0.35s both;
+  filter: brightness(1.6) saturate(0.6);
+}
+.denemy-name {
+  font-size: 0.86rem;
+}
+.dintent {
+  position: absolute;
+  top: -22px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 2px solid var(--line);
+  font-weight: 900;
+  white-space: nowrap;
+  animation: bob 1.8s ease-in-out infinite;
+}
+.dintent.atk {
+  border-color: var(--atk);
+  color: var(--atk);
+}
+.dintent.def {
+  border-color: var(--def);
+  color: var(--def);
+}
+.dintent.buff,
+.dintent.debuff {
+  border-color: var(--power);
+  color: var(--power);
+}
+.dhp {
+  position: relative;
+  width: 100%;
+  height: 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bad) 18%, var(--bg));
+  overflow: hidden;
+}
+.dhp > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, #ff5d7a, #ff8a9b);
+  transition: width 0.35s;
+}
+.dhp.blocked {
+  box-shadow: 0 0 0 2px var(--def);
+}
+.dhp > span {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 900;
+  line-height: 18px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.dhp-block {
+  color: #cfe6ff;
+}
+.dstatus {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+.dstatus .chip {
+  font-size: 0.7rem;
+  padding: 1px 7px;
+}
+.dplayer {
+  position: relative;
+  padding: 10px 12px;
+  display: grid;
+  gap: 6px;
+}
+.dplayer.hurt {
+  animation: shake 0.35s both;
+  box-shadow: 0 0 0 2px var(--bad);
+}
+.dplayer-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.denergy {
+  position: relative;
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.denergy i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+}
+.denergy i.on {
+  background: radial-gradient(circle at 35% 30%, #fff6b0, #f5b82e 65%);
+  border-color: #c98a1a;
+  box-shadow: 0 0 8px rgba(245, 184, 46, 0.6);
+}
+.denergy b {
+  margin-left: 4px;
+  font-size: 1.15rem;
+}
+.dstreak {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--card-2);
+  font-weight: 900;
+  opacity: 0.55;
+}
+.dstreak.on {
+  opacity: 1;
+}
+.dstreak.hot {
+  color: #ff8a3d;
+  box-shadow: 0 0 14px color-mix(in srgb, #ff8a3d 50%, transparent);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.dpiles {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 飄起來的數字 */
+.dfloat {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  translate: -50% 0;
+  font-weight: 900;
+  font-size: 1.3rem;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.45),
+    0 0 8px rgba(0, 0, 0, 0.35);
+  animation: dfloat 1.2s both;
+  animation-delay: calc(var(--i) * 0.08s);
+  z-index: 5;
+}
+.dfloat.dmg {
+  color: #ff5d7a;
+}
+.dfloat.block {
+  color: #7cc4ff;
+}
+.dfloat.heal {
+  color: #4ee08f;
+}
+.dfloat.buff {
+  color: #ffd34d;
+}
+.dfloat.debuff,
+.dfloat.miss {
+  color: #c4a8ff;
+  font-size: 1rem;
+}
+@keyframes dfloat {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.6);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-46px) scale(1);
+  }
+}
+
+/* 答題 */
+.dquiz-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(5, 8, 20, 0.55);
+  backdrop-filter: blur(3px);
+  animation: fade 0.15s both;
+}
+.dquiz {
+  width: min(560px, 100%);
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+  animation: rise 0.2s both;
+}
+.dquiz-head {
+  display: grid;
+  gap: 6px;
+}
+.dquiz-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 900;
+}
+.crit-tag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #ff8a3d 22%, var(--card));
+  color: #ff8a3d;
+  font-size: 0.78rem;
+}
+.dquiz-time {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+.dquiz-time i {
+  display: block;
+  height: 100%;
+  background: var(--lang);
+  transition: width 0.1s linear;
+}
+.dquiz-time i.low {
+  background: var(--bad);
+}
+.dquiz .ex-label {
+  margin: 0;
+}
+.dquiz-prompt {
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.8;
+}
+.dquiz-prompt.big {
+  font-size: 2rem;
+}
+.dquiz-opts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.dquiz-opts .opt {
+  padding: 10px;
+  min-height: 54px;
+}
+.dquiz-reveal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+.dquiz-reveal.ok {
+  background: color-mix(in srgb, var(--ok) 16%, var(--card));
+}
+.dquiz-reveal.bad {
+  background: color-mix(in srgb, var(--bad) 14%, var(--card));
+}
+.dquiz-reveal .link-btn {
+  margin-left: auto;
+}
+.drelic-got {
+  display: grid;
+  gap: 2px;
+}
+.drelic-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.drelic-list li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.drelic-list li > span {
+  font-size: 1.8rem;
+}
+.drelic-list div {
+  display: grid;
+}
+
+@media (max-width: 560px) {
+  .dcard {
+    width: calc(33.3% - 8px);
+    min-width: 96px;
+    min-height: 158px;
+  }
+  .dcard-text {
+    font-size: 0.7rem;
+  }
+  .denemy {
+    width: 140px;
+  }
+  .denemy-art {
+    width: 92px;
+    height: 92px;
+  }
+  .denemy.boss .denemy-art {
+    width: 150px;
+    height: 150px;
+  }
+  .dquiz-opts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
