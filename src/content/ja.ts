@@ -8,6 +8,7 @@ import { N2_BANK } from './ja-n2-bank';
 import { N3_UNITS } from './ja-n3';
 import { N3_BANK } from './ja-n3-bank';
 import { N4_UNITS } from './ja-n4';
+import { N4_BANK } from './ja-n4-bank';
 import { N5_UNITS } from './ja-n5';
 import { N5_BANK } from './ja-n5-bank';
 import { TOWN_UNITS } from './ja-town';
@@ -17,7 +18,7 @@ import { JA_ANIME_UNITS, JA_TRAVEL_UNITS } from './ja-tracks';
 export const UNITS: Record<string, Unit[]> = {
   'ja.kana': KANA_UNITS,
   'ja.n5': [...N5_UNITS, ...N5_BANK],
-  'ja.n4': N4_UNITS,
+  'ja.n4': [...N4_UNITS, ...N4_BANK],
   'ja.n3': [...N3_UNITS, ...N3_BANK],
   'ja.n2': [...N2_UNITS, ...N2_BANK],
   'ja.town': TOWN_UNITS,
