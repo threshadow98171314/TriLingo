@@ -371,6 +371,44 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
       hot: s.stats.duels === 0 && words >= UNLOCK.duel,
     },
     {
+      icon: '🔗',
+      title: lang === 'ja' ? '接龍對戰（しりとり）' : lang === 'ko' ? '接龍對戰（끝말잇기）' : '接龍對戰（Word Chain）',
+      desc:
+        lang === 'ja'
+          ? '和電腦輪流用最後一個假名接字，「ん」結尾就輸！考驗字彙量和臨場反應，難度越高電腦越會出難接的字。'
+          : lang === 'ko'
+            ? '和電腦輪流用最後一個字接字，可以用頭音法則（력→역）。考驗字彙量和臨場反應。'
+            : '和電腦輪流用最後一個字母接單字，考驗字彙量和臨場反應；困難模式電腦會故意出難接的字。',
+      to: `/l/${lang}/play/chain`,
+      need: UNLOCK.chain,
+      have: words,
+      badge: (s.best.chain?.[lang] ?? 0) > 0 ? `最高 ${s.best.chain[lang]} 分` : '新・挑戰',
+    },
+    {
+      icon: '🔠',
+      title: '猜詞',
+      desc:
+        lang === 'en'
+          ? '六次機會猜出 5 個字母的英文單字：綠色＝位置對、黃色＝有這個字母但位置不對。靠推理和字彙量取勝。'
+          : lang === 'ja'
+            ? '六次機會猜出 4 個假名的日文單字（用讀音猜）：綠色＝位置對、黃色＝有這個假名但位置不對。'
+            : '六次機會猜出韓文單字：每個字拆成子音和母音共 6 格，綠色＝位置對、黃色＝有但位置不對。',
+      to: `/l/${lang}/play/wordle`,
+      need: UNLOCK.wordle,
+      have: words,
+      badge: s.stats.wordles > 0 ? `猜中 ${s.stats.wordles} 次` : '新・挑戰',
+    },
+    {
+      icon: '📆',
+      title: '每日猜詞',
+      desc: '每天一題，從整個課程出題（可能是還沒學過的字），猜中多拿 15 XP。',
+      to: `/l/${lang}/play/wordle?daily=1`,
+      need: UNLOCK.wordle,
+      have: words,
+      badge: s.days[today()]?.dailyWordle?.[lang] ? '今天已完成 ✓' : '今天還沒挑戰',
+      hot: !s.days[today()]?.dailyWordle?.[lang] && words >= UNLOCK.wordle,
+    },
+    {
       icon: '🧩',
       title: '填字遊戲',
       desc: '看中文提示，把學過的單字填進交叉的格子裡。每次都是新的盤面。',

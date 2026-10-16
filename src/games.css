@@ -675,3 +675,318 @@ button.dcard:hover:not(.dim) {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ───────── 猜詞 ───────── */
+.wordle-body {
+  justify-content: flex-start;
+  gap: 10px;
+  text-align: center;
+}
+.wordle-body .ex-label {
+  margin: 0;
+}
+.wordle-note {
+  justify-self: center;
+}
+.wgrid {
+  display: grid;
+  gap: 6px;
+  justify-content: center;
+}
+.wrow {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.wrow.shake {
+  animation: shake 0.35s both;
+}
+.wtile {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 2px solid var(--line);
+  background: var(--card);
+  font-size: 1.6rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.wgrid.len-6 .wtile {
+  width: 46px;
+  height: 46px;
+  font-size: 1.4rem;
+}
+.wtile.filled {
+  border-color: color-mix(in srgb, var(--text) 40%, var(--line));
+  animation: pop 0.12s both;
+}
+.wtile.hit,
+.wtile.near,
+.wtile.miss {
+  color: #fff;
+  animation: wflip 0.45s both;
+}
+.wtile.hit {
+  background: #2fb874;
+  border-color: #2fb874;
+}
+.wtile.near {
+  background: #e0a526;
+  border-color: #e0a526;
+}
+.wtile.miss {
+  background: #555b7c;
+  border-color: #555b7c;
+}
+@keyframes wflip {
+  0% {
+    transform: rotateX(0);
+  }
+  50% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0);
+  }
+}
+.wordle-msg {
+  margin: 0;
+  color: var(--bad);
+  font-weight: 800;
+}
+.wordle-tools {
+  display: flex;
+  justify-content: center;
+}
+.wordle-ime input {
+  width: 100%;
+  max-width: 360px;
+}
+.wkeys {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  user-select: none;
+}
+.wkeys-row {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+.wkey {
+  min-width: 34px;
+  height: 46px;
+  padding: 0 6px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--card-2);
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.wkey:active {
+  transform: translateY(2px);
+}
+.wkey.hit {
+  background: #2fb874;
+  color: #fff;
+}
+.wkey.near {
+  background: #e0a526;
+  color: #fff;
+}
+.wkey.miss {
+  background: #3a3f5c;
+  color: #8a90b0;
+}
+.wkey.wide {
+  min-width: 96px;
+}
+.wkey.primary {
+  background: var(--lang);
+  color: #fff;
+}
+.wkeys-ctl {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.wkana {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(5, auto);
+  gap: 4px;
+}
+.wkana .wkey {
+  min-width: 30px;
+  height: 34px;
+  padding: 0;
+  font-size: 0.95rem;
+}
+.wordle-reveal {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  text-align: left;
+}
+.wordle-reveal.win {
+  box-shadow: 0 0 0 2px #2fb874;
+}
+.wordle-answer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.5rem;
+}
+.wordle-reveal p {
+  margin: 0;
+}
+@media (max-width: 420px) {
+  .wtile {
+    width: 46px;
+    height: 46px;
+  }
+  .wgrid.len-6 .wtile {
+    width: 40px;
+    height: 40px;
+  }
+  .wkey {
+    min-width: 28px;
+    padding: 0 3px;
+  }
+  .wkana .wkey {
+    min-width: 26px;
+  }
+}
+.wkeys.ja {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
+}
+.wkeys.ja .wkeys-ctl {
+  flex-basis: 100%;
+}
+
+/* ───────── 接龍對戰 ───────── */
+.chain-hero {
+  padding: 22px 20px;
+  text-align: center;
+}
+.chain-hero-icon {
+  font-size: 3rem;
+}
+.chain-hero h1 {
+  margin: 4px 0;
+}
+.chain-body {
+  justify-content: flex-start;
+  gap: 12px;
+}
+.chain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  max-height: 52vh;
+  overflow-y: auto;
+}
+.chain-entry {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  animation: rise 0.25s both;
+  max-width: 88%;
+}
+.chain-entry.me {
+  margin-left: auto;
+  flex-direction: row-reverse;
+  text-align: right;
+  background: color-mix(in srgb, var(--lang) 16%, var(--card));
+  border-color: color-mix(in srgb, var(--lang) 45%, var(--line));
+}
+.chain-entry.thinking {
+  color: var(--muted);
+  font-weight: 700;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.chain-fresh {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  translate: -50% 0;
+  font-size: 0.7rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.chain-entry:has(.chain-fresh) {
+  margin-top: 10px;
+}
+.chain-who {
+  font-size: 1.4rem;
+}
+.chain-word {
+  display: grid;
+  min-width: 0;
+}
+.chain-word b {
+  font-size: 1.2rem;
+  line-height: 1.5;
+}
+.chain-kana i {
+  font-style: normal;
+  color: var(--lang);
+  font-weight: 900;
+}
+.chain-input {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+}
+.chain-need {
+  margin: 0;
+  font-weight: 700;
+}
+.chain-need b {
+  font-size: 1.3rem;
+  color: var(--lang);
+}
+.chain-row {
+  display: flex;
+  gap: 8px;
+}
+.chain-row input {
+  flex: 1;
+  min-width: 0;
+  font-size: 1.15rem;
+}
+.chain-msg {
+  margin: 0;
+  color: var(--bad);
+  font-weight: 700;
+}
+.chain-hint {
+  margin: 0;
+  color: var(--warn);
+  font-weight: 700;
+}
+.chain-tools {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chain-menu {
+  text-align: center;
+  margin: -8px 0 24px;
+}

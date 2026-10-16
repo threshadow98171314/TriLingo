@@ -29,6 +29,8 @@ import { SettingsPage } from './pages/Settings';
 import { ShopPage } from './pages/Shop';
 import { TrueFalsePage } from './pages/TrueFalse';
 import { TypingGuidePage } from './pages/TypingGuide';
+import { WordChainPage } from './pages/WordChain';
+import { WordlePage } from './pages/Wordle';
 import { href, useRoute, type Route } from './router';
 
 /** 網址 → 頁面。focus 為 true 的頁面（上課、玩遊戲）不顯示導覽列。 */
@@ -84,6 +86,8 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
         if (p[3] === 'crossword') return gated(<CrosswordPage lang={lang} daily={route.query.get('daily') === '1'} />);
         if (p[3] === 'match') return gated(<MatchPage lang={lang} />);
         if (p[3] === 'duel') return gated(<CardDuelPage lang={lang} />);
+        if (p[3] === 'chain') return gated(<WordChainPage lang={lang} />);
+        if (p[3] === 'wordle') return gated(<WordlePage lang={lang} daily={route.query.get('daily') === '1'} />);
         if (p[3] === 'blitz') return gated(<BlitzPage lang={lang} />);
         if (p[3] === 'listen') return gated(<ListenPage lang={lang} />);
         if (p[3] === 'typing' && lang !== 'en') return gated(<TypingPage lang={lang} />);
