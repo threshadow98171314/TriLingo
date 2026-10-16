@@ -5,6 +5,7 @@ import { BLUE_UNITS } from './en-blue';
 import { BROWN_UNITS } from './en-brown';
 import { BROWN_BANK } from './en-brown-bank';
 import { GREEN_UNITS } from './en-green';
+import { GREEN_BANK } from './en-green-bank';
 import { DRILL_LR } from './en-drill-lr';
 import { DRILL_P5A } from './en-drill-p5a';
 import { DRILL_P5B } from './en-drill-p5b';
@@ -299,7 +300,7 @@ const listening = grammarUnit(
 export const UNITS: Record<string, Unit[]> = {
   'en.orange': [office, people, g1, time, money, g2, travel, dining, verbs, g3, adjectives, listening, ...ORANGE_BANK],
   'en.brown': [...BROWN_UNITS, ...BROWN_BANK],
-  'en.green': GREEN_UNITS,
+  'en.green': [...GREEN_UNITS, ...GREEN_BANK],
   'en.blue': BLUE_UNITS,
   'en.drill': [...DRILL_P5A, ...DRILL_P5B, ...DRILL_P5C, ...DRILL_LR],
   'en.town': TOWN_UNITS,
