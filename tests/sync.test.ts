@@ -83,6 +83,22 @@ describe('存檔合併', () => {
     expect(m.goal).toBe(true);
   });
 
+  it('自己貼的歌詞：每首歌取最後修改的那份；自己加的歌兩邊都保留', () => {
+    const line = (ja: string, t?: number) => ({ ja, t });
+    const a = base({
+      songs: { goodday: { lines: [line('一行目', 3)], at: 100 }, irisout: { lines: [line('A')], at: 500 } },
+      customSongs: [{ id: 'my-aaaaaaaaaaa', title: '歌A', artist: '', yt: 'aaaaaaaaaaa', at: 10 }],
+    });
+    const b = base({
+      songs: { goodday: { lines: [line('一行目', 3), line('二行目', 6)], at: 200 }, irisout: { lines: [line('B')], at: 400 } },
+      customSongs: [{ id: 'my-bbbbbbbbbbb', title: '歌B', artist: '', yt: 'bbbbbbbbbbb', at: 20 }],
+    });
+    const m = mergeSaves(a, b);
+    expect(m.songs.goodday.lines).toHaveLength(2);
+    expect(m.songs.irisout.lines[0].ja).toBe('A');
+    expect(m.customSongs.map((x) => x.id)).toEqual(['my-aaaaaaaaaaa', 'my-bbbbbbbbbbb']);
+  });
+
   it('合併是穩定的：同一份合併兩次不變（同步才不會一直來回上傳）', () => {
     const a = base({ xp: { en: 1, ja: 2, ko: 3 }, items: { x: item(2, 5) }, days: { d: { ...emptyDay(), lessons: 1 } }, coinsAt: 3, coins: 4 });
     const b = base({ xp: { en: 9, ja: 0, ko: 1 }, items: { y: item(1, 7) }, days: { d: { ...emptyDay(), perfect: 1 } }, prefsAt: 2, name: 'B' });

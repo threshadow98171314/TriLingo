@@ -6,6 +6,7 @@
 // 其中一台離線期間多拿的 XP 會少算。平常開 App 就會同步，實際上很少發生。
 import type { ItemProg, StreakState } from './logic';
 import type { DayLog, LessonRec, MockRec, MysteryState, Save } from './save';
+import type { CustomSong, SongLyrics } from './songs';
 import { LANGS } from './types';
 
 /** 每個數字欄位取較大值（a、b 的欄位都是數字） */
@@ -73,6 +74,19 @@ function mergeMystery(a: MysteryState, b: MysteryState): MysteryState {
   return { day: a.day, offer: a.offer ?? b.offer, bought: a.bought || b.bought || undefined };
 }
 
+/** 歌詞：每首歌取最後修改的那份 */
+const pickLyrics = (x: SongLyrics, y: SongLyrics): SongLyrics => (y.at > x.at ? y : x);
+
+/** 自己加的歌：用 id 合併，同一首取最後修改的那份 */
+function mergeCustomSongs(a: CustomSong[], b: CustomSong[]): CustomSong[] {
+  const out = new Map(a.map((s) => [s.id, s]));
+  for (const s of b) {
+    const old = out.get(s.id);
+    if (!old || s.at > old.at) out.set(s.id, s);
+  }
+  return [...out.values()].sort((x, y) => x.at - y.at);
+}
+
 export function mergeSaves(a: Save, b: Save): Save {
   const prefs = b.prefsAt > a.prefsAt ? b : a;
   const coins = b.coinsAt > a.coinsAt ? b : a;
@@ -113,5 +127,7 @@ export function mergeSaves(a: Save, b: Save): Save {
     inv: coins.inv,
     stickers: maxKeys(a.stickers, b.stickers),
     mystery: mergeMystery(a.mystery, b.mystery),
+    songs: mergeRecord(a.songs, b.songs, pickLyrics),
+    customSongs: mergeCustomSongs(a.customSongs, b.customSongs),
   };
 }

@@ -15,6 +15,7 @@ import { BlitzPage } from './pages/Blitz';
 import { CrosswordPage } from './pages/Crossword';
 import { ConceptPage, ConceptQuizPage } from './pages/Concepts';
 import { PicturesPage, SortPage } from './pages/FunGames';
+import { SongPage } from './pages/Songs';
 import { HelpPage } from './pages/Help';
 import { Home } from './pages/Home';
 import { LangPage } from './pages/LangPage';
@@ -56,6 +57,10 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
       case 'dex':
       case 'concepts':
         return view(<LangPage lang={lang} tab={p[2]} />);
+      case 'songs':
+        return view(<LangPage lang={lang} tab={lang === 'ja' ? 'songs' : 'path'} />);
+      case 'song':
+        return view(<SongPage id={p[3] ?? ''} />);
       case 'concept':
         if (p[4] === 'quiz') return gated(<ConceptQuizPage lang={lang} id={p[3] ?? ''} />);
         return view(

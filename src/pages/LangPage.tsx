@@ -6,6 +6,7 @@ import { CourseGate } from '../components/CourseGate';
 import { GuideTip } from '../components/Guide';
 import { TownMap } from '../components/TownMap';
 import { ConceptsTab } from './Concepts';
+import { SongsTab } from './Songs';
 import { pictureOf } from '../engine/pictures';
 import { kanaPairs } from './Memory';
 import { MockTab } from './Mock';
@@ -41,7 +42,7 @@ import { furiPlain } from '../engine/furigana';
 import { basicTable } from '../engine/hangul';
 import { href, lessonPath, stagePath } from '../router';
 
-export type LangTab = 'path' | 'arcade' | 'mock' | 'concepts' | 'dex' | 'chart';
+export type LangTab = 'path' | 'arcade' | 'mock' | 'concepts' | 'songs' | 'dex' | 'chart';
 
 // ───────── 學習路線 ─────────
 
@@ -822,6 +823,7 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
     { id: 'arcade', icon: '🎮', label: '遊樂場', to: `/l/${lang}/arcade` },
     { id: 'mock', icon: '📝', label: '模擬考', to: `/l/${lang}/mock` },
     { id: 'concepts', icon: '💡', label: '觀念', to: `/l/${lang}/concepts` },
+    ...(lang === 'ja' ? [{ id: 'songs' as const, icon: '🎵', label: '日文歌', to: '/l/ja/songs' }] : []),
     { id: 'dex', icon: '📖', label: '圖鑑', to: `/l/${lang}/dex` },
   ];
   if (lang !== 'en') tabs.push({ id: 'chart', icon: lang === 'ja' ? 'あ' : '가', label: lang === 'ja' ? '五十音表' : '字母表', to: `/l/${lang}/chart` });
@@ -870,6 +872,7 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
         {tab === 'arcade' && <ArcadeTab lang={lang} s={s} />}
         {tab === 'mock' && <MockTab lang={lang} s={s} />}
         {tab === 'concepts' && <ConceptsTab lang={lang} s={s} />}
+        {tab === 'songs' && lang === 'ja' && <SongsTab s={s} />}
         {tab === 'dex' && <DexTab lang={lang} s={s} />}
         {tab === 'chart' && <ChartTab lang={lang} s={s} />}
       </CourseGate>

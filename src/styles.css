@@ -5510,3 +5510,242 @@ p.small {
   gap: 10px;
   flex-wrap: wrap;
 }
+
+/* ───────── 聽日文歌學日語 ───────── */
+.song-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  margin-bottom: 12px;
+}
+.song-card {
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  color: inherit;
+  text-decoration: none;
+  align-items: center;
+}
+.song-card:hover {
+  border-color: var(--lang);
+}
+.song-thumb {
+  position: relative;
+  flex: none;
+  width: 120px;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--card-2);
+}
+.song-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.song-rank {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  padding: 0 6px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+}
+.song-info {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.song-info b {
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.song-info small {
+  font-size: 0.78rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.song-status {
+  color: var(--muted);
+}
+.song-status.done {
+  color: var(--ok);
+}
+.song-add {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+}
+.song-add label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.song-add input,
+.lyric-field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card-2);
+  color: var(--text);
+  font: inherit;
+}
+.song-head {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.song-head h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+.song-head p {
+  margin: 2px 0;
+}
+.song-head .chip {
+  margin-left: 8px;
+}
+.song-note {
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.song-player {
+  margin-bottom: 12px;
+}
+.yt-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+}
+.yt-host,
+.yt-host iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.song-modes {
+  margin-bottom: 12px;
+}
+.lyrics-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.lyrics-toggle {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.88rem;
+}
+.lyric-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.lyric {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+.lyric.on {
+  background: color-mix(in srgb, var(--lang) 20%, var(--card-2));
+}
+.lyric-main {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.lyric-time {
+  flex: none;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+  width: 3.2em;
+}
+.lyric-text {
+  display: grid;
+  gap: 2px;
+}
+.lyric-ja {
+  font-size: 1.08rem;
+  line-height: 1.9;
+}
+.lyric.on .lyric-ja {
+  font-weight: 800;
+}
+.lyric-zh {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.lyric.unsynced .lyric-time {
+  opacity: 0.5;
+}
+.sync-now {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+  padding: 18px 10px;
+  margin: 10px 0;
+  border-radius: 14px;
+  background: var(--card-2);
+}
+.sync-now b {
+  font-size: 1.3rem;
+  line-height: 1.9;
+}
+.sync-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.big-btn {
+  min-width: 180px;
+  font-size: 1.1rem;
+}
+.lyric-edit p {
+  margin: 0 0 8px;
+  line-height: 1.7;
+}
+.lyric-field {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 10px;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+.lyric-field textarea {
+  line-height: 1.7;
+  resize: vertical;
+}

@@ -1,6 +1,7 @@
 // 存檔的資料結構。整份存檔放在 localStorage，可以從設定頁匯出／匯入。
 import type { ItemProg, StreakState } from './logic';
 import type { CosmeticKind, MysteryOffer } from './shop';
+import type { CustomSong, SongLyrics } from './songs';
 import type { LangId } from './types';
 
 export interface Settings {
@@ -172,6 +173,10 @@ export interface Save {
   /** 貼紙收藏：id → 張數 */
   stickers: Record<string, number>;
   mystery: MysteryState;
+  /** 聽歌學日語：使用者自己貼的歌詞（歌的 id → 歌詞與對時），只存在自己的存檔裡 */
+  songs: Record<string, SongLyrics>;
+  /** 使用者自己加的歌 */
+  customSongs: CustomSong[];
 }
 
 export const FREE_AVATARS = ['🐣', '🐱', '🐶', '🦊'];
@@ -250,6 +255,8 @@ export function defaultSave(now: number): Save {
     inv: { shield: 0, clover: 0, hourglass: 0 },
     stickers: {},
     mystery: { day: '' },
+    songs: {},
+    customSongs: [],
   };
 }
 
@@ -283,5 +290,7 @@ export function migrate(raw: unknown, now: number): Save {
     inv: { ...d.inv, ...x.inv },
     stickers: x.stickers ?? {},
     mystery: x.mystery ?? d.mystery,
+    songs: x.songs ?? {},
+    customSongs: x.customSongs ?? [],
   };
 }

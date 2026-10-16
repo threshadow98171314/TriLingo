@@ -11,6 +11,7 @@ import { CHEST_COINS, questsFor } from './quests';
 import { rankOf } from './ranks';
 import { randInt } from './rng';
 import { STICKER_BY_ID } from '../art/stickers';
+import type { SongLine } from './songs';
 import { defaultSave, emptyDay, migrate, type DayLog, type Save, type Settings } from './save';
 import {
   AVATAR_COST,
@@ -796,6 +797,33 @@ export function spendCoins(n: number): boolean {
     ok = pay(d, n);
   });
   return ok;
+}
+
+// ───────── 聽日文歌學日語 ─────────
+
+/** 存使用者貼上的歌詞（含翻譯與對時）；lines 為空就刪掉 */
+export function saveLyrics(songId: string, lines: SongLine[]) {
+  mutate((d) => {
+    if (!lines.length) delete d.songs[songId];
+    else d.songs[songId] = { lines, at: Date.now() };
+  });
+}
+
+/** 加一首自己的歌（任何 YouTube 影片）；回傳歌的 id */
+export function addCustomSong(a: { title: string; artist: string; yt: string }): string {
+  const id = `my-${a.yt}`;
+  mutate((d) => {
+    const rest = d.customSongs.filter((s) => s.id !== id);
+    d.customSongs = [...rest, { id, title: a.title.trim() || '我的歌', artist: a.artist.trim(), yt: a.yt, at: Date.now() }];
+  });
+  return id;
+}
+
+export function removeCustomSong(id: string) {
+  mutate((d) => {
+    d.customSongs = d.customSongs.filter((s) => s.id !== id);
+    delete d.songs[id];
+  });
 }
 
 // ───────── 設定與存檔管理 ─────────
