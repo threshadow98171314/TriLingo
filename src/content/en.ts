@@ -3,12 +3,14 @@ import type { Unit } from '../core/types';
 import { attachMore, cz, en, grammarUnit, moreTable, note, qa, vocabUnit } from './dsl';
 import { BLUE_UNITS } from './en-blue';
 import { BROWN_UNITS } from './en-brown';
+import { BROWN_BANK } from './en-brown-bank';
 import { GREEN_UNITS } from './en-green';
 import { DRILL_LR } from './en-drill-lr';
 import { DRILL_P5A } from './en-drill-p5a';
 import { DRILL_P5B } from './en-drill-p5b';
 import { DRILL_P5C } from './en-drill-p5c';
 import { EN_MORE } from './en-more';
+import { ORANGE_BANK } from './en-orange-bank';
 import { TOWN_UNITS } from './en-town';
 
 // ───────── 橘色證書（10–215）：基礎起步 ─────────
@@ -295,8 +297,8 @@ const listening = grammarUnit(
 
 /** 各關卡的單元（關卡名稱、說明、預定大綱在 meta.ts） */
 export const UNITS: Record<string, Unit[]> = {
-  'en.orange': [office, people, g1, time, money, g2, travel, dining, verbs, g3, adjectives, listening],
-  'en.brown': BROWN_UNITS,
+  'en.orange': [office, people, g1, time, money, g2, travel, dining, verbs, g3, adjectives, listening, ...ORANGE_BANK],
+  'en.brown': [...BROWN_UNITS, ...BROWN_BANK],
   'en.green': GREEN_UNITS,
   'en.blue': BLUE_UNITS,
   'en.drill': [...DRILL_P5A, ...DRILL_P5B, ...DRILL_P5C, ...DRILL_LR],
