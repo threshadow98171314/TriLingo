@@ -1,9 +1,11 @@
 // 韓文：한글 → 初級 → 中級 → 高級（對照 TOPIK 1–6 級），另有旅遊、韓劇兩條主題路線
 import type { Unit } from '../core/types';
+import { attachMore, moreTable } from './dsl';
 import { HANGUL_UNITS } from './ko-hangul';
 import { K1_UNITS } from './ko-k1';
 import { K2_UNITS } from './ko-k2';
 import { K3_UNITS } from './ko-k3';
+import { KO_MORE } from './ko-more';
 import { TOWN_UNITS } from './ko-town';
 import { KO_DRAMA_UNITS, KO_TRAVEL_UNITS } from './ko-tracks';
 
@@ -17,6 +19,9 @@ export const UNITS: Record<string, Unit[]> = {
   'ko.travel': KO_TRAVEL_UNITS,
   'ko.drama': KO_DRAMA_UNITS,
 };
+
+// 學習路線單字的補充例句（答對時隨機挑一句顯示）
+attachMore(Object.values(UNITS), moreTable(KO_MORE), false);
 
 export { KO_MOCKS as MOCKS } from './ko-mock';
 export { CONCEPTS } from './ko-concepts';

@@ -2,7 +2,9 @@
 import { describe, expect, it } from 'vitest';
 import { COURSE_LIST } from '../src/content/all';
 import { moreTable } from '../src/content/dsl';
+import { EN_MORE } from '../src/content/en-more';
 import { JA_MORE } from '../src/content/ja-more';
+import { KO_MORE } from '../src/content/ko-more';
 import type { Course, Example, Item, LangId, Unit, VocabItem } from '../src/core/types';
 import { corpusOfCourse, examplesOf } from '../src/engine/examples';
 import { isVocab } from '../src/engine/exercises';
@@ -111,15 +113,19 @@ describe('項目內容', () => {
   });
 
   it('補充例句表的原文都對得到單字（打錯字的話例句會默默接不上）', () => {
-    const tables: [LangId, string][] = [['ja', JA_MORE]];
+    const tables: [LangId, string][] = [
+      ['en', EN_MORE],
+      ['ja', JA_MORE],
+      ['ko', KO_MORE],
+    ];
     for (const [lang, text] of tables) {
       const keys = new Set(items(byLang(lang)).filter(isVocab).map((it) => (lang === 'ja' ? (it.furi ?? it.w) : it.w)));
       for (const k of moreTable(text).keys()) expect(keys.has(k), `${lang}：${k}`).toBe(true);
     }
   });
 
-  it('學習路線上的日文單字都有三句例句（答對時隨機挑一句顯示）', () => {
-    for (const lang of ['ja'] as LangId[]) {
+  it('學習路線上的單字都有三句例句（答對時隨機挑一句顯示）', () => {
+    for (const lang of ['en', 'ja', 'ko'] as LangId[]) {
       const c = byLang(lang);
       const corpus = corpusOfCourse(c);
       const few: string[] = [];

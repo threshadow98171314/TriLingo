@@ -1,6 +1,6 @@
 // 英文：以多益 TOEIC 證書顏色分級。橘 → 棕 → 綠 → 藍 → 金（最高，860–990）
 import type { Unit } from '../core/types';
-import { cz, en, grammarUnit, note, qa, vocabUnit } from './dsl';
+import { attachMore, cz, en, grammarUnit, moreTable, note, qa, vocabUnit } from './dsl';
 import { BLUE_UNITS } from './en-blue';
 import { BROWN_UNITS } from './en-brown';
 import { GREEN_UNITS } from './en-green';
@@ -8,6 +8,7 @@ import { DRILL_LR } from './en-drill-lr';
 import { DRILL_P5A } from './en-drill-p5a';
 import { DRILL_P5B } from './en-drill-p5b';
 import { DRILL_P5C } from './en-drill-p5c';
+import { EN_MORE } from './en-more';
 import { TOWN_UNITS } from './en-town';
 
 // ───────── 橘色證書（10–215）：基礎起步 ─────────
@@ -301,6 +302,9 @@ export const UNITS: Record<string, Unit[]> = {
   'en.drill': [...DRILL_P5A, ...DRILL_P5B, ...DRILL_P5C, ...DRILL_LR],
   'en.town': TOWN_UNITS,
 };
+
+// 學習路線單字的補充例句（答對時隨機挑一句顯示）
+attachMore(Object.values(UNITS), moreTable(EN_MORE), false);
 
 export { EN_MOCKS as MOCKS } from './en-mock';
 export { CONCEPTS } from './en-concepts';
