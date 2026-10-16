@@ -6,6 +6,7 @@ import { BLUE_BANK } from './en-blue-bank';
 import { BROWN_UNITS } from './en-brown';
 import { BROWN_BANK } from './en-brown-bank';
 import { GREEN_UNITS } from './en-green';
+import { GOLD_BANK } from './en-gold-bank';
 import { GREEN_BANK } from './en-green-bank';
 import { DRILL_LR } from './en-drill-lr';
 import { DRILL_P5A } from './en-drill-p5a';
@@ -303,6 +304,7 @@ export const UNITS: Record<string, Unit[]> = {
   'en.brown': [...BROWN_UNITS, ...BROWN_BANK],
   'en.green': [...GREEN_UNITS, ...GREEN_BANK],
   'en.blue': [...BLUE_UNITS, ...BLUE_BANK],
+  'en.gold': GOLD_BANK,
   'en.drill': [...DRILL_P5A, ...DRILL_P5B, ...DRILL_P5C, ...DRILL_LR],
   'en.town': TOWN_UNITS,
 };
