@@ -9,8 +9,8 @@ export interface Sticker {
   id: string;
   name: string;
   rarity: Rarity;
-  /** 主題：日本、韓國、英語圈、學習、傳說 */
-  theme: '日本' | '韓國' | '英語圈' | '學習' | '傳說';
+  /** 主題：日本、韓國、英語圈、學習、季節、台灣、傳說 */
+  theme: '日本' | '韓國' | '英語圈' | '學習' | '季節' | '台灣' | '傳說';
   /** 一句小介紹（收集到才看得到） */
   note: string;
   draw: () => ReactNode;
@@ -670,6 +670,415 @@ export const STICKERS: Sticker[] = [
         <Mouth x={21} y={74} kind="smile" w={3.4} />
         <Eyes x={79} y={70} gap={8} r={2.2} closed />
         <Mouth x={79} y={74} kind="smile" w={3.4} />
+      </>
+    ),
+  },
+  // ───── 季節與節慶 ─────
+  {
+    id: 'furin',
+    name: '風鈴',
+    rarity: 'R',
+    theme: '季節',
+    note: '風鈴（ふうりん）：日本夏天的聲音，叮鈴叮鈴聽起來就涼快。',
+    draw: () => (
+      <>
+        <path d="M50 6 V16" {...line('#8a93b8', 2)} />
+        <path d="M26 46 C26 26 36 16 50 16 C64 16 74 26 74 46 Z" fill="#e8f6ff" fillOpacity="0.9" {...line('#7fb2dd')} />
+        <path d="M30 36 C38 30 44 40 50 34 C56 28 62 38 70 34" fill="none" {...line('#ff6b81', 3)} />
+        <circle cx="40" cy="26" r="3" fill="#ff9fbf" />
+        <path d="M50 46 V60" {...line('#8a93b8', 2)} />
+        <rect x="40" y="60" width="20" height="30" rx="3" fill="#fff6dc" {...line('#d9b98a', 2.4)} />
+        <path d="M45 68 H55 M45 74 H55" {...line('#ff9fbf', 2)} />
+        <Face y={38} gap={14} r={3} mouth="smile" mw={4} blush={false} />
+      </>
+    ),
+  },
+  {
+    id: 'suika',
+    name: '西瓜',
+    rarity: 'N',
+    theme: '季節',
+    note: '西瓜（すいか）／수박／watermelon：夏天海邊的「打西瓜」（スイカ割り）是日本的經典遊戲。',
+    draw: () => (
+      <>
+        <path d="M8 38 H92 C92 64 74 84 50 84 C26 84 8 64 8 38 Z" fill="#3fa34d" {...line('#2a6e34')} />
+        <path d="M14 38 H86 C86 60 70 77 50 77 C30 77 14 60 14 38 Z" fill="#ff6b7a" />
+        <g fill={INK}>
+          <ellipse cx="32" cy="52" rx="1.8" ry="2.8" />
+          <ellipse cx="68" cy="52" rx="1.8" ry="2.8" />
+          <ellipse cx="42" cy="66" rx="1.8" ry="2.8" />
+          <ellipse cx="58" cy="66" rx="1.8" ry="2.8" />
+        </g>
+        <Face y={47} gap={16} mouth="open" mw={4.4} />
+      </>
+    ),
+  },
+  {
+    id: 'hanabi',
+    name: '夏日花火',
+    rarity: 'SR',
+    theme: '季節',
+    note: '花火大会（はなびたいかい）：穿上浴衣去看煙火，是日本夏天最浪漫的活動。',
+    draw: () => (
+      <>
+        <circle cx="50" cy="44" r="40" fill="#241a5a" />
+        {Array.from({ length: 12 }, (_, i) => {
+          const a = (i * Math.PI) / 6;
+          return <path key={i} d={`M${50 + 10 * Math.cos(a)} ${44 + 10 * Math.sin(a)} L${50 + 32 * Math.cos(a)} ${44 + 32 * Math.sin(a)}`} {...line(['#ff7a7a', '#ffd34d', '#7ad8ff', '#c4a8ff'][i % 4], 3)} />;
+        })}
+        {Array.from({ length: 12 }, (_, i) => {
+          const a = (i * Math.PI) / 6;
+          return <circle key={i} cx={50 + 35 * Math.cos(a)} cy={44 + 35 * Math.sin(a)} r="2.6" fill="#fff6b0" />;
+        })}
+        <circle cx="50" cy="44" r="8" fill="#ffe066" />
+        <Face y={43} gap={7} r={1.8} mouth="smile" mw={3} blush={false} />
+        <path d="M30 90 C36 80 44 82 50 76 C56 82 64 80 70 90 Z" fill="#3a3f8f" {...line('#22265e', 2)} />
+      </>
+    ),
+  },
+  {
+    id: 'momiji',
+    name: '紅葉',
+    rarity: 'N',
+    theme: '季節',
+    note: '紅葉（もみじ）／단풍：秋天到京都、雪嶽山賞楓，日文叫「紅葉狩り（もみじがり）」。',
+    draw: () => (
+      <>
+        <path d="M50 8 L57 30 L74 18 L68 40 L90 38 L72 54 L84 66 L60 62 L56 80 L50 70 L44 80 L40 62 L16 66 L28 54 L10 38 L32 40 L26 18 L43 30 Z" fill="#ff7043" {...line('#c43d1a')} />
+        <path d="M50 70 V92" {...line('#8a4a22', 3.4)} />
+        <Face y={46} gap={14} r={3.4} mouth="smile" mw={4.4} />
+      </>
+    ),
+  },
+  {
+    id: 'tsukimi',
+    name: '月見糰子',
+    rarity: 'R',
+    theme: '季節',
+    note: '月見（つきみ）：中秋夜擺上糰子和芒草賞月，韓國的中秋則是秋夕（추석）。',
+    draw: () => (
+      <>
+        <circle cx="74" cy="22" r="16" fill="#fff3a6" {...line('#d9b020', 2.4)} />
+        <path d="M18 78 H74 L68 90 H24 Z" fill="#d6a06b" {...line('#8a5a33', 2.6)} />
+        <path d="M14 78 H78" {...line('#8a5a33', 3)} />
+        {[
+          [32, 68],
+          [46, 68],
+          [60, 68],
+          [39, 56],
+          [53, 56],
+          [46, 44],
+        ].map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r="7.6" fill="#ffffff" {...line('#c9c3b5', 2)} />
+        ))}
+        <Eyes x={46} y={43} gap={6} r={1.6} />
+        <path d="M10 76 Q14 46 22 30 M14 76 Q22 52 34 40" fill="none" {...line('#c9b06a', 2)} />
+      </>
+    ),
+  },
+  {
+    id: 'snowman',
+    name: '雪人',
+    rarity: 'N',
+    theme: '季節',
+    note: '雪だるま（ゆきだるま）／눈사람／snowman：日本的雪人只有兩顆球，像不倒翁。',
+    draw: () => (
+      <>
+        <circle cx="50" cy="66" r="24" fill="#ffffff" {...line('#b9c4d6')} />
+        <circle cx="50" cy="34" r="17" fill="#ffffff" {...line('#b9c4d6')} />
+        <path d="M33 22 H67 L62 14 H38 Z" fill="#ff6b81" {...line('#c43d4e', 2.4)} />
+        <path d="M34 46 Q50 54 66 46 L68 52 Q50 60 32 52 Z" fill="#5aa9ff" {...line('#2f6fb3', 2)} />
+        <Face y={32} gap={12} r={2.8} mouth="smile" mw={4.4} />
+        <path d="M49 37 L58 39 L49 40 Z" fill="#ff8a3d" />
+        <circle cx="50" cy="62" r="2.2" fill={INK} />
+        <circle cx="50" cy="72" r="2.2" fill={INK} />
+      </>
+    ),
+  },
+  {
+    id: 'kotatsu',
+    name: '暖桌與橘子',
+    rarity: 'R',
+    theme: '季節',
+    note: 'こたつ：冬天在暖桌裡吃橘子（みかん），一坐下就再也不想起來。',
+    draw: () => (
+      <>
+        <path d="M10 56 H90 L84 86 H16 Z" fill="#ff9fbf" {...line('#d9578f')} />
+        <path d="M16 62 H84 M18 70 H82" fill="none" {...line('#ffd1e3', 2)} />
+        <rect x="6" y="48" width="88" height="10" rx="4" fill="#c98a5b" {...line('#8a5a33', 2.6)} />
+        <circle cx="38" cy="38" r="10" fill="#ffa43d" {...line('#d9772a', 2.4)} />
+        <circle cx="60" cy="40" r="8" fill="#ffa43d" {...line('#d9772a', 2.4)} />
+        <path d="M38 28 L41 25" {...line('#3f9a3a', 2.4)} />
+        <Face x={38} y={38} gap={8} r={2} mouth="smile" mw={3} blush={false} />
+        <path d="M70 86 C70 76 80 74 84 80 L90 76 L88 86 Z" fill="#ffd3a1" {...line('#c7823f', 2)} />
+      </>
+    ),
+  },
+  {
+    id: 'xmas',
+    name: '聖誕樹',
+    rarity: 'N',
+    theme: '季節',
+    note: 'Merry Christmas！日本的聖誕節要吃炸雞和草莓蛋糕。',
+    draw: () => (
+      <>
+        <path d="M50 10 L72 40 H62 L80 64 H66 L86 88 H14 L34 64 H20 L38 40 H28 Z" fill="#4cc38a" {...line('#2a7a52')} />
+        <path d={starPath(50, 12, 9, 4)} fill="#ffd34d" {...line('#c99a2a', 2)} />
+        <circle cx="40" cy="56" r="3.2" fill="#ff6b81" />
+        <circle cx="62" cy="74" r="3.2" fill="#5aa9ff" />
+        <circle cx="34" cy="80" r="3.2" fill="#ffd34d" />
+        <Face y={66} gap={14} r={3} mouth="open" mw={4} />
+      </>
+    ),
+  },
+  {
+    id: 'pumpkin',
+    name: '南瓜燈',
+    rarity: 'N',
+    theme: '季節',
+    note: 'Trick or treat! 萬聖節（ハロウィン／핼러윈）的南瓜燈叫 jack-o\'-lantern。',
+    draw: () => (
+      <>
+        <path d="M50 22 C52 14 58 10 62 12" fill="none" {...line('#3f9a3a', 4)} />
+        <ellipse cx="34" cy="56" rx="20" ry="28" fill="#ff8a3d" {...line('#c4542a')} />
+        <ellipse cx="66" cy="56" rx="20" ry="28" fill="#ff8a3d" {...line('#c4542a')} />
+        <ellipse cx="50" cy="56" rx="18" ry="30" fill="#ffa43d" {...line('#c4542a')} />
+        <path d="M34 46 L42 40 L44 50 Z M66 46 L58 40 L56 50 Z" fill="#4a2e00" />
+        <path d="M32 64 L38 70 L44 64 L50 70 L56 64 L62 70 L68 64 C64 76 36 76 32 64 Z" fill="#4a2e00" />
+      </>
+    ),
+  },
+  {
+    id: 'tanabata',
+    name: '七夕許願',
+    rarity: 'R',
+    theme: '季節',
+    note: '七夕（たなばた）：把願望寫在短冊（たんざく）上綁在竹子上，例如「日本語が上手になりますように」。',
+    draw: () => (
+      <>
+        <path d="M30 92 C34 60 42 30 56 8" fill="none" {...line('#3f8a3a', 4)} />
+        {[
+          [44, 34, -30],
+          [60, 30, 20],
+          [52, 52, -20],
+          [38, 60, 30],
+        ].map(([x, y, r], i) => (
+          <path key={i} d={`M${x} ${y} q8 -4 14 0`} fill="none" {...line('#5bb04a', 3)} transform={`rotate(${r} ${x} ${y})`} />
+        ))}
+        {[
+          [62, 40, '#ff9fbf'],
+          [46, 58, '#7ad8ff'],
+          [66, 64, '#ffe066'],
+        ].map(([x, y, c], i) => (
+          <g key={i}>
+            <path d={`M${x} ${Number(y) - 6} V${y}`} {...line('#8a93b8', 1.2)} />
+            <rect x={Number(x) - 5} y={y} width="10" height="24" rx="1.5" fill={c as string} {...line('#8a93b8', 1.4)} />
+          </g>
+        ))}
+        <Sparkle x={84} y={14} s={6} color="#fff6b0" />
+        <Sparkle x={20} y={20} s={4} color="#fff6b0" />
+      </>
+    ),
+  },
+  {
+    id: 'songpyeon',
+    name: '松片',
+    rarity: 'R',
+    theme: '季節',
+    note: '송편：韓國秋夕（추석）一家人一起包的半月形年糕，傳說包得漂亮會生出漂亮的女兒。',
+    draw: () => (
+      <>
+        <ellipse cx="50" cy="80" rx="40" ry="9" fill="#d6c3a0" {...line('#8a7a5a', 2.4)} />
+        <path d="M14 70 C14 52 30 46 40 52 C40 62 32 70 14 70 Z" fill="#a8e6a1" {...line('#5aa04f', 2.4)} />
+        <path d="M32 74 C32 54 52 46 64 54 C62 66 52 74 32 74 Z" fill="#ffffff" {...line('#c9c3b5', 2.4)} />
+        <path d="M58 72 C58 54 76 48 86 56 C84 66 76 72 58 72 Z" fill="#ffc8da" {...line('#e88aac', 2.4)} />
+        <Face x={48} y={62} gap={8} r={2} mouth="smile" mw={3.4} blush={false} />
+        <path d="M26 30 L30 22 M50 26 L50 18 M72 30 L68 22" {...line('#c9b06a', 2.4)} />
+      </>
+    ),
+  },
+  {
+    id: 'kagami',
+    name: '鏡餅',
+    rarity: 'SR',
+    theme: '季節',
+    note: '鏡餅（かがみもち）：新年擺在家裡的兩層年糕，上面放一顆橘子（だいだい），祈求家族代代相傳。',
+    draw: () => (
+      <>
+        <path d="M16 78 H84 L78 92 H22 Z" fill="#c98a5b" {...line('#8a5a33', 2.6)} />
+        <path d="M20 72 H80 L76 80 H24 Z" fill="#ff5d5d" {...line('#c43d3d', 2)} />
+        <ellipse cx="50" cy="64" rx="32" ry="13" fill="#ffffff" {...line('#c9c3b5')} />
+        <ellipse cx="50" cy="46" rx="24" ry="11" fill="#ffffff" {...line('#c9c3b5')} />
+        <circle cx="50" cy="28" r="10" fill="#ffa43d" {...line('#d9772a', 2.4)} />
+        <path d="M50 18 C54 12 60 14 60 18 C56 20 52 20 50 18 Z" fill="#5bb04a" />
+        <Face y={46} gap={12} r={2.6} mouth="smile" mw={4} />
+        <Sparkle x={86} y={22} s={6} color="#fff6b0" />
+      </>
+    ),
+  },
+  // ───── 台灣 ─────
+  {
+    id: 'bubbletea',
+    name: '珍珠奶茶',
+    rarity: 'R',
+    theme: '台灣',
+    note: '珍珠奶茶：日文叫「タピオカミルクティー」，韓文叫「버블티」，全世界都愛。',
+    draw: () => (
+      <>
+        <path d="M60 4 L52 40" {...line('#ff6b81', 6)} />
+        <path d="M24 30 H76 L70 88 C70 92 30 92 30 88 Z" fill="#f3d2a8" fillOpacity="0.95" {...line('#b98c5a')} />
+        <path d="M22 26 H78 V34 H22 Z" fill="#ffffff" {...line('#b98c5a', 2.4)} />
+        <g fill="#4a3535">
+          {[
+            [38, 82],
+            [48, 84],
+            [58, 82],
+            [43, 76],
+            [54, 76],
+            [36, 72],
+            [62, 74],
+          ].map(([x, y], i) => (
+            <circle key={i} cx={x} cy={y} r="3.6" />
+          ))}
+        </g>
+        <Face y={54} gap={16} mouth="smile" />
+      </>
+    ),
+  },
+  {
+    id: 'xiaolongbao',
+    name: '小籠包',
+    rarity: 'N',
+    theme: '台灣',
+    note: '小籠包：日文「ショーロンポー」、韓文「샤오롱바오」，記得先戳破喝湯再吃喔。',
+    draw: () => (
+      <>
+        <ellipse cx="50" cy="78" rx="42" ry="12" fill="#d6a06b" {...line('#8a5a33')} />
+        <path d="M14 76 C14 54 30 42 50 42 C70 42 86 54 86 76 Z" fill="#fff8ee" {...line('#c9b8a0')} />
+        <path d="M50 42 C46 34 50 28 50 26 C50 28 54 34 50 42 M38 46 Q44 36 50 34 M62 46 Q56 36 50 34" fill="none" {...line('#c9b8a0', 2)} />
+        <Face y={62} gap={16} mouth="cat" mw={4.4} />
+        <path d="M30 20 Q34 14 30 8 M50 18 Q54 12 50 6 M70 20 Q74 14 70 8" fill="none" {...line('#cfd5e6', 2.4)} />
+      </>
+    ),
+  },
+  {
+    id: 'taipei101',
+    name: '台北 101',
+    rarity: 'SR',
+    theme: '台灣',
+    note: '台北 101：跨年煙火的主角。日文「タイペイ・イチマルイチ」，英文 Taipei 101。',
+    draw: () => (
+      <>
+        <path d="M49 2 V14" {...line('#8a93b8', 2)} />
+        {Array.from({ length: 6 }, (_, i) => (
+          <path key={i} d={`M${38 + i * 0.5} ${16 + i * 11} H${62 - i * 0.5} L${66 - i * 0.2} ${27 + i * 11} H${34 + i * 0.2} Z`} fill={i % 2 ? '#7ccfb0' : '#93dcc0'} {...line('#3f8a7a', 2)} />
+        ))}
+        <path d="M30 82 H70 L72 92 H28 Z" fill="#7ccfb0" {...line('#3f8a7a', 2.4)} />
+        <Face y={48} gap={10} r={2.6} mouth="smile" mw={3.6} blush={false} />
+        <Sparkle x={16} y={20} s={6} color="#ffe066" />
+        <Sparkle x={84} y={30} s={5} color="#ff9fbf" />
+      </>
+    ),
+  },
+  {
+    id: 'pineapplecake',
+    name: '鳳梨酥',
+    rarity: 'N',
+    theme: '台灣',
+    note: '鳳梨酥：台灣人送日本、韓國朋友的必備伴手禮（お土産／선물）。',
+    draw: () => (
+      <>
+        <rect x="16" y="32" width="68" height="46" rx="8" fill="#f2c26b" {...line('#c98a1a')} />
+        <path d="M22 40 H78 M22 70 H78" {...line('#e0a945', 2)} />
+        <path d="M60 28 C64 18 74 18 76 26 C70 24 66 26 64 30 Z" fill="#5bb04a" {...line('#2f7a2a', 2)} />
+        <Face y={54} gap={18} mouth="smile" />
+      </>
+    ),
+  },
+  {
+    id: 'chickenfillet',
+    name: '大雞排',
+    rarity: 'N',
+    theme: '台灣',
+    note: '雞排：夜市的國民美食，比臉還大！要辣嗎？',
+    draw: () => (
+      <>
+        <path d="M22 26 C34 10 70 12 80 28 C92 46 86 72 70 82 C54 92 30 88 20 72 C10 56 12 38 22 26 Z" fill="#e8a24d" {...line('#a8641a')} />
+        <g fill="#c98030">
+          <circle cx="34" cy="38" r="2.4" />
+          <circle cx="64" cy="34" r="2.4" />
+          <circle cx="72" cy="58" r="2.4" />
+          <circle cx="30" cy="66" r="2.4" />
+        </g>
+        <path d="M26 74 H74 L70 92 H30 Z" fill="#ffffff" {...line('#b9b9c9', 2.4)} />
+        <Face y={52} gap={18} mouth="open" mw={5} />
+      </>
+    ),
+  },
+  {
+    id: 'skylantern',
+    name: '平溪天燈',
+    rarity: 'SSR',
+    theme: '台灣',
+    note: '天燈：在平溪把願望寫在天燈上放飛。日文「ランタン」、韓文「풍등」。祝你考試順利！',
+    draw: () => (
+      <>
+        <circle cx="50" cy="44" r="40" fill="#ffd34d" opacity="0.18" />
+        <path d="M26 20 C26 14 74 14 74 20 L68 74 H32 Z" fill="#ffefb0" {...line('#e0a525')} />
+        <path d="M30 34 C42 30 58 30 70 34" fill="none" {...line('#ffd34d', 2)} />
+        <text x="50" y="58" textAnchor="middle" fontSize="13" fontWeight="900" fill="#e8445a">
+          合格
+        </text>
+        <path d="M36 74 L40 84 H60 L64 74" fill="#ffffff" {...line('#e0a525', 2)} />
+        <path d="M46 84 C44 90 48 94 50 96 C52 94 56 90 54 84 Z" fill="#ff8a3d" />
+        <Eyes y={44} gap={14} r={2.8} />
+        <Sparkle x={12} y={20} s={6} color="#fff6b0" />
+        <Sparkle x={88} y={64} s={5} color="#fff6b0" />
+        <Sparkle x={84} y={12} s={4} color="#fff6b0" />
+      </>
+    ),
+  },
+  {
+    id: 'nightmarket',
+    name: '夜市',
+    rarity: 'R',
+    theme: '台灣',
+    note: '夜市（ナイトマーケット／야시장）：士林、饒河、逢甲……邊吃邊逛最開心。',
+    draw: () => (
+      <>
+        <path d="M8 34 L50 14 L92 34 Z" fill="#ff6b81" {...line('#c43d4e')} />
+        <path d="M8 34 H92 V40 H8 Z" fill="#ffffff" {...line('#c43d4e', 2)} />
+        <rect x="16" y="40" width="68" height="44" fill="#ffe2bd" {...line('#c7823f')} />
+        <rect x="24" y="60" width="52" height="24" fill="#c98a5b" {...line('#8a5a33', 2.4)} />
+        {[22, 40, 60, 78].map((x, i) => (
+          <circle key={x} cx={x} cy="46" r="4.6" fill={['#ffd34d', '#ff9fbf', '#7ad8ff', '#a8e6a1'][i]} {...line('#c99a2a', 1.4)} />
+        ))}
+        <Face y={70} gap={14} r={2.8} mouth="open" mw={4} blush={false} />
+      </>
+    ),
+  },
+  {
+    id: 'mangoice',
+    name: '芒果冰',
+    rarity: 'R',
+    theme: '台灣',
+    note: '芒果冰：夏天最幸福的甜點。日文「マンゴーかき氷」，韓文「망고빙수」。',
+    draw: () => (
+      <>
+        <path d="M14 58 H86 L74 86 H26 Z" fill="#e8f6ff" {...line('#8fb6d9')} />
+        <path d="M16 58 C16 36 32 26 50 26 C68 26 84 36 84 58 Z" fill="#ffffff" {...line('#c9d2ea')} />
+        {[
+          [32, 42],
+          [46, 34],
+          [60, 40],
+          [40, 52],
+          [56, 52],
+          [70, 50],
+        ].map(([x, y], i) => (
+          <rect key={i} x={x - 6} y={y - 6} width="12" height="12" rx="3" fill={i % 2 ? '#ffb347' : '#ffc94d'} {...line('#d9772a', 1.6)} />
+        ))}
+        <path d="M30 30 C40 36 60 36 70 30" fill="none" {...line('#ffe680', 3)} />
+        <Face y={70} gap={14} r={3} mouth="smile" mw={4} />
       </>
     ),
   },

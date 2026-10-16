@@ -126,11 +126,27 @@ export interface Inventory {
   hourglass: number;
 }
 
-/** 每日神秘商品：揭曉時把當天的商品記下來（之後買了東西，商品也不會變） */
+/** 每日神秘商品：揭曉時把當天的三件商品記下來（之後買了東西，商品也不會變） */
 export interface MysteryState {
   day: string;
-  offer?: MysteryOffer;
-  bought?: boolean;
+  offers?: MysteryOffer[];
+  /** 買過的格子（0、1、2） */
+  bought?: number[];
+}
+
+/** 舊版一天只有一件（offer、bought: true）：轉成三格的格式 */
+export function migrateMystery(raw: unknown): MysteryState {
+  const m = raw as { day?: unknown; offers?: unknown; offer?: MysteryOffer; bought?: unknown } | null | undefined;
+  if (!m || typeof m !== 'object' || typeof m.day !== 'string') return { day: '' };
+  if (Array.isArray(m.offers)) {
+    const out: MysteryState = { day: m.day, offers: m.offers as MysteryOffer[] };
+    if (Array.isArray(m.bought) && m.bought.length) out.bought = m.bought as number[];
+    return out;
+  }
+  const out: MysteryState = { day: m.day };
+  if (m.offer) out.offers = [m.offer];
+  if (m.bought === true) out.bought = [0];
+  return out;
 }
 
 export interface Save {
@@ -315,7 +331,7 @@ export function migrate(raw: unknown, now: number): Save {
     equip: x.equip ?? {},
     inv: { ...d.inv, ...x.inv },
     stickers: x.stickers ?? {},
-    mystery: x.mystery ?? d.mystery,
+    mystery: migrateMystery(x.mystery),
     songs: x.songs ?? {},
     customSongs: x.customSongs ?? [],
   };

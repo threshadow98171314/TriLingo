@@ -16,6 +16,7 @@ import { nav } from '../router';
 import { ChoiceView, KeyGuideView, MatchView, NoteView, TeachView, TilesView, TypeView, TypeWordView, type TypedResult } from './ExerciseViews';
 import { ExHint, exHintOf } from './Guide';
 import { ResultScreen, type ResultData } from './Result';
+import { Pet } from './Avatar';
 import { Bar, ExampleBox, ItemCard, Modal } from './ui';
 
 interface QueueItem {
@@ -277,6 +278,7 @@ export function Session({
           <small>{title}</small>
           <Bar v={progress} color="var(--lang)" />
         </div>
+        {save.equip.pet && <Pet key={`${idx}-${fb ? (fb.correct ? 'y' : 'n') : ''}`} id={save.equip.pet} mood={fb ? (fb.correct ? (combo > 0 && combo % 5 === 0 ? 'cheer' : 'hop') : 'sad') : null} />}
         <div className={cx('combo', combo >= 2 && 'on', combo >= 5 && 'hot', combo >= 10 && 'blaze', combo >= 20 && 'inferno')} key={combo} title="連擊">
           🔥 {combo}
         </div>

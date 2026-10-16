@@ -2,7 +2,7 @@
 import { useState, type CSSProperties } from 'react';
 import { AVATAR_NAME } from '../art/avatars';
 import { STICKERS } from '../art/stickers';
-import { Avatar } from '../components/Avatar';
+import { Avatar, Pet } from '../components/Avatar';
 import { RankEmblem, RankLine } from '../components/RankEmblem';
 import { Bar, Coin, LangBadge } from '../components/ui';
 import { META_LIST } from '../content';
@@ -194,23 +194,39 @@ export function ProfilePage() {
   ];
   const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const title = TITLES.find((t) => t.id === s.equip.title);
+  const [editing, setEditing] = useState(false);
   const stickerCount = STICKERS.filter((x) => s.stickers[x.id]).length;
 
   return (
     <div className="page">
-      <section className="card profile-head">
+      <section className={cx('card profile-head', s.equip.bg && `pbg pbg-${s.equip.bg}`)}>
         <Avatar id={s.avatar} frame={s.equip.frame} size={84} className="profile-avatar" />
         <div className="grow">
-          <input
-            className="name-input"
-            value={name}
-            maxLength={16}
-            aria-label="暱稱"
-            onChange={(e) => setName(e.target.value)}
-            onBlur={() => setProfile({ name })}
-            onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-          />
-          {title && <p className="profile-title">「{title.name}」</p>}
+          {s.equip.name && !editing ? (
+            <button type="button" className={cx('name-show', `name-fx-${s.equip.name}`)} onClick={() => setEditing(true)} title="點一下修改暱稱">
+              {name || '學習者'}
+            </button>
+          ) : (
+            <input
+              className="name-input"
+              value={name}
+              maxLength={16}
+              aria-label="暱稱"
+              autoFocus={editing}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={() => {
+                setProfile({ name });
+                setEditing(false);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+            />
+          )}
+          {title && <p className={cx('profile-title', title.fx && `title-fx-${title.fx}`)}>「{title.name}」</p>}
+          {s.equip.pet && (
+            <p className="profile-pet">
+              <Pet id={s.equip.pet} size={30} /> <small className="muted">學習夥伴陪你一起上課</small>
+            </p>
+          )}
           <div className="avatar-pick">
             {s.avatars.map((a) => (
               <button key={a} type="button" className={cx('avatar', a === s.avatar && 'on')} onClick={() => setProfile({ avatar: a })} title={AVATAR_NAME[a]}>

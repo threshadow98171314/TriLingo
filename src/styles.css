@@ -4855,7 +4855,7 @@ kbd,
   background: linear-gradient(160deg, color-mix(in srgb, #b48cff 18%, var(--card-2)), var(--card-2));
 }
 .look-art {
-  height: 70px;
+  height: 90px;
   display: grid;
   place-items: center;
 }

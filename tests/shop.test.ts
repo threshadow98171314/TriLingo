@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { STICKER_BY_ID, STICKERS } from '../src/art/stickers';
 import { mergeSaves } from '../src/core/merge';
 import { mulberry32 } from '../src/core/rng';
-import { defaultSave, type Save } from '../src/core/save';
-import { COSMETICS, cosmeticKey, mysteryOffer, rollSticker } from '../src/core/shop';
+import { defaultSave, migrate, type Save } from '../src/core/save';
+import { COSMETICS, cosmeticKey, MYSTERY_SLOTS, mysteryOffers, rollSticker } from '../src/core/shop';
 import {
   buyConsumable,
   buyCosmetic,
@@ -141,26 +141,63 @@ describe('扭蛋', () => {
 });
 
 describe('每日神秘商品', () => {
-  it('同一天看到的商品都一樣；已經擁有的不會出現', () => {
+  it('每天三格：同一天看到的都一樣；已經擁有的不會出現；限定格一定是神秘商品才有的外觀', () => {
     const none = () => false;
-    expect(mysteryOffer('2026-10-16', none)).toEqual(mysteryOffer('2026-10-16', none));
+    expect(mysteryOffers('2026-10-16', none)).toEqual(mysteryOffers('2026-10-16', none));
+    expect(mysteryOffers('2026-10-16', none)).toHaveLength(MYSTERY_SLOTS.length);
     const days = Array.from({ length: 60 }, (_, i) => `2026-11-${String((i % 30) + 1).padStart(2, '0')}-${i}`);
-    const offers = days.map((d) => mysteryOffer(d, (k) => k === cosmeticKey('skin', 'gold')));
-    expect(offers.some((o) => o.kind === 'cosmetic' && o.key === cosmeticKey('skin', 'gold'))).toBe(false);
+    const gold = cosmeticKey('skin', 'gold');
+    const all = days.flatMap((d) => mysteryOffers(d, (k: string) => k === gold));
+    expect(all.some((o) => (o.kind === 'cosmetic' || o.kind === 'lucky') && o.key === gold)).toBe(false);
+    const rares = new Set(
+      Object.values(COSMETICS)
+        .flat()
+        .filter((c) => c.rare)
+        .map((c) => cosmeticKey(c.kind, c.id)),
+    );
+    for (const d of days) {
+      const o = mysteryOffers(d, none)[0];
+      expect(o.kind === 'cosmetic' && rares.has(o.key)).toBe(true);
+    }
   });
 
-  it('揭曉後固定，一天只能買一次', () => {
-    withCoins(1000);
+  it('揭曉後固定，每一格一天只能買一次', () => {
+    withCoins(5000);
     const a = revealMystery();
     const b = revealMystery();
     expect(b).toEqual(a);
-    expect(buyMystery()).not.toBeNull();
-    expect(buyMystery()).toBeNull();
-    expect(getSave().mystery.bought).toBe(true);
+    expect(buyMystery(1)).not.toBeNull();
+    expect(buyMystery(1)).toBeNull();
+    expect(getSave().mystery.bought).toEqual([1]);
     // 隔天重新來過
     vi.setSystemTime(new Date(2026, 9, 17, 10));
     revealMystery();
     expect(getSave().mystery.bought).toBeUndefined();
+  });
+
+  it('外觀福袋：買了才揭曉，直接換上', () => {
+    withCoins(5000);
+    importSave(
+      JSON.stringify({
+        ...defaultSave(Date.now()),
+        coins: 5000,
+        mystery: { day: '2026-10-16', offers: [{ kind: 'lucky', key: cosmeticKey('frame', 'paw'), cost: 70, was: 120 }, { kind: 'gacha10', cost: 330, was: 450 }, { kind: 'pack', cost: 100, was: 200, items: [['shield', 2], ['hourglass', 9]] }] },
+      }),
+    );
+    expect(buyMystery(0)).toEqual({ kind: 'lucky', key: cosmeticKey('frame', 'paw') });
+    expect(getSave().equip.frame).toBe('paw');
+    const g = buyMystery(1);
+    expect(g?.kind === 'gacha10' && g.pulls).toHaveLength(10);
+    // 道具福袋：超過上限（沙漏最多 5 個）的部分不給
+    const p = buyMystery(2);
+    expect(p).toEqual({ kind: 'pack', items: [['shield', 2], ['hourglass', 5]] });
+    expect(getSave().inv.hourglass).toBe(5);
+  });
+
+  it('舊存檔一天只有一件：讀進來變成三格的格式', () => {
+    const offer = { kind: 'coins', cost: 50, min: 20, max: 150 };
+    const s = migrate({ ...defaultSave(1), mystery: { day: '2026-10-16', offer, bought: true } }, 2);
+    expect(s.mystery).toEqual({ day: '2026-10-16', offers: [offer], bought: [0] });
   });
 });
 
@@ -177,10 +214,10 @@ describe('雲端同步合併', () => {
     expect(m.stickers).toEqual({ onigiri: 2, fuji: 1 });
   });
 
-  it('神秘商品：日期新的為準，同一天買過就算買過', () => {
-    const a = base({ mystery: { day: '2026-10-16', bought: true } });
-    const b = base({ mystery: { day: '2026-10-16' } });
-    expect(mergeSaves(a, b).mystery.bought).toBe(true);
+  it('神秘商品：日期新的為準，同一天買過的格子兩邊都算', () => {
+    const a = base({ mystery: { day: '2026-10-16', bought: [2] } });
+    const b = base({ mystery: { day: '2026-10-16', bought: [0] } });
+    expect(mergeSaves(a, b).mystery.bought).toEqual([0, 2]);
     const c = base({ mystery: { day: '2026-10-17' } });
     expect(mergeSaves(a, c).mystery.day).toBe('2026-10-17');
   });

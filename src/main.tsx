@@ -8,6 +8,7 @@ import { initStore } from './core/store';
 import './styles.css';
 import './fx.css';
 import './games.css';
+import './shop.css';
 
 initStore();
 initCloud();

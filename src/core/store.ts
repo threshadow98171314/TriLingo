@@ -23,7 +23,7 @@ import {
   GACHA10_COST,
   GACHA_COST,
   HOURGLASS_MS,
-  mysteryOffer,
+  mysteryOffers,
   PREMIUM_AVATAR_COST,
   PREMIUM_AVATARS,
   rollSticker,
@@ -32,7 +32,7 @@ import {
   type CosmeticKind,
   type MysteryOffer,
 } from './shop';
-import { setSfxEnabled } from './sfx';
+import { setSfxEnabled, setSoundSource } from './sfx';
 import { setTtsPrefs } from './tts';
 import { LANGS, type LangId, type Lesson, type Unit } from './types';
 import { sum } from './util';
@@ -50,6 +50,7 @@ function load(): Save {
 }
 
 let save: Save = load();
+setSoundSource(() => save.equip.sound);
 const subs = new Set<() => void>();
 /** 存檔有變動時通知（雲端同步用） */
 const commitListeners = new Set<() => void>();
@@ -727,40 +728,60 @@ export function pullGacha(n: 1 | 10): GachaPull[] | null {
   return out;
 }
 
-/** 揭曉今天的神秘商品（揭曉後一整天固定不變） */
-export function revealMystery(): MysteryOffer {
-  let offer!: MysteryOffer;
+/** 揭曉今天的三件神秘商品（揭曉後一整天固定不變） */
+export function revealMystery(): MysteryOffer[] {
+  let offers: MysteryOffer[] = [];
   mutate((d) => {
     const t = today();
     if (d.mystery.day !== t) d.mystery = { day: t };
-    d.mystery.offer ??= mysteryOffer(t, (k) => (k.startsWith('avatar:') ? d.avatars.includes(k.slice(7)) : d.owned.includes(k)));
-    offer = d.mystery.offer;
+    const fresh = mysteryOffers(t, (k) => (k.startsWith('avatar:') ? d.avatars.includes(k.slice(7)) : d.owned.includes(k)));
+    // 舊存檔當天只記了一件：補滿三格
+    const cur = d.mystery.offers ?? [];
+    d.mystery.offers = [...cur, ...fresh.slice(cur.length)];
+    offers = d.mystery.offers;
   });
-  return offer;
+  return offers;
 }
 
 export type MysteryResult =
   | { kind: 'avatar'; id: string }
   | { kind: 'cosmetic'; key: string }
+  | { kind: 'lucky'; key: string }
   | ({ kind: 'sticker' } & GachaPull)
+  | { kind: 'gacha10'; pulls: GachaPull[] }
   | { kind: 'coins'; n: number }
   | { kind: 'boost60' }
-  | { kind: 'freeze2' };
+  | { kind: 'freeze2' }
+  | { kind: 'pack'; items: [ConsumableId, number][] };
 
 /** 神秘商品現在買不買得了（例如連勝保護已經滿了就不行） */
 export function mysteryBlocked(s: Save, offer: MysteryOffer): string | null {
   if (offer.kind === 'freeze2' && !canHold(s, 'freeze', 2)) return '連勝保護已經滿了';
   if (offer.kind === 'avatar' && s.avatars.includes(offer.id)) return '已經擁有';
-  if (offer.kind === 'cosmetic' && s.owned.includes(offer.key)) return '已經擁有';
+  if ((offer.kind === 'cosmetic' || offer.kind === 'lucky') && s.owned.includes(offer.key)) return '已經擁有';
+  if (offer.kind === 'pack' && offer.items.every(([id, n]) => !canHold(s, id, n))) return '道具都滿了';
   return null;
 }
 
-export function buyMystery(): MysteryResult | null {
+/** 十連抽（保底一張稀有以上），不扣錢 */
+function tenPulls(d: Save): GachaPull[] {
+  const res: GachaPull[] = [];
+  for (let i = 0; i < 10; i++) {
+    const last = i === 9;
+    const rare = res.some((r) => STICKER_BY_ID.get(r.id)?.rarity !== 'N');
+    res.push(addSticker(d, rollSticker(Math.random, last && !rare ? 'R' : 'N')));
+  }
+  d.stats.gacha += 10;
+  return res;
+}
+
+/** 買第 slot 格的神秘商品 */
+export function buyMystery(slot = 0): MysteryResult | null {
   let res: MysteryResult | null = null;
   mutate((d) => {
     const t = today();
-    const offer = d.mystery.day === t ? d.mystery.offer : undefined;
-    if (!offer || d.mystery.bought || mysteryBlocked(d, offer) || !pay(d, offer.cost)) return;
+    const offer = d.mystery.day === t ? d.mystery.offers?.[slot] : undefined;
+    if (!offer || d.mystery.bought?.includes(slot) || mysteryBlocked(d, offer) || !pay(d, offer.cost)) return;
     switch (offer.kind) {
       case 'avatar':
         d.avatars.push(offer.id);
@@ -768,14 +789,32 @@ export function buyMystery(): MysteryResult | null {
         d.prefsAt = Date.now();
         res = { kind: 'avatar', id: offer.id };
         break;
-      case 'cosmetic': {
+      case 'cosmetic':
+      case 'lucky': {
         const c = cosmeticOf(offer.key);
         if (c) {
           d.owned.push(offer.key);
           d.equip[c.kind] = c.id;
           d.prefsAt = Date.now();
         }
-        res = { kind: 'cosmetic', key: offer.key };
+        res = { kind: offer.kind, key: offer.key };
+        break;
+      }
+      case 'gacha10':
+        res = { kind: 'gacha10', pulls: tenPulls(d) };
+        break;
+      case 'pack': {
+        const got: [ConsumableId, number][] = [];
+        for (const [id, n] of offer.items) {
+          const max = CONSUMABLE_BY_ID.get(id)?.max;
+          const k = max === undefined ? n : Math.max(0, Math.min(n, max - heldOf(d, id)));
+          if (k > 0) {
+            give(d, id, k);
+            got.push([id, k]);
+          }
+        }
+        d.coinsAt = Date.now();
+        res = { kind: 'pack', items: got };
         break;
       }
       case 'sticker':
@@ -796,7 +835,7 @@ export function buyMystery(): MysteryResult | null {
         res = { kind: 'freeze2' };
         break;
     }
-    d.mystery.bought = true;
+    d.mystery.bought = [...(d.mystery.bought ?? []), slot];
   });
   return res;
 }

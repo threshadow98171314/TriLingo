@@ -71,10 +71,15 @@ function mergeStreak(a: StreakState, b: StreakState, newerCoins: StreakState): S
   return { last: a.last, count: Math.max(a.count, b.count), best, freezes: newerCoins.freezes };
 }
 
-/** 神秘商品：日期比較新的那份；同一天就合併「揭曉了」「買了」 */
+/** 神秘商品：日期比較新的那份；同一天就合併「揭曉了」「買了哪幾格」 */
 function mergeMystery(a: MysteryState, b: MysteryState): MysteryState {
   if (a.day !== b.day) return a.day > b.day ? a : b;
-  return { day: a.day, offer: a.offer ?? b.offer, bought: a.bought || b.bought || undefined };
+  const out: MysteryState = { day: a.day };
+  const offers = (a.offers?.length ?? 0) >= (b.offers?.length ?? 0) ? a.offers : b.offers;
+  if (offers) out.offers = offers;
+  const bought = [...new Set([...(a.bought ?? []), ...(b.bought ?? [])])].sort((x, y) => x - y);
+  if (bought.length) out.bought = bought;
+  return out;
 }
 
 /** 歌詞：每首歌取最後修改的那份 */

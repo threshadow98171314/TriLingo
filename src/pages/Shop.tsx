@@ -4,7 +4,7 @@ import { AVATAR_NAME, AvatarArt } from '../art/avatars';
 import { FramePreview, ItemIcon } from '../art/items';
 import { MascotArt } from '../art/mascot';
 import { RARITY_NAME, STICKER_BY_ID, STICKERS, StickerArt, type Sticker } from '../art/stickers';
-import { Avatar } from '../components/Avatar';
+import { Avatar, Pet } from '../components/Avatar';
 import { useBoostLeft } from '../components/Layout';
 import { Coin, Modal } from '../components/ui';
 import { nowMs } from '../core/date';
@@ -12,7 +12,9 @@ import { fx } from '../core/fx';
 import { FREE_AVATARS } from '../core/save';
 import {
   AVATAR_COST,
+  BGS,
   BURSTS,
+  CONSUMABLE_BY_ID,
   CONSUMABLES,
   cosmeticKey,
   cosmeticOf,
@@ -20,12 +22,16 @@ import {
   GACHA10_COST,
   GACHA_COST,
   KIND_NAME,
+  MYSTERY_SLOTS,
+  NAMES,
   OUTFITS,
+  PETS,
   PREMIUM_AVATAR_COST,
   PREMIUM_AVATARS,
   RARITY_ODDS,
   SHOP_AVATARS,
   SKINS,
+  SOUNDS,
   TITLES,
   type Burst,
   type Cosmetic,
@@ -114,32 +120,42 @@ export function ShopPage() {
 
 // ───────── 今日神秘商品 ─────────
 
+const itemName = (id: string) => CONSUMABLE_BY_ID.get(id as never)?.name ?? id;
+
 function offerTitle(o: MysteryOffer): { name: string; desc: string } {
   switch (o.kind) {
     case 'avatar':
-      return { name: `${AVATAR_NAME[o.id] ?? ''}頭像`, desc: '高級頭像今日特價。' };
+      return { name: `${AVATAR_NAME[o.id] ?? ''}頭像`, desc: '會動的高級頭像，今日特價。' };
     case 'cosmetic': {
       const c = cosmeticOf(o.key);
-      return { name: `${KIND_NAME[c?.kind ?? 'frame']}：${c?.name ?? ''}`, desc: c?.rare ? `稀有外觀！${c.desc}` : `今日七折。${c?.desc ?? ''}` };
+      return { name: `${KIND_NAME[c?.kind ?? 'frame']}：${c?.name ?? ''}`, desc: c?.rare ? `限定外觀！${c.desc}` : `今日七折。${c?.desc ?? ''}` };
+    }
+    case 'lucky': {
+      const c = cosmeticOf(o.key);
+      return { name: `外觀福袋（${KIND_NAME[c?.kind ?? 'frame']}）`, desc: `裡面是一件你還沒有的${KIND_NAME[c?.kind ?? 'frame']}，原價 ${o.was}，買了才揭曉！` };
     }
     case 'sticker':
       return { name: '保底超稀有貼紙', desc: '開出來一定是「超稀有」以上的扭蛋貼紙。' };
+    case 'gacha10':
+      return { name: '十連抽特價券', desc: '直接抽十次貼紙扭蛋，保底一張稀有以上。' };
     case 'coins':
       return { name: '金幣福袋', desc: `花 ${o.cost} 金幣，開出 ${o.min}～${o.max} 金幣。賭賭看運氣！` };
     case 'boost60':
       return { name: '超大瓶雙倍藥水', desc: '60 分鐘雙倍 XP，今日特價。' };
     case 'freeze2':
       return { name: '連勝保護兩入組', desc: '一次補兩個連勝保護。' };
+    case 'pack':
+      return { name: '道具福袋', desc: o.items.map(([id, n]) => `${itemName(id)} ×${n}`).join('、') + '（超過上限的部分不會給）。' };
   }
 }
 
 function OfferArt({ o, size = 84 }: { o: MysteryOffer; size?: number }) {
-  if (o.kind === 'avatar') return <AvatarArt id={o.id} size={size} />;
+  if (o.kind === 'avatar') return <Avatar id={o.id} size={size} />;
   if (o.kind === 'cosmetic') {
     const c = cosmeticOf(o.key);
     if (c) return <CosmeticPreview c={c} size={size} />;
   }
-  const icon = o.kind === 'sticker' ? 'gacha' : o.kind === 'coins' ? 'coins' : o.kind === 'boost60' ? 'boost60' : 'freeze';
+  const icon = o.kind === 'sticker' || o.kind === 'gacha10' ? 'gacha' : o.kind === 'coins' ? 'coins' : o.kind === 'boost60' ? 'boost60' : o.kind === 'freeze2' ? 'freeze' : o.kind === 'pack' ? 'clover' : 'mystery';
   return <ItemIcon id={icon} size={size} />;
 }
 
@@ -149,16 +165,24 @@ function resultText(r: MysteryResult): string {
       return '新頭像已經換上了！';
     case 'cosmetic':
       return '已經換上了，可以在「外觀」裡切換。';
+    case 'lucky': {
+      const c = cosmeticOf(r.key);
+      return `開出${KIND_NAME[c?.kind ?? 'frame']}「${c?.name ?? ''}」！已經換上了。`;
+    }
     case 'sticker': {
       const st = STICKER_BY_ID.get(r.id);
       return `抽到【${RARITY_NAME[st?.rarity ?? 'N']}】${st?.name ?? ''}！${r.fresh ? '第一次收集到！' : `重複了，換回 ${r.refund} 金幣。`}`;
     }
+    case 'gacha10':
+      return `抽到 ${r.pulls.filter((p) => p.fresh).length} 張新貼紙！`;
     case 'coins':
       return `開出 ${r.n} 金幣！`;
     case 'boost60':
       return '雙倍 XP 開始生效，衝啊！';
     case 'freeze2':
       return '連勝保護 +2。';
+    case 'pack':
+      return r.items.length ? `得到 ${r.items.map(([id, n]) => `${itemName(id)} ×${n}`).join('、')}。` : '道具都滿了。';
   }
 }
 
@@ -166,67 +190,87 @@ function MysteryCard() {
   const s = useSave();
   const left = useUntilMidnight();
   const box = useRef<HTMLDivElement>(null);
-  const [result, setResult] = useState<MysteryResult | null>(null);
+  const [results, setResults] = useState<Record<number, MysteryResult>>({});
+  const [pulls, setPulls] = useState<GachaPull[] | null>(null);
   const t = today();
   const m = s.mystery.day === t ? s.mystery : null;
-  const offer = m?.offer;
+  const offers = m?.offers ?? [];
 
   const reveal = () => {
     sfx.combo(1);
     revealMystery();
     fx.burstAt(box.current, { count: 40, shapes: ['star', 'glow'], colors: ['#ffe066', '#c4a8ff', '#ff9fbf'], speed: 0.45 });
   };
-  const buy = () => {
-    const r = buyMystery();
+  const buy = (slot: number, el: HTMLElement | null) => {
+    const r = buyMystery(slot);
     if (!ok(!!r)) return;
-    setResult(r);
-    fx.burstAt(box.current, { count: 30, shapes: ['star', 'circle'], speed: 0.4 });
+    setResults((x) => ({ ...x, [slot]: r! }));
+    if (r!.kind === 'gacha10') setPulls(r!.pulls);
+    fx.burstAt(el, { count: 30, shapes: ['star', 'circle'], speed: 0.4 });
   };
 
-  if (!offer) {
+  if (offers.length < MYSTERY_SLOTS.length) {
     return (
-      <section className="card mystery closed">
+      <section className="card mystery3 closed">
         <div className="mystery-art wobble" ref={box}>
           <ItemIcon id="mystery" size={84} />
         </div>
         <div className="grow">
           <h2>今日神秘商品</h2>
-          <p className="muted">每天一件特別的商品：稀有外觀、打折的高級頭像、保底貼紙或金幣福袋……打開才知道！</p>
+          <p className="muted">每天三件特別的商品：只在這裡賣的限定外觀（會動的頭像框、夥伴、背景…）、打折外觀與外觀福袋、扭蛋與道具補給……打開才知道！</p>
           <button type="button" className="btn primary" onClick={reveal}>
-            🎁 揭曉今天的商品
+            🎁 揭曉今天的 3 件商品
           </button>
         </div>
       </section>
     );
   }
 
-  const { name, desc } = offerTitle(offer);
-  const blocked = m?.bought ? null : mysteryBlocked(s, offer);
-  const was = 'was' in offer && offer.was > offer.cost ? offer.was : undefined;
   return (
-    <section className="card mystery open">
-      <div className="mystery-art" ref={box}>
-        <OfferArt o={offer} />
+    <section className="card mystery3" ref={box}>
+      <header className="mystery3-head">
+        <h2>🎁 今日神秘商品</h2>
+        <small className="muted">還剩 {hm(left)}・每格一天限買一次</small>
+      </header>
+      <div className="mystery3-grid">
+        {offers.slice(0, MYSTERY_SLOTS.length).map((offer, slot) => {
+          const { name, desc } = offerTitle(offer);
+          const bought = m?.bought?.includes(slot);
+          const blocked = bought ? null : mysteryBlocked(s, offer);
+          const was = 'was' in offer && offer.was > offer.cost ? offer.was : undefined;
+          const r = results[slot];
+          return (
+            <div key={slot} className={cx('moffer', `slot-${slot}`, bought && 'done')} data-slot={slot}>
+              <span className="moffer-tag">{MYSTERY_SLOTS[slot]}</span>
+              <div className="moffer-art">
+                <OfferArt o={offer} />
+              </div>
+              <b>{name}</b>
+              <small className="muted">{desc}</small>
+              {bought ? (
+                <small className="mystery-done">✓ 已購買{r ? `：${resultText(r)}` : ''}</small>
+              ) : (
+                <div className="mystery-buy">
+                  {was && (
+                    <s className="muted">
+                      <Coin n={was} />
+                    </s>
+                  )}
+                  <button
+                    type="button"
+                    className="btn gold small"
+                    disabled={!!blocked || s.coins < offer.cost}
+                    onClick={(e) => buy(slot, (e.currentTarget as HTMLElement).closest('.moffer'))}
+                  >
+                    {blocked ?? <Coin n={offer.cost} />}
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
-      <div className="grow">
-        <p className="mystery-tag">🎁 今日神秘商品 · 還剩 {hm(left)}</p>
-        <h2>{name}</h2>
-        <p className="muted">{desc}</p>
-        {m?.bought ? (
-          <p className="mystery-done">✓ 今天已經買過了{result ? `：${resultText(result)}` : ''}</p>
-        ) : (
-          <div className="mystery-buy">
-            {was && (
-              <s className="muted">
-                <Coin n={was} />
-              </s>
-            )}
-            <button type="button" className="btn gold" disabled={!!blocked || s.coins < offer.cost} onClick={buy}>
-              {blocked ?? <Coin n={offer.cost} />}
-            </button>
-          </div>
-        )}
-      </div>
+      {pulls && <PullResult pulls={pulls} onClose={() => setPulls(null)} />}
     </section>
   );
 }
@@ -291,6 +335,18 @@ function CosmeticPreview({ c, size = 64 }: { c: Cosmetic; size?: number }) {
       return <ItemIcon id="title" size={size} />;
     case 'outfit':
       return <MascotArt outfit={c.id} size={size} />;
+    case 'pet':
+      return (
+        <span className="pet-preview">
+          <Pet id={c.id} size={size * 0.85} />
+        </span>
+      );
+    case 'name':
+      return <span className={cx('name-sample', `name-fx-${c.id}`)}>{s.name || '學習者'}</span>;
+    case 'bg':
+      return <span className={cx('bg-swatch pbg', `pbg-${c.id}`)} />;
+    case 'sound':
+      return <ItemIcon id="burst" size={size * 0.85} />;
   }
 }
 
@@ -314,16 +370,25 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
     if (b) fx.burstAt(card.current, { count: 22, speed: 0.35, colors: b.colors, shapes: b.shapes, glyphs: b.glyphs });
   };
   return (
-    <div ref={card} className={cx('look card', owned && 'owned', on && 'on', c.rare && 'rare')}>
-      <div className="look-art">
-        <CosmeticPreview c={c} />
+    <div ref={card} className={cx('look card', owned && 'owned', on && 'on', c.rare && 'rare', c.anim && 'anim')}>
+      <div className="look-badges">
+        {c.anim && <span className="chip anim">✨ 動態</span>}
+        {c.rare && <span className="chip">限定</span>}
       </div>
-      <b className="look-name">{c.kind === 'title' ? `「${c.name}」` : c.name}</b>
+      <div className="look-art">
+        <CosmeticPreview c={c} size={c.kind === 'frame' ? 86 : 64} />
+      </div>
+      <b className={cx('look-name', c.kind === 'title' && c.fx && `title-fx-${c.fx}`)}>{c.kind === 'title' ? `「${c.name}」` : c.name}</b>
       <small className="muted look-desc">{c.desc}</small>
       <div className="look-actions">
         {c.kind === 'burst' && (
           <button type="button" className="link-btn" onClick={tryBurst}>
             試放
+          </button>
+        )}
+        {c.kind === 'sound' && (
+          <button type="button" className="link-btn" onClick={() => sfx.preview(c.id)}>
+            🔊 試聽
           </button>
         )}
         {owned ? (
@@ -353,23 +418,38 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
 }
 
 const LOOK_SECTIONS: [CosmeticKind, string, Cosmetic[]][] = [
-  ['frame', '框住你的頭像，個人頁和上方導覽列都看得到。', FRAMES],
-  ['skin', '換掉整個網站的強調色（按鈕、進度條、連結）。', SKINS],
+  ['frame', '框住你的頭像，個人頁和上方導覽列都看得到。標「✨ 動態」的會動！', FRAMES],
+  ['pet', '上課時陪在進度條旁邊：答對會跳、答錯會一起難過，連擊 5 題還會轉一圈。', PETS],
+  ['name', '個人頁上的名字特效。', NAMES],
+  ['bg', '個人頁最上方的名片背景，動態背景會飄花瓣、閃星星。', BGS],
+  ['title', '顯示在個人頁名字下面，限定稱號有文字特效。', TITLES],
   ['burst', '答對時爆出來的特效。', BURSTS],
-  ['title', '顯示在個人頁名字下面。', TITLES],
+  ['sound', '答對時的聲音，可以先試聽。', SOUNDS],
+  ['skin', '換掉整個網站的強調色（按鈕、進度條、連結）。', SKINS],
   ['outfit', '首頁的喵師父會穿上。', OUTFITS],
 ];
 
 function LooksTab() {
   const s = useSave();
   const avatars = [...FREE_AVATARS, ...SHOP_AVATARS, ...PREMIUM_AVATARS, ...s.avatars.filter((a) => ![...FREE_AVATARS, ...SHOP_AVATARS, ...PREMIUM_AVATARS].includes(a))];
+  const jump = (id: string) => document.getElementById(`look-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   return (
     <>
-      <section className="card panel">
+      <nav className="looks-nav" aria-label="外觀分類">
+        <button type="button" onClick={() => jump('avatar')}>
+          頭像
+        </button>
+        {LOOK_SECTIONS.map(([kind]) => (
+          <button key={kind} type="button" onClick={() => jump(kind)}>
+            {KIND_NAME[kind]}
+          </button>
+        ))}
+      </nav>
+      <section className="card panel" id="look-avatar">
         <header className="panel-head">
           <h2>頭像</h2>
           <small className="muted">
-            一般 {AVATAR_COST}、高級 {PREMIUM_AVATAR_COST} 金幣
+            一般 {AVATAR_COST}、高級 {PREMIUM_AVATAR_COST} 金幣（高級頭像會動）
           </small>
         </header>
         <div className="shop-avatars">
@@ -397,7 +477,7 @@ function LooksTab() {
       </section>
 
       {LOOK_SECTIONS.map(([kind, desc, list]) => (
-        <section key={kind} className="card panel">
+        <section key={kind} className="card panel" id={`look-${kind}`}>
           <header className="panel-head">
             <h2>{KIND_NAME[kind]}</h2>
             <small className="muted">{desc}</small>
@@ -420,7 +500,7 @@ function LooksTab() {
 
 // ───────── 扭蛋 ─────────
 
-const THEMES: Sticker['theme'][] = ['日本', '韓國', '英語圈', '學習', '傳說'];
+const THEMES: Sticker['theme'][] = ['日本', '韓國', '英語圈', '台灣', '季節', '學習', '傳說'];
 
 function GachaTab() {
   const s = useSave();
@@ -452,7 +532,7 @@ function GachaTab() {
         </div>
         <div className="grow">
           <h2>貼紙扭蛋機</h2>
-          <p className="muted">日本、韓國、英語圈和學習主題的可愛貼紙，一共 {STICKERS.length} 張。抽到重複的會換回一些金幣。</p>
+          <p className="muted">日本、韓國、英語圈、台灣、季節與學習主題的可愛貼紙，一共 {STICKERS.length} 張；傳說貼紙會發光。抽到重複的會換回一些金幣。</p>
           <div className="gacha-btns">
             <button type="button" className="btn gold" disabled={spinning || s.coins < GACHA_COST} onClick={() => pull(1)}>
               轉一次 <Coin n={GACHA_COST} />

@@ -424,6 +424,99 @@ const ART: Record<string, () => ReactNode> = {
       <Mouth y={67} kind="smile" w={5} />
     </>
   ),
+  '🦦': () => (
+    <>
+      <Pair>
+        <circle cx="25" cy="34" r="7" fill="#a3765a" {...line('#6b4430', 2.6)} />
+        <circle cx="25" cy="34" r="3" fill="#e8c4a6" />
+      </Pair>
+      <ellipse cx="50" cy="56" rx="31" ry="28" fill="#b58566" {...line('#6b4430')} />
+      <ellipse cx="50" cy="65" rx="19" ry="15" fill="#f2dcc4" />
+      <Eyes y={52} gap={22} />
+      <Blush y={60} gap={40} />
+      {nose(60, INK, 4, 3)}
+      <Mouth y={64} kind="cat" w={4.4} />
+      <g {...line('#6b4430', 1.4)}>
+        <path d="M33 62 L22 60 M33 65 L23 67 M67 62 L78 60 M67 65 L77 67" />
+      </g>
+      <ellipse cx="50" cy="86" rx="11" ry="6" fill="#f6efe6" {...line('#b9a68e', 2)} />
+      <path d="M42 86 Q50 81 58 86 M44 88 Q50 85 56 88" fill="none" {...line('#c9b8a0', 1.4)} />
+    </>
+  ),
+  '🐿️': () => (
+    <>
+      <path d="M78 82 C98 70 96 34 80 26 C70 22 66 34 74 40 C84 46 82 64 70 72 Z" fill="#e0924f" {...line('#9a5a2a')} />
+      <path d="M80 34 C86 40 86 56 78 64" fill="none" {...line('#f4c08a', 3)} />
+      <Pair>
+        <path d="M24 38 L22 18 L38 30 Z" fill="#e0924f" {...line('#9a5a2a', 2.6)} />
+      </Pair>
+      <ellipse cx="46" cy="56" rx="28" ry="27" fill="#eaa463" {...line('#9a5a2a')} />
+      <ellipse cx="46" cy="66" rx="16" ry="13" fill="#fff0dc" />
+      <Eyes x={46} y={52} gap={20} />
+      <Blush x={46} y={60} gap={36} />
+      {nose(59.5, INK, 3.2, 2.4)}
+      <Mouth x={46} y={63} kind="cat" w={3.8} />
+      <path d="M41 66 H51 V71 H41 Z" fill="#ffffff" {...line(INK, 1.4)} />
+      <ellipse cx="46" cy="84" rx="7" ry="5.5" fill="#b0703a" {...line('#7a4a22', 2)} />
+      <path d="M41 81 Q46 77 51 81" fill="#7a4a22" />
+    </>
+  ),
+  '🦭': () => (
+    <>
+      <path d="M16 70 C10 50 24 28 50 28 C76 28 90 50 84 70 C80 84 20 84 16 70 Z" fill="#b9c4d6" {...line('#6c7a94')} />
+      <ellipse cx="50" cy="64" rx="18" ry="12" fill="#e6ebf4" />
+      <Eyes y={52} gap={24} r={4.8} />
+      <Blush y={61} gap={42} />
+      <ellipse cx="50" cy="60" rx="4.4" ry="3.2" fill={INK} />
+      <Mouth y={64} kind="cat" w={4.6} />
+      <g {...line('#6c7a94', 1.4)}>
+        <path d="M38 62 L26 59 M38 66 L27 68 M62 62 L74 59 M62 66 L73 68" />
+      </g>
+      <path d="M14 76 C6 74 4 84 10 86 C14 82 18 80 22 80 Z M86 76 C94 74 96 84 90 86 C86 82 82 80 78 80 Z" fill="#a3afc4" {...line('#6c7a94', 2.2)} />
+    </>
+  ),
+  '🐝': () => (
+    <>
+      <g fill="#e8f6ff" fillOpacity="0.85" {...line('#8fb6d9', 2.2)}>
+        <ellipse cx="30" cy="26" rx="14" ry="10" transform="rotate(-20 30 26)" />
+        <ellipse cx="70" cy="26" rx="14" ry="10" transform="rotate(20 70 26)" />
+      </g>
+      <path d="M44 22 Q38 10 32 10 M56 22 Q62 10 68 10" fill="none" {...line(INK, 2.4)} />
+      <circle cx="32" cy="10" r="3" fill={INK} />
+      <circle cx="68" cy="10" r="3" fill={INK} />
+      <ellipse cx="50" cy="58" rx="32" ry="29" fill="#ffd34d" {...line('#c99a2a')} />
+      <path d="M22 72 C34 78 66 78 78 72 L80 66 C66 72 34 72 20 66 Z" fill="#4a3535" />
+      <path d="M20 46 C34 52 66 52 80 46 L82 52 C66 58 34 58 18 52 Z" fill="#4a3535" opacity="0.92" />
+      <Eyes y={60} gap={22} r={4.2} />
+      <Blush y={67} gap={40} />
+      <Mouth y={67} kind="smile" w={6} />
+    </>
+  ),
+  '🦥': () => (
+    <>
+      <path d="M14 56 C14 32 30 20 50 20 C70 20 86 32 86 56 C86 78 70 88 50 88 C30 88 14 78 14 56 Z" fill="#a88a6e" {...line('#6b5340')} />
+      <path d="M24 56 C24 40 36 32 50 32 C64 32 76 40 76 56 C76 72 64 80 50 80 C36 80 24 72 24 56 Z" fill="#f1dfc6" />
+      <Pair>
+        <path d="M27 50 C29 42 39 42 43 50 C41 58 31 60 27 50 Z" fill="#6b5340" />
+      </Pair>
+      <Eyes y={50} gap={22} r={3.4} color="#2b1f15" />
+      <ellipse cx="50" cy="60" rx="4.6" ry="3.4" fill="#4a3535" />
+      <Mouth y={65} kind="smile" w={8} />
+      <Blush y={63} gap={40} opacity={0.4} />
+    </>
+  ),
+  '🦩': () => (
+    <>
+      <path d="M58 88 C56 74 66 66 64 54" fill="none" {...line('#e86a8f', 7)} />
+      <path d="M58 88 C56 74 66 66 64 54" fill="none" {...line('#ff9fbf', 4)} />
+      <circle cx="54" cy="40" r="22" fill="#ff9fbf" {...line('#d9578f')} />
+      <path d="M68 40 C80 38 86 44 86 50 C86 56 80 58 76 54 C78 50 74 46 68 46 Z" fill="#ffffff" {...line('#8a93b8', 2.2)} />
+      <path d="M80 50 C84 52 86 56 84 60 C80 60 78 56 76 54 Z" fill={INK} />
+      <path d="M44 18 Q46 10 52 12 Q50 16 50 19" fill="#ff7aa8" {...line('#d9578f', 2)} />
+      <Eyes x={52} y={38} gap={16} r={3.6} />
+      <Blush x={50} y={46} gap={26} />
+    </>
+  ),
 };
 
 /** 頭像插畫的內容（圖片題也會用到） */
@@ -474,4 +567,10 @@ export const AVATAR_NAME: Record<string, string> = {
   '🐵': '猴子',
   '🐳': '鯨魚',
   '🦔': '刺蝟',
+  '🦦': '水獺',
+  '🐿️': '松鼠',
+  '🦭': '海豹',
+  '🐝': '蜜蜂',
+  '🦥': '樹懶',
+  '🦩': '紅鶴',
 };

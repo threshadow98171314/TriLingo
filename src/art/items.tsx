@@ -279,6 +279,293 @@ const FRAMES: Record<string, () => ReactNode> = {
       <circle cx="61" cy="-1" r="2.4" fill="#9cff8a" />
     </>
   ),
+  // ───── 新的靜態框 ─────
+  ribbon: () => (
+    <>
+      {ring('#ffc8da', '#e88aac', 6)}
+      <path d="M50 -2 C36 -18 18 -10 26 0 C30 5 40 4 50 -2 Z" fill="#ff8fb8" {...line('#d9578f', 2.2)} />
+      <path d="M50 -2 C64 -18 82 -10 74 0 C70 5 60 4 50 -2 Z" fill="#ff8fb8" {...line('#d9578f', 2.2)} />
+      <path d="M46 2 L38 18 L44 16 L46 22 L50 4 Z M54 2 L62 18 L56 16 L54 22 L50 4 Z" fill="#ffb3cf" {...line('#d9578f', 1.8)} />
+      <circle cx="50" cy="-1" r="5" fill="#ffd1e3" {...line('#d9578f', 2)} />
+    </>
+  ),
+  paw: () => (
+    <>
+      {ring('#ffe2bd', '#c7823f', 6)}
+      {around(6, -90).map(([x, y], i) => (
+        <g key={i} transform={`translate(${x} ${y}) rotate(${i * 60})`} fill="#c98a5b">
+          <ellipse cx="0" cy="2" rx="4.4" ry="3.6" />
+          <circle cx="-4.2" cy="-3" r="1.9" />
+          <circle cx="0" cy="-5" r="1.9" />
+          <circle cx="4.2" cy="-3" r="1.9" />
+        </g>
+      ))}
+    </>
+  ),
+  candy: () => (
+    <>
+      <circle cx="50" cy="50" r="50" fill="none" stroke="#ffffff" strokeWidth="8" />
+      <circle cx="50" cy="50" r="50" fill="none" stroke="#ff5d7a" strokeWidth="8" strokeDasharray="9 9" />
+      <circle cx="50" cy="50" r="54.7" fill="none" stroke="#d94a64" strokeWidth="1.2" />
+      <circle cx="50" cy="50" r="45.3" fill="none" stroke="#d94a64" strokeWidth="1.2" />
+      {[
+        [10, 10, '#7ad8ff'],
+        [90, 90, '#ffe066'],
+      ].map(([x, y, c]) => (
+        <g key={String(x)} transform={`translate(${x} ${y}) rotate(-45)`}>
+          <path d="M-12 0 L-17 -5 L-17 5 Z M12 0 L17 -5 L17 5 Z" fill={c as string} {...line('#8a93b8', 1.4)} />
+          <ellipse rx="9" ry="7" fill={c as string} {...line('#8a93b8', 1.6)} />
+          <path d="M-5 -5 Q0 0 -5 5 M2 -6 Q7 0 2 6" fill="none" {...line('#ffffff', 1.6)} />
+        </g>
+      ))}
+    </>
+  ),
+  wave: () => (
+    <>
+      {ring('#7cc4ff', '#2f6fb3', 6)}
+      {around(8, -90).map(([x, y], i) => (
+        <g key={i} transform={`translate(${x} ${y}) rotate(${i * 45})`}>
+          <path d="M-9 4 C-8 -6 4 -9 8 -2 C4 -5 -1 -3 0 2 C1 5 5 5 6 3" fill="#ffffff" {...line('#2f6fb3', 1.8)} />
+        </g>
+      ))}
+    </>
+  ),
+  bamboo: () => (
+    <>
+      <circle cx="50" cy="50" r="50" fill="none" stroke="#7fc66a" strokeWidth="7" strokeDasharray="22 3" />
+      <circle cx="50" cy="50" r="53.5" fill="none" stroke="#3f8a3a" strokeWidth="1.2" />
+      <circle cx="50" cy="50" r="46.5" fill="none" stroke="#3f8a3a" strokeWidth="1.2" />
+      {around(4, -60).map(([x, y], i) => (
+        <g key={i} transform={`translate(${x} ${y}) rotate(${i * 90 + 30})`} fill="#5bb04a" {...line('#2f7a2a', 1.4)}>
+          <path d="M0 0 C6 -4 14 -4 18 -1 C13 1 6 2 0 0 Z" />
+          <path d="M0 0 C4 -8 10 -12 15 -12 C12 -7 6 -3 0 0 Z" />
+        </g>
+      ))}
+    </>
+  ),
+  lace: () => (
+    <>
+      {around(18, -90).map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r="6.2" fill="#ffffff" stroke="#d6d9ef" strokeWidth="1.4" />
+      ))}
+      <circle cx="50" cy="50" r="47" fill="none" stroke="#ffffff" strokeWidth="3" />
+      {around(18, -80).map(([x, y], i) => (
+        <circle key={i} cx={50 + (x - 50) * 1.02} cy={50 + (y - 50) * 1.02} r="1.4" fill="#c6cbe6" />
+      ))}
+    </>
+  ),
+
+  // ───── 會動的框 ─────
+  orbit: () => (
+    <>
+      <circle cx="50" cy="50" r="50" fill="none" stroke="#c4a8ff" strokeWidth="2.4" strokeDasharray="2 5" />
+      <circle cx="50" cy="50" r="53" fill="none" stroke="#7a5bd6" strokeWidth="1.2" opacity="0.6" />
+      <g className="fa-spin">
+        {around(3).map(([x, y], i) => (
+          <path key={i} d={starPath(x, y, i ? 6 : 9, i ? 2.8 : 4)} fill={['#ffe066', '#ff9fbf', '#7ad8ff'][i]} {...line('#c99a2a', 1.2)} />
+        ))}
+      </g>
+      <g className="fa-spin-rev">
+        {around(6, -60).map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r="1.6" fill="#ffffff" opacity="0.8" />
+        ))}
+      </g>
+    </>
+  ),
+  aurora: () => (
+    <>
+      <defs>
+        <linearGradient id="fr-aurora" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#4ef0b0" />
+          <stop offset="0.5" stopColor="#5cc8ff" />
+          <stop offset="1" stopColor="#c47bff" />
+        </linearGradient>
+      </defs>
+      <g className="fa-spin-slow">
+        <circle cx="50" cy="50" r="50" fill="none" stroke="url(#fr-aurora)" strokeWidth="8" />
+      </g>
+      <g className="fa-spin-rev" opacity="0.55">
+        <circle cx="50" cy="50" r="55" fill="none" stroke="url(#fr-aurora)" strokeWidth="2" strokeDasharray="30 14" />
+      </g>
+      <g className="fa-hue">
+        <Sparkle x={88} y={12} s={6} color="#b8fff0" />
+        <Sparkle x={12} y={88} s={5} color="#e4c9ff" />
+      </g>
+    </>
+  ),
+  flame: () => (
+    <>
+      {ring('#ff9a4d', '#c4542a', 6)}
+      {around(10, -90).map(([x, y], i) => (
+        <g key={i} transform={`translate(${x} ${y}) rotate(${i * 36})`}>
+          <path className="fa-flicker" style={{ animationDelay: `${(i % 4) * 0.15}s` }} d="M0 2 C-6 -2 -4 -10 0 -16 C4 -10 6 -2 0 2 Z" fill={i % 2 ? '#ffd34d' : '#ff6b3d'} {...line('#d9481a', 1.2)} />
+        </g>
+      ))}
+    </>
+  ),
+  bubble: () => (
+    <>
+      {ring('#bfe6ff', '#6ab0e0', 5)}
+      {around(8, -70).map(([x, y], i) => (
+        <g key={i} className="fa-rise" style={{ animationDelay: `${(i * 0.37) % 2.4}s` }}>
+          <circle cx={x} cy={y} r={i % 3 ? 4.5 : 6.5} fill="rgba(220,240,255,0.35)" stroke="#9fd0f2" strokeWidth="1.4" />
+          <circle cx={x - 1.6} cy={y - 1.8} r="1.4" fill="#ffffff" />
+        </g>
+      ))}
+    </>
+  ),
+  petals: () => (
+    <>
+      {ring('#ffd9e6', '#e88aac', 5)}
+      {around(9, -90).map(([x, y], i) => (
+        <g key={i} className="fa-fall" style={{ animationDelay: `${(i * 0.43) % 3}s` }}>
+          <path d={`M${x} ${y} c-4 -3 -5 -8 -1 -10 l1 2 l1 -2 c4 2 3 7 -1 10 z`} fill={i % 2 ? '#ffb3cc' : '#ffffff'} stroke="#e88aac" strokeWidth="1.2" />
+        </g>
+      ))}
+    </>
+  ),
+  neon: () => (
+    <>
+      <defs>
+        <filter id="fr-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.2" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      <g filter="url(#fr-glow)">
+        <circle className="fa-neon-a" cx="50" cy="50" r="50" fill="none" strokeWidth="3.4" />
+        <circle className="fa-neon-b" cx="50" cy="50" r="55" fill="none" strokeWidth="2" strokeDasharray="18 6" />
+      </g>
+    </>
+  ),
+  heart: () => (
+    <>
+      {ring('#ffc8da', '#e05d84', 5)}
+      {around(6, -90).map(([x, y], i) => (
+        <path
+          key={i}
+          className="fa-pulse"
+          style={{ animationDelay: `${i * 0.12}s` }}
+          d={`M${x} ${y + 5} C${x - 8} ${y - 1} ${x - 7} ${y - 8} ${x - 3.4} ${y - 8} C${x - 1.4} ${y - 8} ${x} ${y - 6.4} ${x} ${y - 5} C${x} ${y - 6.4} ${x + 1.4} ${y - 8} ${x + 3.4} ${y - 8} C${x + 7} ${y - 8} ${x + 8} ${y - 1} ${x} ${y + 5} Z`}
+          fill={i % 2 ? '#ff7aa8' : '#ff4f86'}
+          {...line('#c43d6a', 1.2)}
+        />
+      ))}
+    </>
+  ),
+  music: () => (
+    <>
+      {ring('#d9ccff', '#7a5bd6', 5)}
+      {around(6, -90).map(([x, y], i) => (
+        <text key={i} className="fa-rise" style={{ animationDelay: `${i * 0.4}s` }} x={x} y={y + 5} textAnchor="middle" fontSize="15" fontWeight="900" fill={['#ff7aa8', '#7ad8ff', '#ffd34d'][i % 3]}>
+          {i % 2 ? '♪' : '♫'}
+        </text>
+      ))}
+    </>
+  ),
+  snow: () => (
+    <>
+      {ring('#e0f2ff', '#7fb2dd', 5)}
+      {around(8, -90).map(([x, y], i) => (
+        <g key={i} className="fa-fall" style={{ animationDelay: `${(i * 0.5) % 3.2}s` }}>
+          <g transform={`translate(${x} ${y})`} stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round">
+            <path d="M0 -5 V5 M-4.3 -2.5 L4.3 2.5 M4.3 -2.5 L-4.3 2.5" />
+          </g>
+        </g>
+      ))}
+    </>
+  ),
+  koi: () => (
+    <>
+      <circle cx="50" cy="50" r="50" fill="none" stroke="#7cc4ff" strokeWidth="7" opacity="0.7" />
+      <circle cx="50" cy="50" r="50" fill="none" stroke="#ffffff" strokeWidth="1.2" strokeDasharray="4 10" opacity="0.8" />
+      <g className="fa-spin-slow">
+        {[0, 180].map((a, i) => (
+          <g key={a} transform={`rotate(${a} 50 50) translate(50 0)`}>
+            <path d="M-12 0 C-6 -6 6 -6 12 0 C6 6 -6 6 -12 0 Z" fill={i ? '#ffffff' : '#ff8a3d'} {...line('#c4542a', 1.4)} />
+            <path d="M-12 0 L-19 -6 L-17 0 L-19 6 Z" fill={i ? '#ff6b3d' : '#ffd34d'} {...line('#c4542a', 1.2)} />
+            <circle cx={i ? -2 : 3} cy="-1" r="2.6" fill={i ? '#ff6b3d' : '#ffffff'} />
+            <circle cx="8" cy="-1.5" r="1.2" fill={INK} />
+          </g>
+        ))}
+      </g>
+    </>
+  ),
+  thunder: () => (
+    <>
+      {ring('#3a3f8f', '#ffd34d', 7)}
+      {around(4, -45).map(([x, y], i) => (
+        <path
+          key={i}
+          className="fa-flash"
+          style={{ animationDelay: `${i * 0.35}s` }}
+          d={`M${x - 2} ${y - 11} L${x - 7} ${y + 1} L${x - 1} ${y + 1} L${x - 4} ${y + 11} L${x + 7} ${y - 3} L${x + 1} ${y - 3} L${x + 4} ${y - 11} Z`}
+          fill="#ffe066"
+          {...line('#c99a2a', 1.4)}
+        />
+      ))}
+      <circle className="fa-flash" cx="50" cy="50" r="55" fill="none" stroke="#fff6b0" strokeWidth="1.4" />
+    </>
+  ),
+  galaxy: () => (
+    <>
+      <defs>
+        <linearGradient id="fr-galaxy" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#3a1f8f" />
+          <stop offset="0.5" stopColor="#c44bd6" />
+          <stop offset="1" stopColor="#1f6fd6" />
+        </linearGradient>
+      </defs>
+      <circle cx="50" cy="50" r="50" fill="none" stroke="url(#fr-galaxy)" strokeWidth="10" />
+      <g className="fa-spin-slow">
+        {around(16, -90).map(([x, y], i) => (
+          <circle key={i} cx={x + ((i * 7) % 5) - 2} cy={y + ((i * 3) % 5) - 2} r={i % 4 ? 1 : 1.8} fill="#ffffff" />
+        ))}
+      </g>
+      <g className="fa-twinkle">
+        <Sparkle x={90} y={8} s={7} color="#ffe066" />
+        <Sparkle x={8} y={92} s={6} color="#b8e8ff" />
+        <Sparkle x={96} y={70} s={4} color="#ffd1f0" />
+      </g>
+    </>
+  ),
+  dragon: () => (
+    <>
+      {ring('#ffd34d', '#c99a2a', 5)}
+      <g className="fa-spin-slow">
+        {Array.from({ length: 14 }, (_, i) => {
+          const a = ((-90 - i * 15) * Math.PI) / 180;
+          const r = 50 + Math.sin(i * 0.9) * 3;
+          return <circle key={i} cx={50 + r * Math.cos(a)} cy={50 + r * Math.sin(a)} r={7 - i * 0.35} fill={i % 2 ? '#ffcf33' : '#ffe680'} {...line('#c99a2a', 1.4)} />;
+        })}
+        <g transform="translate(50 0) rotate(90)">
+          <ellipse cx="2" cy="0" rx="10" ry="8" fill="#ffd34d" {...line('#c99a2a', 1.6)} />
+          <path d="M-4 -7 L-10 -15 M2 -8 L0 -16" {...line('#c99a2a', 2)} />
+          <circle cx="5" cy="-2.5" r="1.8" fill={INK} />
+          <path d="M11 2 C15 4 17 8 15 11" fill="none" {...line('#ff6b3d', 1.6)} />
+        </g>
+      </g>
+    </>
+  ),
+  phoenix: () => (
+    <>
+      {ring('#ff7a3d', '#c43d1a', 6)}
+      <g transform="translate(50 -6)">
+        <path className="fa-flap-l" d="M0 4 C-10 -6 -26 -10 -36 -2 C-28 -2 -24 4 -30 8 C-20 6 -12 8 0 4 Z" fill="#ffb347" {...line('#d9481a', 1.6)} />
+        <path className="fa-flap-r" d="M0 4 C10 -6 26 -10 36 -2 C28 -2 24 4 30 8 C20 6 12 8 0 4 Z" fill="#ffb347" {...line('#d9481a', 1.6)} />
+        <ellipse cx="0" cy="4" rx="6" ry="8" fill="#ff6b3d" {...line('#d9481a', 1.6)} />
+        <circle cx="0" cy="-4" r="4.6" fill="#ff8a3d" {...line('#d9481a', 1.4)} />
+        <path d="M-1 -9 Q0 -14 3 -12" fill="none" {...line('#ffd34d', 1.6)} />
+        <circle cx="1.4" cy="-4.6" r="1" fill={INK} />
+      </g>
+      {[-1, 0, 1].map((k) => (
+        <path key={k} className="fa-flicker" style={{ animationDelay: `${(k + 1) * 0.2}s` }} d={`M${50 + k * 8} 100 C${44 + k * 8} 108 ${50 + k * 10} 116 ${50 + k * 12} 122 C${56 + k * 9} 114 ${56 + k * 8} 106 ${50 + k * 8} 100 Z`} fill={k ? '#ffd34d' : '#ff6b3d'} {...line('#d9481a', 1.2)} />
+      ))}
+    </>
+  ),
 };
 
 /** 頭像框：疊在頭像外面（比頭像大一圈） */

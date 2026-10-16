@@ -1,7 +1,7 @@
 // 商店的商品目錄：道具、外觀（頭像、頭像框、主題色、答對特效、稱號、喵師父裝扮）、扭蛋與每日神秘商品。
 // 價格以「每天把任務做完大約能拿 70–100 金幣」為基準。
 import { STICKERS, type Rarity } from '../art/stickers';
-import { hashStr, mulberry32, type Rng } from './rng';
+import { hashStr, mulberry32, pick, type Rng } from './rng';
 
 // ───────── 道具 ─────────
 
@@ -38,13 +38,13 @@ export const AVATAR_COST = 50;
 export const PREMIUM_AVATAR_COST = 150;
 
 /** 一般頭像 */
-export const SHOP_AVATARS = ['🐼', '🐯', '🦁', '🐸', '🐧', '🦉', '🐰', '🐻', '🐹', '🐨', '🐷', '🐮', '🐵', '🐙', '🤖', '👾', '👻'];
-/** 高級頭像：比較貴，也會出現在每日神秘商品（打折） */
+export const SHOP_AVATARS = ['🐼', '🐯', '🦁', '🐸', '🐧', '🦉', '🐰', '🐻', '🐹', '🐨', '🐷', '🐮', '🐵', '🐙', '🤖', '👾', '👻', '🦦', '🐿️', '🦭', '🐝', '🦥', '🦩'];
+/** 高級頭像：比較貴、會動（眨眼、晃來晃去），也會出現在每日神秘商品（打折） */
 export const PREMIUM_AVATARS = ['🦄', '🐲', '🐳', '🐻‍❄️', '🦔'];
 
 // ───────── 外觀 ─────────
 
-export type CosmeticKind = 'frame' | 'skin' | 'burst' | 'title' | 'outfit';
+export type CosmeticKind = 'frame' | 'skin' | 'burst' | 'title' | 'outfit' | 'pet' | 'name' | 'bg' | 'sound';
 
 export interface Cosmetic {
   kind: CosmeticKind;
@@ -54,6 +54,10 @@ export interface Cosmetic {
   cost: number;
   /** 只在每日神秘商品出現 */
   rare?: boolean;
+  /** 會動的高級外觀 */
+  anim?: boolean;
+  /** 稱號的文字特效 */
+  fx?: 'gold' | 'rainbow' | 'neon' | 'fire';
 }
 
 export const cosmeticKey = (kind: CosmeticKind, id: string) => `${kind}:${id}`;
@@ -64,6 +68,10 @@ export const KIND_NAME: Record<CosmeticKind, string> = {
   burst: '答對特效',
   title: '稱號',
   outfit: '喵師父裝扮',
+  pet: '學習夥伴',
+  name: '名牌特效',
+  bg: '名片背景',
+  sound: '答對音效',
 };
 
 export const FRAMES: Cosmetic[] = [
@@ -74,6 +82,26 @@ export const FRAMES: Cosmetic[] = [
   { kind: 'frame', id: 'star', name: '星空框', desc: '熬夜念書的時候，星星也陪著你。', cost: 150 },
   { kind: 'frame', id: 'rainbow', name: '彩虹框', desc: '三種語言，七種顏色。', cost: 200 },
   { kind: 'frame', id: 'crown', name: '王者框', desc: '頭上戴著皇冠的頭像框，只在神秘商品出現。', cost: 260, rare: true },
+  { kind: 'frame', id: 'ribbon', name: '緞帶框', desc: '綁上大大的粉紅蝴蝶結。', cost: 120 },
+  { kind: 'frame', id: 'paw', name: '貓掌框', desc: '喵師父的肉球印章。', cost: 120 },
+  { kind: 'frame', id: 'candy', name: '糖果框', desc: '甜甜的條紋糖果圈。', cost: 140 },
+  { kind: 'frame', id: 'wave', name: '浪花框', desc: '浮世繪風的海浪。', cost: 150 },
+  { kind: 'frame', id: 'bamboo', name: '竹林框', desc: '清幽的竹子與竹葉。', cost: 140 },
+  { kind: 'frame', id: 'lace', name: '蕾絲框', desc: '優雅的白色蕾絲花邊。', cost: 130 },
+  { kind: 'frame', id: 'orbit', name: '星軌框', desc: '三顆星星繞著你轉個不停。', cost: 320, anim: true },
+  { kind: 'frame', id: 'aurora', name: '極光框', desc: '流動變色的北極光。', cost: 380, anim: true },
+  { kind: 'frame', id: 'flame', name: '火焰框', desc: '熊熊燃燒的學習熱情。', cost: 360, anim: true },
+  { kind: 'frame', id: 'bubble', name: '泡泡框', desc: '泡泡一顆一顆往上飄。', cost: 300, anim: true },
+  { kind: 'frame', id: 'petals', name: '櫻吹雪框', desc: '花瓣不停地飄落。', cost: 360, anim: true },
+  { kind: 'frame', id: 'neon', name: '霓虹框', desc: '東京夜晚的霓虹燈，一閃一閃。', cost: 340, anim: true },
+  { kind: 'frame', id: 'heart', name: '心跳框', desc: '愛心隨著心跳撲通撲通。', cost: 300, anim: true },
+  { kind: 'frame', id: 'music', name: '音符框', desc: '音符跟著節奏跳舞。', cost: 320, anim: true },
+  { kind: 'frame', id: 'snow', name: '雪花框', desc: '雪花慢慢旋轉飄下。', cost: 320, anim: true },
+  { kind: 'frame', id: 'koi', name: '錦鯉框', desc: '兩隻錦鯉繞著你游泳，招來好運。', cost: 420, anim: true },
+  { kind: 'frame', id: 'thunder', name: '雷神框', desc: '閃電劈啪作響，只在神秘商品出現。', cost: 520, rare: true, anim: true },
+  { kind: 'frame', id: 'galaxy', name: '銀河框', desc: '整片星空繞著你旋轉，只在神秘商品出現。', cost: 560, rare: true, anim: true },
+  { kind: 'frame', id: 'dragon', name: '金龍框', desc: '一條金龍盤旋飛舞，只在神秘商品出現。', cost: 600, rare: true, anim: true },
+  { kind: 'frame', id: 'phoenix', name: '鳳凰框', desc: '浴火重生的鳳凰展開翅膀，只在神秘商品出現。', cost: 600, rare: true, anim: true },
 ];
 
 /** 主題色：換掉整個網站的強調色（按鈕、進度、連結） */
@@ -89,6 +117,14 @@ export const SKINS: Skin[] = [
   { kind: 'skin', id: 'sunset', name: '夕陽橘', desc: '活力滿滿的橘色。', cost: 150, a: '#ff8a3d', b: '#fbbf24' },
   { kind: 'skin', id: 'lavender', name: '薰衣草', desc: '夢幻的淡紫色。', cost: 150, a: '#b48cff', b: '#f0abfc' },
   { kind: 'skin', id: 'gold', name: '午夜金', desc: '低調奢華的金色，只在神秘商品出現。', cost: 280, a: '#f5b82e', b: '#fde68a', rare: true },
+  { kind: 'skin', id: 'mint', name: '薄荷綠', desc: '清涼的薄荷色。', cost: 150, a: '#2ec4b6', b: '#a7f3d0' },
+  { kind: 'skin', id: 'peach', name: '蜜桃粉', desc: '水蜜桃一樣的暖粉色。', cost: 150, a: '#ff8f80', b: '#ffd3b6' },
+  { kind: 'skin', id: 'coffee', name: '拿鐵咖啡', desc: '邊喝咖啡邊背單字。', cost: 150, a: '#c08552', b: '#f3d2a8' },
+  { kind: 'skin', id: 'cherry', name: '櫻桃紅', desc: '熱情的紅色。', cost: 150, a: '#ef4565', b: '#ffa3b5' },
+  { kind: 'skin', id: 'forest', name: '森林', desc: '安靜的深綠色森林。', cost: 150, a: '#3f9a5a', b: '#b5e48c' },
+  { kind: 'skin', id: 'rose', name: '玫瑰金', desc: '優雅的玫瑰金。', cost: 180, a: '#d4848f', b: '#f7c8a1' },
+  { kind: 'skin', id: 'neon', name: '電光霓虹', desc: '螢光粉配螢光藍，只在神秘商品出現。', cost: 300, a: '#ff2bd6', b: '#2be8ff', rare: true },
+  { kind: 'skin', id: 'glacier', name: '冰川藍', desc: '透明感的冰藍色，只在神秘商品出現。', cost: 300, a: '#5cc8ff', b: '#e0f7ff', rare: true },
 ];
 
 /** 答對特效：答對時爆出來的粒子 */
@@ -105,6 +141,17 @@ export const BURSTS: Burst[] = [
   { kind: 'burst', id: 'confetti', name: '彩帶派對', desc: '每一題都像在開派對。', cost: 120, shapes: ['rect', 'circle'], colors: ['#ff7a7a', '#ffd34d', '#6ab8ff', '#8fdc6b', '#b48cff'] },
   { kind: 'burst', id: 'notes', name: '音符', desc: '答對時響起看不見的音樂。', cost: 100, shapes: ['glyph'], glyphs: ['♪', '♫', '🎵'] },
   { kind: 'burst', id: 'coins', name: '金幣雨', desc: '叮叮噹噹，只在神秘商品出現。', cost: 220, shapes: ['coin', 'star'], colors: ['#ffe066', '#fbbf24'], rare: true },
+  { kind: 'burst', id: 'fireworks', name: '煙火大會', desc: '每答對一題就放一次煙火。', cost: 160, shapes: ['spark', 'glow', 'star'], colors: ['#ff7a7a', '#ffd34d', '#7ad8ff', '#c4a8ff', '#8fdc6b'] },
+  { kind: 'burst', id: 'bubbles', name: '肥皂泡泡', desc: '輕飄飄的泡泡。', cost: 100, shapes: ['circle', 'glow'], colors: ['#cfeaff', '#e8d9ff', '#ffffff'] },
+  { kind: 'burst', id: 'paws', name: '貓掌印', desc: '喵師父幫你蓋章。', cost: 120, shapes: ['glyph'], glyphs: ['🐾'] },
+  { kind: 'burst', id: 'leaves', name: '秋天落葉', desc: '紅葉和銀杏一起飛舞。', cost: 120, shapes: ['glyph'], glyphs: ['🍁', '🍂', '🍃'] },
+  { kind: 'burst', id: 'kana', name: '假名飛舞', desc: 'あ、ア、い、イ滿天飛。', cost: 120, shapes: ['glyph'], glyphs: ['あ', 'ア', 'い', 'イ', 'う', 'ウ'] },
+  { kind: 'burst', id: 'hangul', name: '韓文字母', desc: '가、나、다、ㄱ、ㄴ、ㄷ一起跳出來。', cost: 120, shapes: ['glyph'], glyphs: ['가', '나', '다', 'ㄱ', 'ㄴ', 'ㅎ'] },
+  { kind: 'burst', id: 'abc', name: 'ABC', desc: '英文字母大集合。', cost: 120, shapes: ['glyph'], glyphs: ['A', 'B', 'C', 'Z', 'Q'] },
+  { kind: 'burst', id: 'thunder', name: '閃電', desc: '答題速度快如閃電。', cost: 140, shapes: ['glyph', 'spark'], glyphs: ['⚡'], colors: ['#ffe066', '#fff3b0'] },
+  { kind: 'burst', id: 'clover', name: '四葉幸運草', desc: '好運一直來。', cost: 120, shapes: ['glyph'], glyphs: ['🍀'] },
+  { kind: 'burst', id: 'rainbow', name: '彩虹星', desc: '七彩的星星，只在神秘商品出現。', cost: 260, shapes: ['star', 'glow'], colors: ['#ff7a7a', '#ffb35c', '#ffe066', '#8fdc6b', '#6ab8ff', '#b48cff'], rare: true },
+  { kind: 'burst', id: 'feast', name: '美食祭', desc: '壽司、飯糰、糰子從天而降，只在神秘商品出現。', cost: 260, shapes: ['glyph'], glyphs: ['🍣', '🍙', '🍡', '🍜'], rare: true },
 ];
 
 export const TITLES: Cosmetic[] = [
@@ -119,7 +166,24 @@ export const TITLES: Cosmetic[] = [
   { kind: 'title', id: 'kdrama', name: '韓劇迷', desc: '오빠、대박、진짜？都聽得懂。', cost: 100 },
   { kind: 'title', id: 'toeic', name: '多益戰士', desc: '目標金色證書！', cost: 120 },
   { kind: 'title', id: 'trilingual', name: '三語達人', desc: '英日韓都說得出口。', cost: 200 },
-  { kind: 'title', id: 'legend', name: '傳說學者', desc: '只在神秘商品出現的稱號。', cost: 300, rare: true },
+  { kind: 'title', id: 'legend', name: '傳說學者', desc: '金光閃閃的稱號，只在神秘商品出現。', cost: 300, rare: true, fx: 'gold' },
+  { kind: 'title', id: 'kana', name: '假名職人', desc: '平假名、片假名閉著眼睛都會。', cost: 80 },
+  { kind: 'title', id: 'kanji', name: '漢字達人', desc: '讀音、寫法、意思全部掌握。', cost: 120 },
+  { kind: 'title', id: 'hangul', name: '韓文字母王', desc: '子音母音一秒拼好。', cost: 80 },
+  { kind: 'title', id: 'detective', name: '文法偵探', desc: '一眼看穿句子的結構。', cost: 100 },
+  { kind: 'title', id: 'collector', name: '例句收藏家', desc: '每個字都要聽三句例句才滿足。', cost: 100 },
+  { kind: 'title', id: 'combo', name: '連擊之王', desc: '一路答對停不下來。', cost: 120 },
+  { kind: 'title', id: 'cardmaster', name: '卡牌大師', desc: '單字卡牌對決的常勝軍。', cost: 150 },
+  { kind: 'title', id: 'wordsmith', name: '猜詞名偵探', desc: '三次以內就能猜中。', cost: 120 },
+  { kind: 'title', id: 'chain', name: '接龍王', desc: 'しりとり、끝말잇기都難不倒你。', cost: 120 },
+  { kind: 'title', id: 'cafe', name: '咖啡因戰士', desc: '一杯咖啡一百個單字。', cost: 60 },
+  { kind: 'title', id: 'subtitle', name: '人肉字幕組', desc: '看劇不需要字幕。', cost: 150 },
+  { kind: 'title', id: 'toeic990', name: '多益 990', desc: '滿分是唯一的目標。', cost: 200 },
+  { kind: 'title', id: 'n1', name: 'N1 合格者', desc: '日檢最高級，衝！', cost: 200 },
+  { kind: 'title', id: 'topik6', name: 'TOPIK 6 級', desc: '韓檢最高級，화이팅！', cost: 200 },
+  { kind: 'title', id: 'sage', name: '星之賢者', desc: '閃著彩虹光的稱號，只在神秘商品出現。', cost: 360, rare: true, fx: 'rainbow' },
+  { kind: 'title', id: 'dragon', name: '龍之語者', desc: '燃燒著火焰的稱號，只在神秘商品出現。', cost: 360, rare: true, fx: 'fire' },
+  { kind: 'title', id: 'neon', name: '夜之霓虹', desc: '閃爍的霓虹燈稱號，只在神秘商品出現。', cost: 320, rare: true, fx: 'neon' },
 ];
 
 export const OUTFITS: Cosmetic[] = [
@@ -134,7 +198,68 @@ export const OUTFITS: Cosmetic[] = [
   { kind: 'outfit', id: 'crown', name: '黃金皇冠', desc: '三語之王的證明，只在神秘商品出現。', cost: 300, rare: true },
 ];
 
-export const COSMETICS: Record<CosmeticKind, Cosmetic[]> = { frame: FRAMES, skin: SKINS, burst: BURSTS, title: TITLES, outfit: OUTFITS };
+/** 學習夥伴：上課時陪在旁邊，答對會跳、答錯會一起難過（用頭像的插畫，id 是頭像的 emoji） */
+export const PETS: Cosmetic[] = [
+  { kind: 'pet', id: '🐹', name: '倉鼠阿圓', desc: '腮幫子塞滿瓜子，答對就開心跳起來。', cost: 180, anim: true },
+  { kind: 'pet', id: '🐰', name: '兔兔', desc: '答對時跳得特別高。', cost: 180, anim: true },
+  { kind: 'pet', id: '🐧', name: '企鵝寶寶', desc: '搖搖擺擺地陪你上課。', cost: 180, anim: true },
+  { kind: 'pet', id: '🐸', name: '呱呱', desc: '連擊越多跳得越起勁。', cost: 180, anim: true },
+  { kind: 'pet', id: '🐼', name: '熊貓團子', desc: '慢吞吞但很有耐心。', cost: 200, anim: true },
+  { kind: 'pet', id: '🦉', name: '博士貓頭鷹', desc: '熬夜念書的好夥伴。', cost: 200, anim: true },
+  { kind: 'pet', id: '🐙', name: '小章魚', desc: '八隻腳一起幫你翻字典。', cost: 200, anim: true },
+  { kind: 'pet', id: '🤖', name: '機器人 TRI-01', desc: '精準計算你的連擊數。', cost: 220, anim: true },
+  { kind: 'pet', id: '🦦', name: '水獺', desc: '抱著貝殼陪你複習。', cost: 220, anim: true },
+  { kind: 'pet', id: '🦄', name: '獨角獸', desc: '閃閃發光的夢幻夥伴，只在神秘商品出現。', cost: 420, anim: true, rare: true },
+  { kind: 'pet', id: '🐲', name: '小龍', desc: '會冒出小火花的龍寶寶，只在神秘商品出現。', cost: 450, anim: true, rare: true },
+];
+
+/** 名牌特效：個人頁上的名字 */
+export const NAMES: Cosmetic[] = [
+  { kind: 'name', id: 'sakura', name: '櫻花粉', desc: '名字染上柔和的櫻花漸層。', cost: 100 },
+  { kind: 'name', id: 'ice', name: '冰晶藍', desc: '冰涼透明的藍色漸層。', cost: 100 },
+  { kind: 'name', id: 'gold', name: '金色流光', desc: '一道金光不停滑過你的名字。', cost: 260, anim: true },
+  { kind: 'name', id: 'rainbow', name: '彩虹流動', desc: '七種顏色在名字上流動。', cost: 300, anim: true },
+  { kind: 'name', id: 'neon', name: '霓虹燈牌', desc: '像招牌一樣一閃一閃。', cost: 280, anim: true },
+  { kind: 'name', id: 'fire', name: '烈焰', desc: '名字燒起來了！', cost: 300, anim: true },
+  { kind: 'name', id: 'star', name: '星光閃爍', desc: '名字旁邊有星星在閃，只在神秘商品出現。', cost: 400, anim: true, rare: true },
+];
+
+/** 名片背景：個人頁最上方的卡片 */
+export const BGS: Cosmetic[] = [
+  { kind: 'bg', id: 'sunset', name: '晚霞', desc: '橘粉色的傍晚天空。', cost: 150 },
+  { kind: 'bg', id: 'bamboo', name: '竹林', desc: '嵐山竹林的清新綠意。', cost: 150 },
+  { kind: 'bg', id: 'city', name: '城市夜景', desc: '首爾、東京、紐約的夜晚。', cost: 180 },
+  { kind: 'bg', id: 'starry', name: '星空', desc: '滿天星星一閃一閃。', cost: 300, anim: true },
+  { kind: 'bg', id: 'sakura', name: '櫻花雨', desc: '花瓣慢慢飄落。', cost: 320, anim: true },
+  { kind: 'bg', id: 'aurora', name: '極光', desc: '流動的綠色、紫色光帶。', cost: 340, anim: true },
+  { kind: 'bg', id: 'ocean', name: '海浪', desc: '一波一波的海浪。', cost: 300, anim: true },
+  { kind: 'bg', id: 'galaxy', name: '銀河', desc: '旋轉的星雲，只在神秘商品出現。', cost: 480, anim: true, rare: true },
+  { kind: 'bg', id: 'fireworks', name: '煙火大會', desc: '夏日祭典的煙火，只在神秘商品出現。', cost: 480, anim: true, rare: true },
+];
+
+/** 答對音效：答對時的聲音（用 Web Audio 即時合成） */
+export const SOUNDS: Cosmetic[] = [
+  { kind: 'sound', id: 'bell', name: '風鈴', desc: '叮鈴～清脆的風鈴聲。', cost: 120 },
+  { kind: 'sound', id: 'xylo', name: '木琴', desc: '咚咚，溫暖的木琴。', cost: 120 },
+  { kind: 'sound', id: 'retro', name: '8-bit 電玩', desc: '懷舊紅白機的音效。', cost: 150 },
+  { kind: 'sound', id: 'pop', name: '泡泡', desc: '啵！一聲輕快的泡泡。', cost: 100 },
+  { kind: 'sound', id: 'meow', name: '喵喵', desc: '喵師父幫你喊加油。', cost: 150 },
+  { kind: 'sound', id: 'taiko', name: '太鼓', desc: '咚！像太鼓達人一樣。', cost: 150 },
+  { kind: 'sound', id: 'harp', name: '豎琴', desc: '夢幻的豎琴琶音，只在神秘商品出現。', cost: 260, rare: true },
+  { kind: 'sound', id: 'coin', name: '金幣', desc: '每答對一題都像撿到錢，只在神秘商品出現。', cost: 260, rare: true },
+];
+
+export const COSMETICS: Record<CosmeticKind, Cosmetic[]> = {
+  frame: FRAMES,
+  skin: SKINS,
+  burst: BURSTS,
+  title: TITLES,
+  outfit: OUTFITS,
+  pet: PETS,
+  name: NAMES,
+  bg: BGS,
+  sound: SOUNDS,
+};
 
 export function cosmeticOf(key: string): Cosmetic | undefined {
   const [kind, id] = key.split(':') as [CosmeticKind, string];
@@ -178,38 +303,85 @@ export function rollSticker(rng: Rng, minRarity: Rarity = 'N'): string {
 export type MysteryOffer =
   | { kind: 'avatar'; id: string; cost: number; was: number }
   | { kind: 'cosmetic'; key: string; cost: number; was: number }
+  /** 外觀福袋：買了才揭曉是哪一件 */
+  | { kind: 'lucky'; key: string; cost: number; was: number }
   | { kind: 'sticker'; cost: number; min: Rarity }
   | { kind: 'coins'; cost: number; min: number; max: number }
   | { kind: 'boost60'; cost: number; was: number }
-  | { kind: 'freeze2'; cost: number; was: number };
+  | { kind: 'freeze2'; cost: number; was: number }
+  /** 十連抽特價 */
+  | { kind: 'gacha10'; cost: number; was: number }
+  /** 道具福袋 */
+  | { kind: 'pack'; cost: number; was: number; items: [ConsumableId, number][] };
+
+/** 三格神秘商品：限定（只在這裡賣的稀有外觀）、特價（打折的外觀與頭像、外觀福袋）、補給（貼紙、道具、金幣） */
+export const MYSTERY_SLOTS = ['限定', '特價', '補給'] as const;
+
+const round5 = (n: number) => Math.round(n / 5) * 5;
+const packWas = (items: [ConsumableId, number][]) => items.reduce((a, [id, n]) => a + (CONSUMABLE_BY_ID.get(id)?.cost ?? 0) * n, 0);
+const PACKS: [ConsumableId, number][][] = [
+  [
+    ['shield', 2],
+    ['hourglass', 2],
+    ['clover', 1],
+  ],
+  [
+    ['boost', 2],
+    ['shield', 2],
+  ],
+  [
+    ['clover', 2],
+    ['hourglass', 3],
+  ],
+];
 
 /**
- * 今天的神秘商品：用日期當種子，同一天每個人看到的都一樣（已經擁有的外觀會跳過）。
+ * 今天的三件神秘商品：用日期當種子，同一天每個人看到的都一樣（已經擁有的外觀會跳過）。
  * 稀有外觀（rare）只會在這裡出現。
  */
-export function mysteryOffer(day: string, owned: (key: string) => boolean): MysteryOffer {
-  const rng = mulberry32(hashStr(`mystery:${day}`));
-  const offers: MysteryOffer[] = [];
-  for (const id of PREMIUM_AVATARS) if (!owned(`avatar:${id}`)) offers.push({ kind: 'avatar', id, cost: 100, was: PREMIUM_AVATAR_COST });
-  for (const list of Object.values(COSMETICS)) {
-    for (const c of list) {
-      const key = cosmeticKey(c.kind, c.id);
-      if (owned(key)) continue;
-      // 稀有外觀出現的機會多一點
-      const offer: MysteryOffer = { kind: 'cosmetic', key, cost: c.rare ? c.cost : Math.round((c.cost * 0.7) / 5) * 5, was: c.cost };
-      offers.push(offer);
-      if (c.rare) offers.push(offer, offer);
+export function mysteryOffers(day: string, owned: (key: string) => boolean): MysteryOffer[] {
+  return MYSTERY_SLOTS.map((_, slot) => mysterySlot(day, slot, owned));
+}
+
+function mysterySlot(day: string, slot: number, owned: (key: string) => boolean): MysteryOffer {
+  const rng = mulberry32(hashStr(`mystery:${day}:${slot}`));
+  const unowned = Object.values(COSMETICS)
+    .flat()
+    .filter((c) => !owned(cosmeticKey(c.kind, c.id)));
+  const avatars = PREMIUM_AVATARS.filter((id) => !owned(`avatar:${id}`));
+  if (slot === 0) {
+    const rares = unowned.filter((c) => c.rare);
+    if (rares.length) {
+      const c = pick(rares, rng);
+      return { kind: 'cosmetic', key: cosmeticKey(c.kind, c.id), cost: c.cost, was: c.cost };
     }
+    if (avatars.length) return { kind: 'avatar', id: pick(avatars, rng), cost: 100, was: PREMIUM_AVATAR_COST };
+    return { kind: 'gacha10', cost: 330, was: GACHA10_COST };
   }
-  offers.push(
-    { kind: 'sticker', cost: 150, min: 'SR' },
+  if (slot === 1) {
+    const normal = unowned.filter((c) => !c.rare);
+    const offers: MysteryOffer[] = normal.map((c) => ({ kind: 'cosmetic', key: cosmeticKey(c.kind, c.id), cost: round5(c.cost * 0.7), was: c.cost }));
+    for (const id of avatars) offers.push({ kind: 'avatar', id, cost: 100, was: PREMIUM_AVATAR_COST });
+    // 外觀福袋：六折，出現的機會多一點
+    if (normal.length >= 3) {
+      for (let i = 0; i < Math.max(2, Math.round(offers.length / 5)); i++) {
+        const c = pick(normal, rng);
+        offers.push({ kind: 'lucky', key: cosmeticKey(c.kind, c.id), cost: round5(Math.max(60, c.cost * 0.6)), was: c.cost });
+      }
+    }
+    if (offers.length) return pick(offers, rng);
+    return { kind: 'coins', cost: 50, min: 20, max: 150 };
+  }
+  const supply: MysteryOffer[] = [
     { kind: 'sticker', cost: 150, min: 'SR' },
     { kind: 'coins', cost: 50, min: 20, max: 150 },
     { kind: 'coins', cost: 50, min: 20, max: 150 },
     { kind: 'boost60', cost: 120, was: 200 },
     { kind: 'freeze2', cost: 150, was: 200 },
-  );
-  return offers[Math.floor(rng() * offers.length)];
+    { kind: 'gacha10', cost: 360, was: GACHA10_COST },
+    ...PACKS.map((items): MysteryOffer => ({ kind: 'pack', items, was: packWas(items), cost: round5(packWas(items) * 0.65) })),
+  ];
+  return pick(supply, rng);
 }
 
 /** 填字遊戲：免費提示用完之後，每次提示的價錢 */
