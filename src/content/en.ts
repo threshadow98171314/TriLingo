@@ -2,6 +2,7 @@
 import type { Unit } from '../core/types';
 import { attachMore, cz, en, grammarUnit, moreTable, note, qa, vocabUnit } from './dsl';
 import { BLUE_UNITS } from './en-blue';
+import { BLUE_BANK } from './en-blue-bank';
 import { BROWN_UNITS } from './en-brown';
 import { BROWN_BANK } from './en-brown-bank';
 import { GREEN_UNITS } from './en-green';
@@ -301,7 +302,7 @@ export const UNITS: Record<string, Unit[]> = {
   'en.orange': [office, people, g1, time, money, g2, travel, dining, verbs, g3, adjectives, listening, ...ORANGE_BANK],
   'en.brown': [...BROWN_UNITS, ...BROWN_BANK],
   'en.green': [...GREEN_UNITS, ...GREEN_BANK],
-  'en.blue': BLUE_UNITS,
+  'en.blue': [...BLUE_UNITS, ...BLUE_BANK],
   'en.drill': [...DRILL_P5A, ...DRILL_P5B, ...DRILL_P5C, ...DRILL_LR],
   'en.town': TOWN_UNITS,
 };
