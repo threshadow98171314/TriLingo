@@ -314,6 +314,13 @@ export function cosmeticOf(key: string): Cosmetic | undefined {
 export const GACHA_COST = 50;
 /** 十連抽：九次的價錢 */
 export const GACHA10_COST = 450;
+/** 動態貼紙扭蛋機（只出會動的貼紙，稀有以上） */
+export const ANIM_GACHA_COST = 120;
+export const ANIM_GACHA10_COST = 1080;
+/** 外觀扭蛋機：抽一件還沒有的外觀 */
+export const LOOK_GACHA_COST = 160;
+
+export type StickerMachine = 'basic' | 'anim';
 /** 抽到重複的貼紙：退還的金幣 */
 export const DUPE_REFUND: Record<Rarity, number> = { N: 10, R: 15, SR: 30, SSR: 80 };
 export const RARITY_ODDS: [Rarity, number][] = [
@@ -323,22 +330,53 @@ export const RARITY_ODDS: [Rarity, number][] = [
   ['N', 0.62],
 ];
 
-/** 抽一張：先抽稀有度，再從該稀有度裡平均抽一張；minRarity 用來保底 */
-export function rollSticker(rng: Rng, minRarity: Rarity = 'N'): string {
+export const ANIM_ODDS: [Rarity, number][] = [
+  ['SSR', 0.06],
+  ['SR', 0.26],
+  ['R', 0.68],
+];
+
+/**
+ * 抽一張：先抽稀有度，再從該稀有度裡平均抽一張；minRarity 用來保底。
+ * 一般扭蛋機只出靜態貼紙，動態貼紙扭蛋機只出會動的貼紙。
+ */
+export function rollSticker(rng: Rng, minRarity: Rarity = 'N', machine: StickerMachine = 'basic'): string {
   const order: Rarity[] = ['N', 'R', 'SR', 'SSR'];
-  const min = order.indexOf(minRarity);
+  const odds = machine === 'anim' ? ANIM_ODDS : RARITY_ODDS;
   let r = rng();
-  let rarity: Rarity = 'N';
-  for (const [k, p] of RARITY_ODDS) {
+  let rarity: Rarity = odds[odds.length - 1][0];
+  for (const [k, p] of odds) {
     if (r < p) {
       rarity = k;
       break;
     }
     r -= p;
   }
-  if (order.indexOf(rarity) < min) rarity = minRarity;
-  const pool = STICKERS.filter((s) => s.rarity === rarity);
+  if (order.indexOf(rarity) < order.indexOf(minRarity)) rarity = minRarity;
+  const pool = STICKERS.filter((s) => s.rarity === rarity && !!s.anim === (machine === 'anim'));
   return pool[Math.floor(rng() * pool.length)].id;
+}
+
+/** 外觀扭蛋機的機率：限定外觀、一般外觀，剩下的是一張動態貼紙 */
+export const LOOK_ODDS = { rare: 0.06, look: 0.74 };
+
+export type LookRoll = { kind: 'cosmetic'; key: string } | { kind: 'sticker'; id: string };
+
+/** 外觀扭蛋：抽一件還沒有的外觀（小機率是神秘商品限定的外觀）；沒抽中或全部都有了就給一張動態貼紙 */
+export function rollLook(rng: Rng, owned: (key: string) => boolean): LookRoll {
+  const left = Object.values(COSMETICS)
+    .flat()
+    .filter((c) => !owned(cosmeticKey(c.kind, c.id)));
+  const rares = left.filter((c) => c.rare);
+  const normal = left.filter((c) => !c.rare);
+  const r = rng();
+  const take = (list: Cosmetic[]): LookRoll => {
+    const c = pick(list, rng);
+    return { kind: 'cosmetic', key: cosmeticKey(c.kind, c.id) };
+  };
+  if (r < LOOK_ODDS.rare && rares.length) return take(rares);
+  if (r < LOOK_ODDS.rare + LOOK_ODDS.look && left.length) return take(normal.length ? normal : rares);
+  return { kind: 'sticker', id: rollSticker(rng, 'R', 'anim') };
 }
 
 // ───────── 每日神秘商品 ─────────

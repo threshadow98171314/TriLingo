@@ -13,9 +13,15 @@ export function ToTop() {
 
   useEffect(() => {
     const on = () => setShow(window.scrollY > SHOW_AT);
+    // 換頁時頁面會回到頂端，也要重新判斷
+    const later = () => requestAnimationFrame(on);
     on();
     window.addEventListener('scroll', on, { passive: true });
-    return () => window.removeEventListener('scroll', on);
+    window.addEventListener('hashchange', later);
+    return () => {
+      window.removeEventListener('scroll', on);
+      window.removeEventListener('hashchange', later);
+    };
   }, []);
 
   const go = () => {

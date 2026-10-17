@@ -141,6 +141,8 @@ export function mergeSaves(a: Save, b: Save): Save {
     equip: prefs.equip,
     inv: coins.inv,
     stickers: maxKeys(a.stickers, b.stickers),
+    // 貼紙板整份取最後修改的那份（同一張板子不會兩邊各貼一半）
+    board: b.board.at > a.board.at ? b.board : a.board,
     mystery: mergeMystery(a.mystery, b.mystery),
     songs: mergeRecord(a.songs, b.songs, pickLyrics),
     customSongs: mergeCustomSongs(a.customSongs, b.customSongs),

@@ -149,6 +149,55 @@ export function migrateMystery(raw: unknown): MysteryState {
   return out;
 }
 
+/** 貼紙板上的一張貼紙：位置 x、y 是相對於板子的 0～1，大小 s 是板子寬度的比例，r 是角度 */
+export interface BoardItem {
+  /** 唯一編號（同一種貼紙可以貼好幾張） */
+  k: number;
+  id: string;
+  x: number;
+  y: number;
+  s: number;
+  r: number;
+}
+
+/** 貼紙板：「我的」頁可以把收集到的貼紙貼上去布置 */
+export interface BoardState {
+  items: BoardItem[];
+  /** 板子的背景（軟木板、筆記本、黑板…） */
+  bg: string;
+  /** 最後修改時間（雲端同步取比較新的那份） */
+  at: number;
+}
+
+export const BOARD_LIMITS = { max: 30, minSize: 0.08, maxSize: 0.5 };
+
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+
+/** 整理一張貼紙的數值（拖出界、縮太小、轉超過一圈） */
+export function cleanBoardItem(it: BoardItem): BoardItem {
+  let r = Math.round(it.r) % 360;
+  if (r > 180) r -= 360;
+  if (r <= -180) r += 360;
+  return {
+    k: it.k,
+    id: it.id,
+    x: Math.round(clamp(it.x, 0, 1) * 1000) / 1000,
+    y: Math.round(clamp(it.y, 0, 1) * 1000) / 1000,
+    s: Math.round(clamp(it.s, BOARD_LIMITS.minSize, BOARD_LIMITS.maxSize) * 1000) / 1000,
+    r,
+  };
+}
+
+export function migrateBoard(raw: unknown): BoardState {
+  const b = raw as Partial<BoardState> | null | undefined;
+  if (!b || typeof b !== 'object' || !Array.isArray(b.items)) return { items: [], bg: 'cork', at: 0 };
+  const items = b.items
+    .filter((it): it is BoardItem => !!it && typeof it === 'object' && typeof it.id === 'string' && [it.k, it.x, it.y, it.s, it.r].every((n) => typeof n === 'number' && Number.isFinite(n)))
+    .map(cleanBoardItem)
+    .slice(0, BOARD_LIMITS.max);
+  return { items, bg: typeof b.bg === 'string' ? b.bg : 'cork', at: typeof b.at === 'number' ? b.at : 0 };
+}
+
 export interface Save {
   v: 1;
   created: number;
@@ -202,6 +251,8 @@ export interface Save {
   inv: Inventory;
   /** 貼紙收藏：id → 張數 */
   stickers: Record<string, number>;
+  /** 貼紙板的布置 */
+  board: BoardState;
   mystery: MysteryState;
   /** 聽歌學日語：使用者自己貼的歌詞（歌的 id → 歌詞與對時），只存在自己的存檔裡 */
   songs: Record<string, SongLyrics>;
@@ -289,6 +340,7 @@ export function defaultSave(now: number): Save {
     equip: {},
     inv: { shield: 0, clover: 0, hourglass: 0 },
     stickers: {},
+    board: { items: [], bg: 'cork', at: 0 },
     mystery: { day: '' },
     songs: {},
     customSongs: [],
@@ -331,6 +383,7 @@ export function migrate(raw: unknown, now: number): Save {
     equip: x.equip ?? {},
     inv: { ...d.inv, ...x.inv },
     stickers: x.stickers ?? {},
+    board: migrateBoard(x.board),
     mystery: migrateMystery(x.mystery),
     songs: x.songs ?? {},
     customSongs: x.customSongs ?? [],

@@ -138,7 +138,24 @@ export function Flower({ x, y, r, n = 5, fill, stroke, center = '#ffd36b', notch
  * 插畫外框：固定 100×100 座標。sticker 為 true 時加上貼紙的白邊與淡淡的陰影；
  * dim 為 true 時變成剪影（貼紙簿裡還沒收集到的）。
  */
-export function Art({ children, size = 64, sticker, dim, title, className }: { children: ReactNode; size?: number | string; sticker?: boolean; dim?: boolean; title?: string; className?: string }) {
+export function Art({
+  children,
+  size = 64,
+  sticker,
+  dim,
+  title,
+  className,
+  behind,
+}: {
+  children: ReactNode;
+  size?: number | string;
+  sticker?: boolean;
+  dim?: boolean;
+  title?: string;
+  className?: string;
+  /** 畫在白邊濾鏡外面、主體後面的東西（會淡入淡出的小零件：蒸氣、冒出來的愛心、閃光） */
+  behind?: ReactNode;
+}) {
   const id = useId().replace(/:/g, '');
   const filter = sticker || dim ? `url(#${id})` : undefined;
   return (
@@ -170,6 +187,7 @@ export function Art({ children, size = 64, sticker, dim, title, className }: { c
           </filter>
         </defs>
       )}
+      {!dim && behind}
       <g filter={filter}>{children}</g>
     </svg>
   );

@@ -16,6 +16,10 @@ import {
   BGS,
   BURSTS,
   CONSUMABLE_BY_ID,
+  ANIM_GACHA10_COST,
+  ANIM_GACHA_COST,
+  ANIM_ODDS,
+  COSMETICS,
   CONSUMABLES,
   cosmeticKey,
   cosmeticOf,
@@ -23,6 +27,8 @@ import {
   GACHA10_COST,
   GACHA_COST,
   KIND_NAME,
+  LOOK_GACHA_COST,
+  LOOK_ODDS,
   MYSTERY_SLOTS,
   NAMES,
   OUTFITS,
@@ -50,10 +56,12 @@ import {
   heldOf,
   mysteryBlocked,
   pullGacha,
+  pullLook,
   revealMystery,
   setProfile,
   useSave,
   type GachaPull,
+  type LookPull,
   type MysteryResult,
 } from '../core/store';
 import { cx, fmtTime } from '../core/util';
@@ -472,50 +480,111 @@ function LooksTab() {
 
 // ───────── 扭蛋 ─────────
 
-const THEMES: Sticker['theme'][] = ['日本', '韓國', '英語圈', '台灣', '季節', '學習', '傳說'];
+const THEMES: Sticker['theme'][] = ['動態', '日本', '韓國', '英語圈', '台灣', '季節', '學習', '傳說'];
+
+type Machine = 'basic' | 'anim' | 'look';
+const MACHINES: { id: Machine; icon: string; name: string }[] = [
+  { id: 'basic', icon: '🎰', name: '貼紙' },
+  { id: 'anim', icon: '✨', name: '動態貼紙' },
+  { id: 'look', icon: '🎁', name: '外觀' },
+];
+const rarityIdx = (id: string) => ['N', 'R', 'SR', 'SSR'].indexOf(STICKER_BY_ID.get(id)?.rarity ?? 'N');
 
 function GachaTab() {
   const s = useSave();
+  const route = useRoute();
+  const machine = (route.query.get('m') as Machine) || 'basic';
   const [pulls, setPulls] = useState<GachaPull[] | null>(null);
+  const [look, setLook] = useState<LookPull | null>(null);
   const [spinning, setSpinning] = useState(false);
   const [detail, setDetail] = useState<Sticker | null>(null);
-  const machine = useRef<HTMLDivElement>(null);
   const have = STICKERS.filter((x) => s.stickers[x.id]).length;
+  const animTotal = STICKERS.filter((x) => x.anim).length;
+  const lookLeft = Object.values(COSMETICS)
+    .flat()
+    .filter((c) => !s.owned.includes(cosmeticKey(c.kind, c.id))).length;
 
-  const pull = (n: 1 | 10) => {
-    if (spinning) return;
-    const res = pullGacha(n);
-    if (!ok(!!res)) return;
+  /** 轉扭蛋的動畫跑完再揭曉；稀有的閃一下 */
+  const reveal = (best: number, show: () => void) => {
     setSpinning(true);
     setTimeout(() => {
       setSpinning(false);
-      setPulls(res);
-      const best = Math.max(...res!.map((r) => ['N', 'R', 'SR', 'SSR'].indexOf(STICKER_BY_ID.get(r.id)!.rarity)));
+      show();
       sfx.combo(best);
       if (best >= 2) fx.flash(best === 3 ? 'rgba(255,215,90,0.4)' : 'rgba(180,140,255,0.3)');
     }, 900);
   };
+  const pull = (n: 1 | 10) => {
+    if (spinning || machine === 'look') return;
+    const res = pullGacha(n, machine);
+    if (!ok(!!res)) return;
+    reveal(Math.max(...res!.map((r) => rarityIdx(r.id))), () => setPulls(res));
+  };
+  const pullOne = () => {
+    if (spinning) return;
+    const res = pullLook();
+    if (!ok(!!res)) return;
+    const best = res!.kind === 'sticker' ? rarityIdx(res!.id) : cosmeticOf(res!.key)?.rare ? 3 : 2;
+    reveal(best, () => setLook(res));
+  };
+
+  const info = {
+    basic: {
+      title: '貼紙扭蛋機',
+      desc: `日本、韓國、英語圈、台灣、季節與學習主題的可愛貼紙，一共 ${STICKERS.length - animTotal} 張；傳說貼紙會發光。抽到重複的會換回一些金幣。`,
+      odds: `十連抽只要九次的價錢，而且保底一張稀有以上。機率：${RARITY_ODDS.map(([r, p]) => `${RARITY_NAME[r]} ${(p * 100).toFixed(1).replace(/\.0$/, '')}%`).join('、')}`,
+      cost: GACHA_COST,
+      cost10: GACHA10_COST,
+    },
+    anim: {
+      title: '動態貼紙扭蛋機',
+      desc: `會動的貼紙：揮手、眨眼、冒煙、心跳、搗麻糬……一共 ${animTotal} 張，全部都是稀有以上，可以貼在「我的」頁的貼紙板上。`,
+      odds: `十連抽保底一張超稀有以上。機率：${ANIM_ODDS.map(([r, p]) => `${RARITY_NAME[r]} ${Math.round(p * 100)}%`).join('、')}`,
+      cost: ANIM_GACHA_COST,
+      cost10: ANIM_GACHA10_COST,
+    },
+    look: {
+      title: '外觀扭蛋機',
+      desc: `抽一件你還沒有的外觀（頭像框、夥伴、特效、稱號……），有機會抽到只在神秘商品出現的限定外觀；沒抽中外觀時會得到一張動態貼紙。你還有 ${lookLeft} 件外觀沒收集。`,
+      odds: `機率：限定外觀 ${Math.round(LOOK_ODDS.rare * 100)}%、一般外觀 ${Math.round(LOOK_ODDS.look * 100)}%、動態貼紙 ${Math.round((1 - LOOK_ODDS.rare - LOOK_ODDS.look) * 100)}%`,
+      cost: LOOK_GACHA_COST,
+      cost10: 0,
+    },
+  }[machine];
 
   return (
     <>
-      <section className="card gacha">
-        <div ref={machine} className={cx('gacha-machine', spinning && 'spin')}>
+      <div className="seg small machine-pick" role="tablist" aria-label="扭蛋機">
+        {MACHINES.map((m) => (
+          <a key={m.id} role="tab" aria-selected={machine === m.id} className={cx(machine === m.id && 'on')} href={href(`/shop?tab=gacha&m=${m.id}`)}>
+            {m.icon} {m.name}
+          </a>
+        ))}
+      </div>
+      <section className={cx('card gacha', `machine-${machine}`)}>
+        <div className={cx('gacha-machine', spinning && 'spin')}>
           <ItemIcon id="gacha" size={150} />
         </div>
         <div className="grow">
-          <h2>貼紙扭蛋機</h2>
-          <p className="muted">日本、韓國、英語圈、台灣、季節與學習主題的可愛貼紙，一共 {STICKERS.length} 張；傳說貼紙會發光。抽到重複的會換回一些金幣。</p>
+          <h2>{info.title}</h2>
+          <p className="muted">{info.desc}</p>
           <div className="gacha-btns">
-            <button type="button" className="btn gold" disabled={spinning || s.coins < GACHA_COST} onClick={() => pull(1)}>
-              轉一次 <Coin n={GACHA_COST} />
-            </button>
-            <button type="button" className="btn primary" disabled={spinning || s.coins < GACHA10_COST} onClick={() => pull(10)}>
-              十連抽 <Coin n={GACHA10_COST} />
-            </button>
+            {machine === 'look' ? (
+              <button type="button" className="btn gold" disabled={spinning || s.coins < info.cost} onClick={pullOne}>
+                轉一次 <Coin n={info.cost} />
+              </button>
+            ) : (
+              <>
+                <button type="button" className="btn gold" disabled={spinning || s.coins < info.cost} onClick={() => pull(1)}>
+                  轉一次 <Coin n={info.cost} />
+                </button>
+                <button type="button" className="btn primary" disabled={spinning || s.coins < info.cost10} onClick={() => pull(10)}>
+                  十連抽 <Coin n={info.cost10} />
+                </button>
+              </>
+            )}
           </div>
-          <p className="muted small">
-            十連抽只要九次的價錢，而且保底一張稀有以上。機率：{RARITY_ODDS.map(([r, p]) => `${RARITY_NAME[r]} ${(p * 100).toFixed(1).replace(/\.0$/, '')}%`).join('、')}
-          </p>
+          <p className="muted small">{info.odds}</p>
         </div>
       </section>
 
@@ -523,12 +592,12 @@ function GachaTab() {
         <header className="panel-head">
           <h2>貼紙簿</h2>
           <small className="muted">
-            已收集 {have} / {STICKERS.length}
+            已收集 {have} / {STICKERS.length}・收集到的貼紙可以到 <a href={href('/me?tab=board')}>🧸 我的 → 貼紙板</a> 布置
           </small>
         </header>
         {THEMES.map((th) => (
           <div key={th} className="album-theme">
-            <h3>{th}</h3>
+            <h3>{th === '動態' ? '✨ 動態貼紙' : th}</h3>
             <div className="album">
               {STICKERS.filter((x) => x.theme === th).map((x) => {
                 const n = s.stickers[x.id] ?? 0;
@@ -546,6 +615,8 @@ function GachaTab() {
       </section>
 
       {pulls && <PullResult pulls={pulls} onClose={() => setPulls(null)} />}
+      {look?.kind === 'sticker' && <PullResult pulls={[look]} onClose={() => setLook(null)} />}
+      {look?.kind === 'cosmetic' && <LookResult k={look.key} onClose={() => setLook(null)} />}
       {detail && (
         <Modal className="sticker-modal" onClose={() => setDetail(null)}>
           <div className={cx('sticker-big', `r-${detail.rarity}`)}>
@@ -556,6 +627,9 @@ function GachaTab() {
           <p>{detail.note}</p>
           <p className="muted small">擁有 {s.stickers[detail.id]} 張</p>
           <div className="modal-actions">
+            <a className="btn ghost" href={href('/me?tab=board')}>
+              貼到貼紙板
+            </a>
             <button type="button" className="btn primary" onClick={() => setDetail(null)}>
               關閉
             </button>
@@ -563,6 +637,36 @@ function GachaTab() {
         </Modal>
       )}
     </>
+  );
+}
+
+/** 外觀扭蛋抽到外觀 */
+function LookResult({ k, onClose }: { k: string; onClose: () => void }) {
+  const c = cosmeticOf(k);
+  if (!c) return null;
+  return (
+    <Modal className="pull-modal single" onClose={onClose}>
+      <h2>{c.rare ? '抽到限定外觀！' : '抽到新外觀！'}</h2>
+      <div className="pulls">
+        <div className={cx('pull', c.rare ? 'r-SSR' : 'r-SR')}>
+          <div className="look-result-art">
+            <CosmeticPreview c={c} size={110} />
+          </div>
+          <span className={cx('rarity', c.rare ? 'r-SSR' : 'r-SR')}>{KIND_NAME[c.kind]}</span>
+          <b>{c.kind === 'title' ? `「${c.name}」` : c.name}</b>
+          <i className="new-badge">NEW!</i>
+          <p className="pull-note">{c.desc}</p>
+        </div>
+      </div>
+      <div className="modal-actions">
+        <a className="btn ghost" href={href(`/me?tab=looks&kind=${c.kind}`)} onClick={onClose}>
+          到「我的」換上
+        </a>
+        <button type="button" className="btn primary" onClick={onClose} autoFocus>
+          好耶
+        </button>
+      </div>
+    </Modal>
   );
 }
 

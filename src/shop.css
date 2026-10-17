@@ -1012,3 +1012,509 @@
     opacity: 1;
   }
 }
+
+/* ───────── 動態貼紙（stickersAnim.tsx 的 sa-* 零件） ───────── */
+svg [class*='sa-'] {
+  transform-box: fill-box;
+}
+.sa-bob {
+  animation: sa-bob 1.6s ease-in-out infinite alternate;
+}
+.sa-float {
+  animation: sa-bob 2.2s ease-in-out infinite alternate;
+}
+@keyframes sa-bob {
+  to {
+    transform: translateY(-4px);
+  }
+}
+.sa-wave {
+  transform-origin: 30% 100%;
+  animation: sa-wave 0.7s ease-in-out infinite alternate;
+}
+@keyframes sa-wave {
+  from {
+    transform: rotate(-18deg);
+  }
+  to {
+    transform: rotate(12deg);
+  }
+}
+.sa-blink {
+  transform-origin: 50% 50%;
+  animation: sa-blink 3.2s infinite;
+}
+@keyframes sa-blink {
+  0%,
+  90%,
+  100% {
+    transform: scaleY(1);
+  }
+  94% {
+    transform: scaleY(0.1);
+  }
+}
+.sa-steam {
+  animation: sa-steam 2.2s ease-in-out infinite;
+}
+@keyframes sa-steam {
+  0% {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+}
+.sa-pulse {
+  transform-origin: 50% 50%;
+  animation: sa-pulse 1s ease-in-out infinite;
+}
+@keyframes sa-pulse {
+  0%,
+  60%,
+  100% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.12);
+  }
+  30% {
+    transform: scale(0.97);
+  }
+  45% {
+    transform: scale(1.08);
+  }
+}
+.sa-swing {
+  transform-origin: 50% 0%;
+  animation: sa-swing 1.4s ease-in-out infinite alternate;
+}
+@keyframes sa-swing {
+  from {
+    transform: rotate(-12deg);
+  }
+  to {
+    transform: rotate(12deg);
+  }
+}
+.sa-flame {
+  transform-origin: 50% 100%;
+  animation: sa-flame 0.25s ease-in-out infinite alternate;
+}
+@keyframes sa-flame {
+  from {
+    transform: scale(0.88, 1.06) skewX(-4deg);
+  }
+  to {
+    transform: scale(1.06, 0.9) skewX(4deg);
+  }
+}
+.sa-hop {
+  transform-origin: 50% 100%;
+  animation: sa-hop 0.9s ease-in-out infinite;
+}
+@keyframes sa-hop {
+  0%,
+  100% {
+    transform: translateY(0) scale(1.04, 0.96);
+  }
+  40% {
+    transform: translateY(-9px) scale(0.97, 1.03);
+  }
+  70% {
+    transform: translateY(0) scale(1);
+  }
+}
+.sa-waddle {
+  transform-origin: 50% 100%;
+  animation: sa-waddle 0.6s ease-in-out infinite alternate;
+}
+@keyframes sa-waddle {
+  from {
+    transform: rotate(-7deg);
+  }
+  to {
+    transform: rotate(7deg);
+  }
+}
+.sa-tilt {
+  transform-origin: 50% 90%;
+  animation: sa-tilt 2.6s ease-in-out infinite;
+}
+@keyframes sa-tilt {
+  0%,
+  55%,
+  100% {
+    transform: rotate(0deg);
+  }
+  70% {
+    transform: rotate(-9deg);
+  }
+  85% {
+    transform: rotate(5deg);
+  }
+}
+.sa-rise {
+  animation: sa-rise 2.4s ease-in infinite;
+}
+@keyframes sa-rise {
+  0% {
+    transform: translateY(8px) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-22px) scale(1);
+    opacity: 0;
+  }
+}
+.sa-glow {
+  animation: sa-glow 1.2s ease-in-out infinite alternate;
+}
+@keyframes sa-glow {
+  from {
+    opacity: 0.25;
+  }
+  to {
+    opacity: 0.7;
+  }
+}
+.sa-twinkle {
+  transform-origin: 50% 50%;
+  animation: sa-twinkle 1.4s ease-in-out infinite;
+}
+@keyframes sa-twinkle {
+  0%,
+  100% {
+    transform: scale(0.5);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+.sa-dance {
+  transform-origin: 50% 100%;
+  animation: sa-dance 0.45s ease-in-out infinite alternate;
+}
+@keyframes sa-dance {
+  from {
+    transform: rotate(-16deg);
+  }
+  to {
+    transform: rotate(14deg) translateY(-2px);
+  }
+}
+.sa-pound {
+  transform-origin: 0% 0%;
+  animation: sa-pound 1.1s ease-in-out infinite;
+}
+@keyframes sa-pound {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  45% {
+    transform: rotate(-42deg);
+  }
+  62% {
+    transform: rotate(4deg);
+  }
+}
+.sa-swim {
+  animation: sa-swim 1.8s ease-in-out infinite alternate;
+}
+@keyframes sa-swim {
+  from {
+    transform: translateX(-4px) rotate(-4deg);
+  }
+  to {
+    transform: translateX(4px) rotate(4deg);
+  }
+}
+.sa-pop {
+  transform-origin: 50% 50%;
+  animation: sa-pop 1.8s ease-out infinite;
+}
+@keyframes sa-pop {
+  0% {
+    transform: translateY(6px) scale(0);
+    opacity: 0;
+  }
+  25% {
+    transform: translateY(0) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-16px) scale(0.9);
+    opacity: 0;
+  }
+}
+.sa-slide {
+  animation: sa-slide 0.5s ease-in-out infinite alternate;
+}
+@keyframes sa-slide {
+  from {
+    transform: translate(-2px, 1.5px);
+  }
+  to {
+    transform: translate(2px, -1.5px);
+  }
+}
+.sa-shake {
+  animation: sa-shake 0.12s linear infinite alternate;
+}
+@keyframes sa-shake {
+  from {
+    transform: translateX(-0.8px);
+  }
+  to {
+    transform: translateX(0.8px);
+  }
+}
+.sa-flap-l {
+  transform-origin: 100% 60%;
+  animation: sa-flap 0.5s ease-in-out infinite alternate;
+}
+.sa-flap-r {
+  transform-origin: 0% 60%;
+  animation: sa-flap 0.5s ease-in-out infinite alternate-reverse;
+}
+@keyframes sa-flap {
+  from {
+    transform: rotate(-14deg);
+  }
+  to {
+    transform: rotate(14deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  svg [class*='sa-'] {
+    animation: none !important;
+  }
+}
+
+/* ───────── 扭蛋機切換 ───────── */
+.machine-pick {
+  margin-bottom: 12px;
+}
+.machine-pick a {
+  padding: 8px 6px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+.machine-anim .gacha-machine svg {
+  filter: hue-rotate(200deg) drop-shadow(0 0 10px rgba(180, 140, 255, 0.6));
+}
+.machine-look .gacha-machine svg {
+  filter: hue-rotate(110deg) drop-shadow(0 0 10px rgba(255, 200, 90, 0.55));
+}
+.look-result-art {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+}
+
+/* ───────── 貼紙板 ───────── */
+.board-wrap {
+  display: grid;
+  gap: 14px;
+}
+.board {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 2px solid var(--line);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.12);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.board-item {
+  position: absolute;
+  aspect-ratio: 1;
+  touch-action: none;
+  cursor: grab;
+  border-radius: 10px;
+}
+.board-item:active {
+  cursor: grabbing;
+}
+.board-item svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.board-item.sel {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+}
+.board-item:focus-visible {
+  outline: 3px solid var(--accent);
+}
+.board-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+  font-weight: 800;
+  color: rgba(60, 40, 30, 0.7);
+  pointer-events: none;
+}
+.board-bg-chalk .board-empty,
+.board-bg-night .board-empty {
+  color: rgba(255, 255, 255, 0.75);
+}
+.board-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+.board-tools button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 2px solid var(--line);
+  background: var(--card-2);
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+.board-tools button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.board-tools button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.board-tools button.danger:not(:disabled):hover {
+  border-color: var(--bad, #ff6b6b);
+}
+.board-tip {
+  flex: 1 1 120px;
+  min-width: 0;
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.board-bgs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+}
+.board-bg-pick {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 5px 4px;
+  border-radius: 12px;
+  border: 2px solid var(--line);
+  background: var(--card-2);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.board-bg-pick.on {
+  border-color: var(--accent);
+}
+.board-bg-pick i {
+  display: block;
+  width: 100%;
+  height: 30px;
+  border-radius: 8px;
+}
+.board-bg-pick small {
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.board-clear {
+  margin-top: 10px;
+}
+.board-clear.warn {
+  color: var(--bad, #ff6b6b);
+  font-weight: 800;
+}
+.board-tray {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+.board-tray .album-slot {
+  min-width: 0;
+}
+/* 板子的背景 */
+.board-bg-cork {
+  background:
+    radial-gradient(rgba(110, 60, 20, 0.35) 1px, transparent 1.6px) 0 0 / 9px 9px,
+    radial-gradient(rgba(255, 230, 190, 0.35) 1px, transparent 1.6px) 4px 5px / 11px 11px,
+    #c8955c;
+}
+.board-bg-notebook {
+  background:
+    linear-gradient(90deg, transparent 36px, #ffb3b3 36px 38px, transparent 38px),
+    repeating-linear-gradient(#ffffff 0 26px, #cfe0ff 26px 27px);
+}
+.board-bg-chalk {
+  background:
+    radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1.4px) 0 0 / 6px 6px,
+    #2f4a3a;
+  box-shadow: inset 0 0 0 6px #a8723a;
+}
+.board-bg-sky {
+  background:
+    radial-gradient(ellipse 60px 22px at 20% 25%, rgba(255, 255, 255, 0.9), transparent 70%),
+    radial-gradient(ellipse 80px 26px at 75% 15%, rgba(255, 255, 255, 0.85), transparent 70%),
+    linear-gradient(#8fd3ff, #e6f6ff);
+}
+.board-bg-night {
+  background:
+    radial-gradient(1.5px 1.5px at 12% 20%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 38% 70%, #fff, transparent),
+    radial-gradient(2px 2px at 62% 30%, #fff6c2, transparent),
+    radial-gradient(1.5px 1.5px at 85% 60%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 75% 85%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 25% 88%, #c4b5ff, transparent),
+    linear-gradient(#141c42, #3b2f6e);
+}
+.board-bg-washi {
+  background:
+    repeating-linear-gradient(45deg, rgba(220, 110, 140, 0.08) 0 10px, transparent 10px 20px),
+    repeating-linear-gradient(-45deg, rgba(220, 110, 140, 0.08) 0 10px, transparent 10px 20px),
+    #fdf3ee;
+}
+.board-bg-grass {
+  background:
+    radial-gradient(circle at 80% 18%, #ffe066 0 14px, transparent 15px),
+    linear-gradient(#bfe8ff 0 58%, #8fd37a 58% 100%);
+}
+.board-bg-pink {
+  background:
+    linear-gradient(90deg, rgba(255, 140, 180, 0.22) 50%, transparent 0) 0 0 / 24px 24px,
+    linear-gradient(rgba(255, 140, 180, 0.22) 50%, transparent 0) 0 0 / 24px 24px,
+    #ffffff;
+}

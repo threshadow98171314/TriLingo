@@ -1,7 +1,8 @@
-// 扭蛋貼紙：日本、韓國、英語圈與學習主題的可愛插畫，四種稀有度。
+// 扭蛋貼紙：日本、韓國、英語圈、台灣、季節與學習主題的可愛插畫，四種稀有度；會動的動態貼紙在 stickersAnim.tsx。
 import type { ReactNode } from 'react';
 import { Art, Blush, Eyes, Face, Flower, INK, line, Mouth, Sparkle, starPath } from './kit';
 import { MascotBody } from './mascot';
+import { ANIM_STICKERS } from './stickersAnim';
 
 export type Rarity = 'N' | 'R' | 'SR' | 'SSR';
 
@@ -9,8 +10,12 @@ export interface Sticker {
   id: string;
   name: string;
   rarity: Rarity;
-  /** 主題：日本、韓國、英語圈、學習、季節、台灣、傳說 */
-  theme: '日本' | '韓國' | '英語圈' | '學習' | '季節' | '台灣' | '傳說';
+  /** 主題：日本、韓國、英語圈、學習、季節、台灣、傳說；會動的貼紙是「動態」 */
+  theme: '日本' | '韓國' | '英語圈' | '學習' | '季節' | '台灣' | '傳說' | '動態';
+  /** 會動的貼紙（只從動態貼紙扭蛋機抽到） */
+  anim?: boolean;
+  /** 不加白邊的動態小零件（淡入淡出的東西加了白邊會變成方塊） */
+  fx?: () => ReactNode;
   /** 一句小介紹（收集到才看得到） */
   note: string;
   draw: () => ReactNode;
@@ -18,7 +23,7 @@ export interface Sticker {
 
 export const RARITY_NAME: Record<Rarity, string> = { N: '普通', R: '稀有', SR: '超稀有', SSR: '傳說' };
 
-export const STICKERS: Sticker[] = [
+const BASE_STICKERS: Sticker[] = [
   // ───── 日本 ─────
   {
     id: 'onigiri',
@@ -1082,6 +1087,558 @@ export const STICKERS: Sticker[] = [
       </>
     ),
   },
+  // ───── 第二彈：日本 ─────
+  {
+    id: 'bento',
+    name: '便當',
+    rarity: 'N',
+    theme: '日本',
+    note: 'お弁当：日本的便當常有章魚香腸（タコさんウインナー）和玉子燒（卵焼き）。',
+    draw: () => (
+      <>
+        <rect x="10" y="22" width="80" height="62" rx="11" fill="#e0574a" {...line('#a8332a')} />
+        <rect x="16" y="28" width="68" height="50" rx="7" fill="#3a3340" />
+        <rect x="19" y="31" width="35" height="44" rx="5" fill="#ffffff" />
+        <circle cx="36" cy="63" r="5.5" fill="#d9304a" />
+        <rect x="57" y="31" width="24" height="14" rx="3" fill="#ffd85a" {...line('#d9a52a', 2)} />
+        <path d="M60 37 H78" {...line('#f5c03a', 1.6)} />
+        <g {...line('#d94a3a', 2.4)}>
+          <path d="M61 66 L58 74" />
+          <path d="M66 67 L65 75" />
+          <path d="M72 67 L73 75" />
+          <path d="M77 66 L80 73" />
+        </g>
+        <path d="M58 64 C58 52 80 52 80 64 Z" fill="#ff6f61" {...line('#d94a3a', 2)} />
+        <Face x={36} y={44} gap={12} r={2.8} mouth="cat" mw={2.8} />
+        <Eyes x={69} y={60} gap={7} r={1.6} />
+      </>
+    ),
+  },
+  {
+    id: 'kokeshi',
+    name: '小芥子木偶',
+    rarity: 'N',
+    theme: '日本',
+    note: 'こけし：東北地方溫泉街的木頭娃娃，頭圓圓、身體是一根圓柱。',
+    draw: () => (
+      <>
+        <path d="M33 52 H67 L71 92 H29 Z" fill="#e94b5b" {...line('#b02a3a')} />
+        <Flower x={50} y={72} r={10} fill="#ffd6e0" stroke="#e07ea6" />
+        <path d="M31 88 H69" {...line('#ffd85a', 3)} />
+        <circle cx="50" cy="34" r="22" fill="#ffe7cf" {...line('#d9a77a')} />
+        <path d="M28 36 C26 14 74 14 72 36 C66 26 58 23 50 27 C42 23 34 26 28 36 Z" fill="#2b2b33" />
+        <circle cx="34" cy="20" r="5" fill="#ff7a9c" />
+        <Face y={40} gap={14} r={3} mouth="smile" mw={4} closed />
+      </>
+    ),
+  },
+  {
+    id: 'onsen',
+    name: '溫泉猴',
+    rarity: 'R',
+    theme: '日本',
+    note: '温泉（おんせん）：長野的地獄谷野猿公苑，冬天猴子會泡溫泉取暖。泡湯前要先洗身體喔！',
+    draw: () => (
+      <>
+        <g fill="none" {...line('#9fb3d9', 2.6)}>
+          <path d="M30 32 C26 26 34 22 30 14" />
+          <path d="M50 28 C46 22 54 18 50 10" />
+          <path d="M70 32 C66 26 74 22 70 14" />
+        </g>
+        <ellipse cx="50" cy="74" rx="42" ry="16" fill="#8fd3ff" {...line('#4a9ad9')} />
+        <circle cx="50" cy="58" r="19" fill="#c99a6b" {...line('#8a5a33')} />
+        <ellipse cx="50" cy="61" rx="12.5" ry="10.5" fill="#ff9e9e" />
+        <rect x="38" y="36" width="24" height="8" rx="3" fill="#ffffff" {...line('#c3c3d3', 2)} />
+        <Face y={58} gap={10} r={2.6} mouth="smile" mw={3.4} closed />
+        <path d="M8 74 C20 68 30 80 42 74 C54 68 64 80 76 74 C84 70 90 72 92 74 C92 85 74 90 50 90 C26 90 8 85 8 74 Z" fill="#74c3f5" opacity="0.92" />
+      </>
+    ),
+  },
+  {
+    id: 'shinkansen',
+    name: '新幹線',
+    rarity: 'R',
+    theme: '日本',
+    note: '新幹線（しんかんせん）：東京到大阪只要兩個半小時。車內廣播「まもなく、京都です」。',
+    draw: () => (
+      <>
+        <path d="M6 68 C6 50 24 38 50 38 H92 V74 H12 C8 74 6 72 6 68 Z" fill="#ffffff" {...line('#9aa6c4')} />
+        <path d="M8 63 H92 V69 H10 Z" fill="#2f6fd6" />
+        <path d="M27 46 C33 42 42 41 50 41 V52 H22 Z" fill="#2f3b5c" />
+        <rect x="58" y="44" width="10" height="9" rx="2" fill="#bfe6ff" {...line('#7aa6d9', 1.6)} />
+        <rect x="74" y="44" width="10" height="9" rx="2" fill="#bfe6ff" {...line('#7aa6d9', 1.6)} />
+        <Eyes x={38} y={47} gap={10} r={2.6} color="#ffffff" />
+        <Blush x={34} y={58} gap={16} rx={3.6} ry={2.2} />
+        <g fill="#5a6278">
+          <circle cx="26" cy="78" r="5" />
+          <circle cx="44" cy="78" r="5" />
+          <circle cx="66" cy="78" r="5" />
+          <circle cx="84" cy="78" r="5" />
+        </g>
+      </>
+    ),
+  },
+  {
+    id: 'tanuki',
+    name: '狸貓',
+    rarity: 'SR',
+    theme: '日本',
+    note: '狸（たぬき）：傳說頭上放一片葉子就能變身。烏龍麵加天婦羅碎叫「たぬきうどん」。',
+    draw: () => (
+      <>
+        <circle cx="27" cy="26" r="10" fill="#8a5d3a" {...line('#5a3d23')} />
+        <circle cx="73" cy="26" r="10" fill="#8a5d3a" {...line('#5a3d23')} />
+        <circle cx="50" cy="52" r="32" fill="#b9875a" {...line('#7a5232')} />
+        <path d="M22 54 C28 40 44 44 50 52 C56 44 72 40 78 54 C72 64 58 60 50 57 C42 60 28 64 22 54 Z" fill="#5a3d2b" />
+        <g>
+          <circle cx="38" cy="52" r="4.6" fill="#fff8e8" />
+          <circle cx="62" cy="52" r="4.6" fill="#fff8e8" />
+          <circle cx="38.6" cy="52.4" r="2.6" fill={INK} />
+          <circle cx="62.6" cy="52.4" r="2.6" fill={INK} />
+        </g>
+        <ellipse cx="50" cy="68" rx="13" ry="10" fill="#f3dfc4" />
+        <ellipse cx="50" cy="63.5" rx="4" ry="3" fill={INK} />
+        <Mouth y={67} kind="cat" w={4} />
+        <Blush y={66} gap={34} />
+        <path d="M42 22 C46 6 64 4 68 12 C62 20 52 24 42 22 Z" fill="#6fbf4a" {...line('#3f8a2a', 2)} />
+        <path d="M46 20 C52 16 58 13 64 11" fill="none" {...line('#3f8a2a', 1.6)} />
+      </>
+    ),
+  },
+  // ───── 第二彈：韓國 ─────
+  {
+    id: 'dalgona',
+    name: '椪糖',
+    rarity: 'N',
+    theme: '韓國',
+    note: '달고나：用針沿著圖案把形狀完整挖出來就贏了，因為韓劇《魷魚遊戲》紅遍全世界。',
+    draw: () => (
+      <>
+        <circle cx="50" cy="52" r="39" fill="#e3a043" {...line('#b57524')} />
+        <circle cx="50" cy="52" r="32" fill="#f2bd62" />
+        <path d={starPath(50, 52, 20)} fill="#f7cd7c" {...line('#c98a35', 2.4)} />
+        <Face y={52} gap={9} r={2.2} mouth="smile" mw={3} blush={false} />
+      </>
+    ),
+  },
+  {
+    id: 'patbingsu',
+    name: '紅豆刨冰',
+    rarity: 'N',
+    theme: '韓國',
+    note: '팥빙수：紅豆刨冰加上麻糬塊（떡），夏天的咖啡廳必點。',
+    draw: () => (
+      <>
+        <path d="M14 56 H86 C86 76 70 88 50 88 C30 88 14 76 14 56 Z" fill="#d9ecff" {...line('#7aa6d9')} />
+        <path d="M18 56 C18 32 34 20 50 20 C66 20 82 32 82 56 Z" fill="#ffffff" {...line('#c9d2ea')} />
+        <path d="M30 32 C36 22 64 22 70 32 C64 37 36 37 30 32 Z" fill="#8a2f3a" />
+        <rect x="26" y="40" width="10" height="9" rx="2.5" fill="#fff5e0" {...line('#e0c9a0', 1.6)} />
+        <rect x="64" y="40" width="10" height="9" rx="2.5" fill="#fff5e0" {...line('#e0c9a0', 1.6)} />
+        <rect x="45" y="44" width="10" height="9" rx="2.5" fill="#d8f0c0" {...line('#9ac77a', 1.6)} />
+        <Face y={68} gap={16} r={3} mouth="cat" mw={3.4} />
+      </>
+    ),
+  },
+  {
+    id: 'hanbok',
+    name: '韓服',
+    rarity: 'R',
+    theme: '韓國',
+    note: '한복：上衣叫저고리、裙子叫치마，袖子的彩色條紋叫색동。過節（설날、추석）時穿。',
+    draw: () => (
+      <>
+        <path d="M31 52 C23 70 18 84 16 92 H84 C82 84 77 70 69 52 Z" fill="#ff5d8f" {...line('#c43a6a')} />
+        <path d="M20 54 L32 46 L36 62 L22 66 Z" fill="#ffd85a" {...line('#d9a52a', 2)} />
+        <path d="M80 54 L68 46 L64 62 L78 66 Z" fill="#ffd85a" {...line('#d9a52a', 2)} />
+        <path d="M21 58 L34 52 M22 62 L35 57 M79 58 L66 52 M78 62 L65 57" {...line('#6fc3ff', 2.2)} />
+        <path d="M32 46 H68 L70 58 H30 Z" fill="#ffd85a" {...line('#d9a52a')} />
+        <path d="M50 48 L44 72 M50 48 L56 70" fill="none" {...line('#c43a6a', 3)} />
+        <circle cx="50" cy="48" r="3.2" fill="#c43a6a" />
+        <circle cx="50" cy="28" r="16" fill="#ffe7cf" {...line('#d9a77a')} />
+        <path d="M34 28 C34 12 66 12 66 28 C60 20 40 20 34 28 Z" fill="#2b2b33" />
+        <circle cx="50" cy="12" r="6" fill="#2b2b33" />
+        <Face y={30} gap={11} r={2.6} mouth="smile" mw={3.4} />
+      </>
+    ),
+  },
+  {
+    id: 'hahoe',
+    name: '河回面具',
+    rarity: 'SR',
+    theme: '韓國',
+    note: '하회탈：安東河回村的木頭面具，笑瞇瞇的眼睛和會動的下巴是特色，是韓國的國寶。',
+    draw: () => (
+      <>
+        <path d="M22 30 C22 12 78 12 78 30 C80 50 76 66 50 70 C24 66 20 50 22 30 Z" fill="#e8c18f" {...line('#9a6a3a')} />
+        <path d="M28 30 Q38 22 46 30 M54 30 Q62 22 72 30" fill="none" {...line('#5a3d2b', 3)} />
+        <Eyes y={40} gap={26} r={6} closed />
+        <Blush y={50} gap={40} rx={6} ry={3.4} color="#e0707a" />
+        <path d="M44 44 Q50 50 56 44" fill="none" {...line('#9a6a3a', 2.4)} />
+        <path d="M32 54 Q50 68 68 54" fill="none" {...line(INK, 3)} />
+        <path d="M30 70 C34 86 66 86 70 70 C62 75 38 75 30 70 Z" fill="#d9ad7a" {...line('#9a6a3a')} />
+      </>
+    ),
+  },
+  // ───── 第二彈：英語圈 ─────
+  {
+    id: 'taxi',
+    name: '黃色計程車',
+    rarity: 'N',
+    theme: '英語圈',
+    note: 'Yellow cab：紐約的黃色計程車。上車說 “Could you take me to …, please?”',
+    draw: () => (
+      <>
+        <rect x="38" y="18" width="24" height="10" rx="2.5" fill="#3a3340" />
+        <text x="50" y="26" textAnchor="middle" fontSize="7.5" fontWeight="900" fill="#ffd23a">
+          TAXI
+        </text>
+        <path d="M10 66 C10 57 16 53 24 51 L32 36 C34 32 38 30 42 30 H58 C62 30 66 32 68 36 L76 51 C84 53 90 57 90 66 V74 H10 Z" fill="#ffd23a" {...line('#c99a10')} />
+        <path d="M37 36 H48 V50 H30 Z" fill="#bfe6ff" />
+        <path d="M52 36 H63 L70 50 H52 Z" fill="#bfe6ff" />
+        <g fill="#3a3340">
+          {[14, 26, 38, 50, 62, 74].map((x) => (
+            <rect key={x} x={x} y="66" width="6" height="4" />
+          ))}
+        </g>
+        <circle cx="28" cy="76" r="9" fill="#3a3340" />
+        <circle cx="72" cy="76" r="9" fill="#3a3340" />
+        <circle cx="28" cy="76" r="3.5" fill="#c9cfdc" />
+        <circle cx="72" cy="76" r="3.5" fill="#c9cfdc" />
+        <Face y={56} gap={16} r={3} mouth="smile" mw={4} />
+      </>
+    ),
+  },
+  {
+    id: 'donut',
+    name: '甜甜圈',
+    rarity: 'N',
+    theme: '英語圈',
+    note: 'Doughnut：美國警察最愛的甜點（刻板印象）。點餐可以說 “A glazed doughnut, please.”',
+    draw: () => (
+      <>
+        <circle cx="50" cy="52" r="37" fill="#e2a35f" {...line('#a8672e')} />
+        <path d="M16 50 C16 30 32 18 50 18 C68 18 84 30 84 50 C80 56 74 52 70 58 C66 64 60 56 54 62 C48 66 44 58 38 62 C32 66 28 56 22 58 C18 58 16 54 16 50 Z" fill="#ff8fc0" {...line('#d9578f', 2)} />
+        <ellipse cx="50" cy="50" rx="10" ry="8" fill="#ffffff" {...line('#a8672e', 2)} />
+        {[
+          [30, 40, -30, '#ffe066'],
+          [40, 28, 20, '#6ab8ff'],
+          [64, 30, -10, '#8fdc6b'],
+          [72, 44, 40, '#ffffff'],
+          [26, 52, 60, '#b48cff'],
+        ].map(([x, y, a, c], i) => (
+          <rect key={i} x={Number(x) - 4} y={Number(y) - 1.5} width="8" height="3" rx="1.5" fill={String(c)} transform={`rotate(${a} ${x} ${y})`} />
+        ))}
+        <Face y={74} gap={20} r={3} mouth="cat" mw={3.4} />
+      </>
+    ),
+  },
+  {
+    id: 'kangaroo',
+    name: '袋鼠',
+    rarity: 'R',
+    theme: '英語圈',
+    note: 'Kangaroo：澳洲的國寶，媽媽的育兒袋裡有寶寶（joey）。澳洲人打招呼說 “G’day, mate!”',
+    draw: () => (
+      <>
+        <ellipse cx="38" cy="16" rx="6" ry="13" fill="#d9925a" {...line('#9a5a2a')} transform="rotate(-15 38 16)" />
+        <ellipse cx="62" cy="16" rx="6" ry="13" fill="#d9925a" {...line('#9a5a2a')} transform="rotate(15 62 16)" />
+        <ellipse cx="50" cy="72" rx="25" ry="22" fill="#d9925a" {...line('#9a5a2a')} />
+        <ellipse cx="50" cy="76" rx="16" ry="14" fill="#f3d0a5" />
+        <circle cx="50" cy="72" r="7.5" fill="#d9925a" {...line('#9a5a2a', 2)} />
+        <Eyes y={71} gap={5.5} r={1.6} />
+        <path d="M35 76 Q50 88 65 76" fill="#f3d0a5" {...line('#9a5a2a', 2.4)} />
+        <ellipse cx="50" cy="36" rx="19" ry="17" fill="#d9925a" {...line('#9a5a2a')} />
+        <Face y={35} gap={13} r={3} mouth="cat" mw={3.4} />
+      </>
+    ),
+  },
+  {
+    id: 'liberty',
+    name: '自由女神',
+    rarity: 'SR',
+    theme: '英語圈',
+    note: 'Statue of Liberty：法國送給美國的禮物，右手舉著火炬，左手拿著寫了 JULY IV MDCCLXXVI 的書板。',
+    draw: () => (
+      <>
+        <path d="M30 60 C26 76 26 86 28 94 H66 C68 84 66 72 62 60 Z" fill="#7fd1b9" {...line('#3f9a80')} />
+        <rect x="20" y="62" width="12" height="18" rx="2" fill="#9fe0cc" {...line('#3f9a80', 2)} transform="rotate(-10 26 71)" />
+        <path d="M60 56 L72 28" {...line('#3f9a80', 10)} />
+        <path d="M60 56 L72 28" {...line('#7fd1b9', 6)} />
+        <path d="M67 26 H79 L77 18 H69 Z" fill="#f2c94c" {...line('#c99a10', 2)} />
+        <path d="M73 18 C66 12 72 6 74 1 C79 8 82 13 73 18 Z" fill="#ff9a3d" {...line('#e06a1a', 1.6)} />
+        <g fill="#7fd1b9" {...line('#3f9a80', 2)}>
+          {[-60, -30, 0, 30, 60].map((a) => (
+            <path key={a} d="M43 26 L46 10 L49 26 Z" transform={`rotate(${a} 46 40)`} />
+          ))}
+        </g>
+        <circle cx="46" cy="44" r="18" fill="#7fd1b9" {...line('#3f9a80')} />
+        <path d="M29 38 C35 30 57 30 63 38" fill="none" {...line('#5fb89f', 5)} />
+        <Face x={46} y={47} gap={12} r={3} mouth="smile" mw={4} />
+      </>
+    ),
+  },
+  // ───── 第二彈：台灣 ─────
+  {
+    id: 'lurou',
+    name: '滷肉飯',
+    rarity: 'N',
+    theme: '台灣',
+    note: '滷肉飯：台灣的國民美食。日文「ルーローハン」，韓文「루러우판」。',
+    draw: () => (
+      <>
+        <path d="M12 52 H88 C88 74 72 88 50 88 C28 88 12 74 12 52 Z" fill="#ffffff" {...line('#9aa6c4')} />
+        <path d="M18 64 H82" {...line('#5a8ad9', 3)} />
+        <path d="M16 52 C20 36 80 36 84 52 Z" fill="#fffaf0" {...line('#d9d2c0', 2)} />
+        <path d="M24 48 C30 34 70 34 76 48 C64 52 36 52 24 48 Z" fill="#8a4a24" />
+        <g fill="#b46a3a">
+          <rect x="34" y="40" width="5" height="4" rx="1" />
+          <rect x="46" y="38" width="5" height="4" rx="1" />
+          <rect x="40" y="45" width="5" height="4" rx="1" />
+        </g>
+        <ellipse cx="64" cy="41" rx="9" ry="7" fill="#c98a4a" {...line('#8a5a2a', 1.8)} />
+        <circle cx="64" cy="41" r="3.8" fill="#ffcc4d" />
+        <rect x="27" y="36" width="10" height="6" rx="2" fill="#ffe14d" {...line('#d9b62a', 1.4)} />
+        <Face y={72} gap={16} r={3} mouth="smile" mw={4} />
+      </>
+    ),
+  },
+  {
+    id: 'guabao',
+    name: '刈包',
+    rarity: 'N',
+    theme: '台灣',
+    note: '刈包：又叫虎咬豬，夾滷五花肉、酸菜和花生粉。英文菜單常寫 “Taiwanese pork belly bun”。',
+    draw: () => (
+      <>
+        <path d="M12 58 C12 78 30 87 50 87 C70 87 88 78 88 58 Z" fill="#fff8ee" {...line('#d9cbb0')} />
+        <path d="M14 56 C24 50 76 50 86 56 L84 63 C70 59 30 59 16 63 Z" fill="#a8582e" />
+        <path d="M18 54 C30 46 50 52 62 46 C72 43 80 47 84 52" fill="none" {...line('#6fbf4a', 5)} />
+        <g fill="#e0b46a">
+          <circle cx="30" cy="57" r="1.6" />
+          <circle cx="44" cy="58" r="1.6" />
+          <circle cx="58" cy="57" r="1.6" />
+          <circle cx="70" cy="58" r="1.6" />
+        </g>
+        <path d="M10 54 C10 30 30 18 50 18 C70 18 90 30 90 54 C70 48 30 48 10 54 Z" fill="#fffaf2" {...line('#d9cbb0')} />
+        <Face y={35} gap={16} r={3.2} mouth="cat" mw={3.4} />
+      </>
+    ),
+  },
+  {
+    id: 'scooter',
+    name: '機車',
+    rarity: 'R',
+    theme: '台灣',
+    note: '機車：台灣街頭最常見的交通工具。日文叫「スクーター」，韓文叫「스쿠터」。',
+    draw: () => (
+      <>
+        <circle cx="26" cy="76" r="11" fill="#3a3340" />
+        <circle cx="76" cy="76" r="11" fill="#3a3340" />
+        <circle cx="26" cy="76" r="4" fill="#c9cfdc" />
+        <circle cx="76" cy="76" r="4" fill="#c9cfdc" />
+        <path d="M14 72 C14 58 26 52 40 52 H58 L64 34 H72 L69 52 C80 54 88 62 88 72 Z" fill="#7ec8ff" {...line('#3a86c9')} />
+        <rect x="28" y="44" width="28" height="9" rx="4.5" fill="#4a4a58" />
+        <path d="M60 32 H80" {...line(INK, 4)} />
+        <circle cx="84" cy="60" r="4" fill="#fff3b0" {...line('#d9b62a', 1.6)} />
+        <Face x={42} y={63} gap={12} r={2.8} mouth="smile" mw={3.4} />
+      </>
+    ),
+  },
+  {
+    id: 'blackbear',
+    name: '台灣黑熊',
+    rarity: 'SR',
+    theme: '台灣',
+    note: '台灣黑熊：胸前有白色的 V 字。日文「タイワンツキノワグマ」，韓文「대만흑곰」。',
+    draw: () => (
+      <>
+        <circle cx="25" cy="22" r="10" fill="#2f2f38" />
+        <circle cx="75" cy="22" r="10" fill="#2f2f38" />
+        <circle cx="25" cy="22" r="4.5" fill="#5a5a68" />
+        <circle cx="75" cy="22" r="4.5" fill="#5a5a68" />
+        <ellipse cx="50" cy="84" rx="28" ry="14" fill="#2f2f38" />
+        <path d="M30 76 L50 90 L70 76 L66 73 L50 84 L34 73 Z" fill="#fff6dd" />
+        <circle cx="50" cy="44" r="29" fill="#2f2f38" {...line('#1a1a22')} />
+        <g>
+          <circle cx="38" cy="42" r="4.4" fill="#fff8e8" />
+          <circle cx="62" cy="42" r="4.4" fill="#fff8e8" />
+          <circle cx="38.6" cy="42.6" r="2.6" fill="#1a1a22" />
+          <circle cx="62.6" cy="42.6" r="2.6" fill="#1a1a22" />
+        </g>
+        <ellipse cx="50" cy="55" rx="12" ry="9" fill="#c9a27a" />
+        <ellipse cx="50" cy="51" rx="4" ry="3" fill="#1a1a22" />
+        <Mouth y={55} kind="cat" w={3.6} color="#1a1a22" />
+        <Blush y={50} gap={36} opacity={0.75} />
+      </>
+    ),
+  },
+  // ───── 第二彈：季節 ─────
+  {
+    id: 'teru',
+    name: '晴天娃娃',
+    rarity: 'N',
+    theme: '季節',
+    note: 'てるてる坊主：梅雨季掛在窗邊，祈求明天放晴。',
+    draw: () => (
+      <>
+        <path d="M50 2 V14" {...line('#9aa6c4', 2)} />
+        <path d="M34 46 C28 60 20 76 18 86 C30 82 36 88 44 84 C50 90 56 86 62 88 C70 84 76 88 84 84 C80 74 72 60 66 46 Z" fill="#ffffff" {...line('#b9c0d6')} />
+        <circle cx="50" cy="32" r="20" fill="#ffffff" {...line('#b9c0d6')} />
+        <path d="M34 50 H66" {...line('#ff7a9c', 4)} />
+        <path d="M50 50 L44 56 M50 50 L56 56" {...line('#ff7a9c', 3)} />
+        <Face y={32} gap={12} r={3} mouth="smile" mw={4} />
+        <circle cx="86" cy="18" r="7" fill="#ffd34d" {...line('#e0a82a', 2)} />
+      </>
+    ),
+  },
+  {
+    id: 'ajisai',
+    name: '紫陽花',
+    rarity: 'N',
+    theme: '季節',
+    note: '紫陽花（あじさい）：六月梅雨季的代表花，鎌倉的明月院有「繡球花寺」之稱。',
+    draw: () => (
+      <>
+        <path d="M24 74 C14 66 16 54 30 60 C34 66 32 72 24 74 Z" fill="#6fbf4a" {...line('#3f8a2a', 2)} />
+        <path d="M76 74 C86 66 84 54 70 60 C66 66 68 72 76 74 Z" fill="#6fbf4a" {...line('#3f8a2a', 2)} />
+        {[
+          [36, 36, '#b9a6ff'],
+          [50, 28, '#8fb6ff'],
+          [64, 36, '#d6a6ff'],
+          [28, 50, '#8fb6ff'],
+          [42, 46, '#d6a6ff'],
+          [58, 46, '#b9a6ff'],
+          [72, 50, '#8fb6ff'],
+          [36, 62, '#d6a6ff'],
+          [50, 60, '#b9a6ff'],
+          [64, 62, '#d6a6ff'],
+        ].map(([x, y, c]) => (
+          <Flower key={`${x}-${y}`} x={Number(x)} y={Number(y)} r={9} n={4} fill={String(c)} stroke="#7a6ad9" center="#fff6b0" />
+        ))}
+        <ellipse cx="50" cy="50" rx="14" ry="11" fill="#f1ebff" {...line('#b9a6ff', 1.6)} />
+        <Face y={48} gap={12} r={2.6} mouth="cat" mw={2.8} />
+        <path d="M84 16 C80 22 80 26 84 26 C88 26 88 22 84 16 Z" fill="#8fd0ff" {...line('#4a9ad9', 1.6)} />
+      </>
+    ),
+  },
+  {
+    id: 'sunflower',
+    name: '向日葵',
+    rarity: 'N',
+    theme: '季節',
+    note: 'ひまわり／해바라기／sunflower：夏天的花，總是面向太陽。',
+    draw: () => (
+      <>
+        <path d="M50 70 V96" {...line('#5aa83a', 5)} />
+        <path d="M50 84 C40 76 30 78 28 86 C36 90 44 88 50 84 Z" fill="#6fbf4a" {...line('#3f8a2a', 2)} />
+        <g fill="#ffd23a" stroke="#e0a010" strokeWidth="1.6">
+          {Array.from({ length: 14 }, (_, i) => (
+            <ellipse key={i} cx="50" cy="20" rx="7" ry="13" transform={`rotate(${(i * 360) / 14} 50 44)`} />
+          ))}
+        </g>
+        <circle cx="50" cy="44" r="18" fill="#b07a3e" {...line('#7a4f22')} />
+        <Face y={42} gap={12} r={3} mouth="open" mw={4} />
+      </>
+    ),
+  },
+  // ───── 第二彈：學習 ─────
+  {
+    id: 'eraser',
+    name: '橡皮擦',
+    rarity: 'N',
+    theme: '學習',
+    note: 'eraser（美）／rubber（英）／消しゴム／지우개：寫錯了沒關係，擦掉重來！',
+    draw: () => (
+      <>
+        <g transform="rotate(-8 50 54)">
+          <rect x="16" y="34" width="68" height="40" rx="8" fill="#ffffff" {...line('#c3c3d3')} />
+          <rect x="46" y="32" width="38" height="44" rx="5" fill="#5a9bff" {...line('#2f6fd6')} />
+          <path d="M52 44 H78 M52 64 H78" {...line('#ffffff', 3)} />
+          <Face x={31} y={52} gap={10} r={2.6} mouth="smile" mw={3.4} />
+        </g>
+        <g fill="#c9cfdc">
+          <circle cx="16" cy="84" r="2.4" />
+          <circle cx="24" cy="88" r="1.8" />
+          <circle cx="10" cy="76" r="1.6" />
+        </g>
+      </>
+    ),
+  },
+  {
+    id: 'headphones',
+    name: '耳機',
+    rarity: 'N',
+    theme: '學習',
+    note: '聽力練習的好夥伴。多益 Part 2 的問答題，一定要聽清楚第一個字（Who、When、Where）。',
+    draw: () => (
+      <>
+        <path d="M22 58 C22 22 78 22 78 58" fill="none" {...line('#5a6aa8', 8)} />
+        <path d="M22 58 C22 22 78 22 78 58" fill="none" {...line('#8f9ce0', 3)} />
+        <rect x="11" y="50" width="22" height="32" rx="10" fill="#ff7a9c" {...line('#c43a6a')} />
+        <rect x="67" y="50" width="22" height="32" rx="10" fill="#ff7a9c" {...line('#c43a6a')} />
+        <text x="38" y="50" fontSize="15" fontWeight="900" fill="#8f7cff">
+          ♪
+        </text>
+        <text x="52" y="44" fontSize="12" fontWeight="900" fill="#22b8d6">
+          ♫
+        </text>
+        <Face y={70} gap={14} r={3} mouth="open" mw={4} />
+      </>
+    ),
+  },
+  {
+    id: 'blocks',
+    name: '三語積木',
+    rarity: 'R',
+    theme: '學習',
+    note: 'A、あ、가：一塊一塊疊上去，三種語言的基礎就打好了。',
+    draw: () => (
+      <>
+        {[
+          [14, 56, '#ff8a8a', '#c94a4a', 'A'],
+          [52, 56, '#6ab8ff', '#2f6fd6', 'あ'],
+          [33, 20, '#8fdc6b', '#4f9a3a', '가'],
+        ].map(([x, y, f, s, t]) => (
+          <g key={String(t)}>
+            <rect x={Number(x)} y={Number(y)} width="34" height="34" rx="6" fill={String(f)} {...line(String(s))} />
+            <text x={Number(x) + 17} y={Number(y) + 25} textAnchor="middle" fontSize="22" fontWeight="900" fill="#ffffff">
+              {t}
+            </text>
+          </g>
+        ))}
+        <Sparkle x={82} y={20} s={6} color="#ffd34d" />
+        <Sparkle x={16} y={30} s={4} color="#ffd34d" />
+      </>
+    ),
+  },
+  {
+    id: 'owl',
+    name: '貓頭鷹博士',
+    rarity: 'SR',
+    theme: '學習',
+    note: 'owl／フクロウ（不苦労＝不吃苦）／부엉이：日本人覺得貓頭鷹會帶來好運。',
+    draw: () => (
+      <>
+        <path d="M24 34 L28 18 L38 28 Z M76 34 L72 18 L62 28 Z" fill="#8a6a46" {...line('#5a4228', 2)} />
+        <ellipse cx="50" cy="60" rx="31" ry="32" fill="#a9845e" {...line('#6e5032')} />
+        <ellipse cx="50" cy="70" rx="18" ry="19" fill="#f3e0c4" />
+        <path d="M42 66 L46 70 L50 66 L54 70 L58 66 M44 76 L48 80 L52 76 L56 80" fill="none" {...line('#c9a27a', 1.8)} />
+        <circle cx="38" cy="48" r="11" fill="#ffffff" {...line('#6e5032', 2)} />
+        <circle cx="62" cy="48" r="11" fill="#ffffff" {...line('#6e5032', 2)} />
+        <circle cx="38" cy="49" r="5" fill={INK} />
+        <circle cx="62" cy="49" r="5" fill={INK} />
+        <circle cx="39.6" cy="47" r="1.8" fill="#ffffff" />
+        <circle cx="63.6" cy="47" r="1.8" fill="#ffffff" />
+        <circle cx="38" cy="48" r="13" fill="none" {...line('#3b3b47', 2.4)} />
+        <circle cx="62" cy="48" r="13" fill="none" {...line('#3b3b47', 2.4)} />
+        <path d="M51 48 H49" {...line('#3b3b47', 2.4)} />
+        <path d="M46 56 L54 56 L50 63 Z" fill="#ffb347" {...line('#d9772a', 1.6)} />
+        <path d="M28 20 L50 11 L72 20 L50 29 Z" fill="#2b2b33" />
+        <path d="M68 21 V31" {...line('#ffd34d', 2)} />
+        <circle cx="68" cy="32" r="2.4" fill="#ffd34d" />
+      </>
+    ),
+  },
   // ───── 傳說 ─────
   {
     id: 'goldcat',
@@ -1128,6 +1685,8 @@ export const STICKERS: Sticker[] = [
   },
 ];
 
+export const STICKERS: Sticker[] = [...BASE_STICKERS, ...ANIM_STICKERS];
+
 export const STICKER_BY_ID = new Map(STICKERS.map((s) => [s.id, s]));
 
 /** 貼紙插畫：dim 為 true 時是還沒收集到的剪影 */
@@ -1135,7 +1694,7 @@ export function StickerArt({ id, size = 72, dim }: { id: string; size?: number |
   const st = STICKER_BY_ID.get(id);
   if (!st) return null;
   return (
-    <Art size={size} sticker={!dim} dim={dim} title={dim ? '尚未收集' : st.name}>
+    <Art size={size} sticker={!dim} dim={dim} title={dim ? '尚未收集' : st.name} behind={st.fx?.()}>
       {st.draw()}
     </Art>
   );

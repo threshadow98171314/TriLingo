@@ -1,9 +1,10 @@
-// 「我的」頁：名片（頭像、暱稱、稱號、夥伴、背景）、外觀切換（商店買的東西都在這裡換）、學習紀錄
-import { useState, type CSSProperties, type ReactNode } from 'react';
+// 「我的」頁：名片（頭像、暱稱、稱號、夥伴、背景）、外觀切換（商店買的東西都在這裡換）、貼紙板、學習紀錄
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { AVATAR_NAME } from '../art/avatars';
 import { STICKERS } from '../art/stickers';
 import { Avatar, Pet } from '../components/Avatar';
 import { RankEmblem, RankLine } from '../components/RankEmblem';
+import { StickerBoard } from '../components/StickerBoard';
 import { Coin, LangBadge } from '../components/ui';
 import { META_LIST } from '../content';
 import { ACHIEVEMENTS } from '../core/achievements';
@@ -18,10 +19,11 @@ import { cx, sum } from '../core/util';
 import { href, useRoute } from '../router';
 import { CosmeticPreview } from '../components/LookPreview';
 
-type Tab = 'looks' | 'stats';
+type Tab = 'looks' | 'board' | 'stats';
 const TABS: [Tab, string][] = [
-  ['looks', '👕 外觀切換'],
-  ['stats', '📊 學習紀錄'],
+  ['looks', '👕 外觀'],
+  ['board', '🖼️ 貼紙板'],
+  ['stats', '📊 紀錄'],
 ];
 
 export function MePage() {
@@ -38,6 +40,7 @@ export function MePage() {
         ))}
       </div>
       {tab === 'looks' && <Wardrobe />}
+      {tab === 'board' && <StickerBoard />}
       {tab === 'stats' && <StatsTab />}
     </div>
   );
@@ -85,7 +88,7 @@ function ProfileCard() {
           <a className="chip" href={href('/profile')}>
             🏆 成就 {achGot} / {ACHIEVEMENTS.length}
           </a>
-          <a className="chip" href={href('/shop?tab=gacha')}>
+          <a className="chip" href={href('/me?tab=board')}>
             🎴 貼紙 {stickerCount} / {STICKERS.length}
           </a>
           <span className="chip">
@@ -148,6 +151,13 @@ function Wardrobe() {
   const s = useSave();
   const jump = (id: string) => document.getElementById(`ward-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const season = seasonOf(new Date(nowMs()));
+  // 從扭蛋結果點「到我的換上」：直接跳到那一類
+  const kind = useRoute().query.get('kind');
+  useEffect(() => {
+    if (!kind) return;
+    const t = setTimeout(() => document.getElementById(`ward-${kind}`)?.scrollIntoView({ block: 'start' }), 50);
+    return () => clearTimeout(t);
+  }, [kind]);
 
   /** 換上之後順便示範一下（特效、音效） */
   const demo = (c: Cosmetic, el: HTMLElement) => {

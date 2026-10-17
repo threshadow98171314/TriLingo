@@ -10,9 +10,9 @@ import { newProg, rolloverStreak, srsReview, srsTouch, touchStreak } from './log
 import { CHEST_COINS, questsFor } from './quests';
 import { rankOf } from './ranks';
 import { randInt } from './rng';
-import { STICKER_BY_ID } from '../art/stickers';
+import { STICKER_BY_ID, type Rarity } from '../art/stickers';
 import type { SongLine } from './songs';
-import { defaultSave, emptyDay, migrate, type DayLog, type Save, type Settings } from './save';
+import { BOARD_LIMITS, cleanBoardItem, defaultSave, emptyDay, migrate, type BoardItem, type DayLog, type Save, type Settings } from './save';
 import {
   AVATAR_COST,
   CLOVER_LESSONS,
@@ -20,8 +20,13 @@ import {
   cosmeticKey,
   cosmeticOf,
   DUPE_REFUND,
+  ANIM_GACHA10_COST,
+  ANIM_GACHA_COST,
   GACHA10_COST,
   GACHA_COST,
+  LOOK_GACHA_COST,
+  rollLook,
+  type StickerMachine,
   HOURGLASS_MS,
   mysteryOffers,
   PREMIUM_AVATAR_COST,
@@ -711,19 +716,61 @@ function addSticker(d: Save, id: string): GachaPull {
   return { id, fresh, refund };
 }
 
-/** 扭蛋：抽一次或十連抽（十連抽保底一張稀有以上） */
-export function pullGacha(n: 1 | 10): GachaPull[] | null {
+/**
+ * 貼紙扭蛋：抽一次或十連抽。一般扭蛋機十連抽保底一張稀有以上；
+ * 動態貼紙扭蛋機（只出會動的貼紙）十連抽保底一張超稀有以上。
+ */
+export function pullGacha(n: 1 | 10, machine: StickerMachine = 'basic'): GachaPull[] | null {
   let out: GachaPull[] | null = null;
+  const anim = machine === 'anim';
+  const cost = anim ? (n === 10 ? ANIM_GACHA10_COST : ANIM_GACHA_COST) : n === 10 ? GACHA10_COST : GACHA_COST;
+  const floor: Rarity = anim ? 'SR' : 'R';
+  const order: Rarity[] = ['N', 'R', 'SR', 'SSR'];
   mutate((d) => {
-    if (!pay(d, n === 10 ? GACHA10_COST : GACHA_COST)) return;
+    if (!pay(d, cost)) return;
     const res: GachaPull[] = [];
     for (let i = 0; i < n; i++) {
       const last = n === 10 && i === n - 1;
-      const rare = res.some((r) => STICKER_BY_ID.get(r.id)?.rarity !== 'N');
-      res.push(addSticker(d, rollSticker(Math.random, last && !rare ? 'R' : 'N')));
+      const hit = res.some((r) => order.indexOf(STICKER_BY_ID.get(r.id)?.rarity ?? 'N') >= order.indexOf(floor));
+      res.push(addSticker(d, rollSticker(Math.random, last && !hit ? floor : 'N', machine)));
     }
     d.stats.gacha += n;
     out = res;
+  });
+  return out;
+}
+
+/**
+ * 貼紙板：頁面上算好整份布置再存。每種貼紙最多貼「擁有的張數」，最多 30 張；
+ * 位置、大小、角度超出範圍的會被修正。
+ */
+export function setBoard(patch: { items?: BoardItem[]; bg?: string }) {
+  mutate((d) => {
+    const used: Record<string, number> = {};
+    const items = (patch.items ?? d.board.items)
+      .filter((it) => {
+        used[it.id] = (used[it.id] ?? 0) + 1;
+        return STICKER_BY_ID.has(it.id) && used[it.id] <= (d.stickers[it.id] ?? 0);
+      })
+      .slice(0, BOARD_LIMITS.max)
+      .map(cleanBoardItem);
+    d.board = { items, bg: patch.bg ?? d.board.bg, at: Date.now() };
+  });
+}
+
+export type LookPull = { kind: 'cosmetic'; key: string } | ({ kind: 'sticker' } & GachaPull);
+
+/** 外觀扭蛋：抽到一件還沒有的外觀（不會自動換上，到「我的」頁切換）；沒抽中就是一張動態貼紙 */
+export function pullLook(): LookPull | null {
+  let out: LookPull | null = null;
+  mutate((d) => {
+    if (!pay(d, LOOK_GACHA_COST)) return;
+    const r = rollLook(Math.random, (k) => d.owned.includes(k));
+    if (r.kind === 'cosmetic') {
+      d.owned.push(r.key);
+      out = r;
+    } else out = { kind: 'sticker', ...addSticker(d, r.id) };
+    d.stats.gacha += 1;
   });
   return out;
 }

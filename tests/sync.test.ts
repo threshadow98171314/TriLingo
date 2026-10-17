@@ -128,6 +128,19 @@ describe('存檔合併', () => {
     expect(m.customSongs.map((x) => x.id)).toEqual(['my-aaaaaaaaaaa', 'my-bbbbbbbbbbb']);
   });
 
+  it('貼紙板：整份取最後修改的那份；舊存檔沒有貼紙板時補上空的，壞掉的資料會被丟掉', () => {
+    const it = (k: number, id: string) => ({ k, id, x: 0.5, y: 0.5, s: 0.2, r: 0 });
+    const phone = base({ board: { items: [it(1, 'onigiri')], bg: 'sky', at: 300 } });
+    const laptop = base({ board: { items: [it(1, 'sushi'), it(2, 'dango')], bg: 'cork', at: 200 } });
+    expect(mergeSaves(phone, laptop).board).toEqual(phone.board);
+    expect(mergeSaves(laptop, phone).board).toEqual(phone.board);
+    const old = JSON.parse(JSON.stringify(defaultSave(1000)));
+    delete old.board;
+    expect(migrate(old, 2000).board).toEqual({ items: [], bg: 'cork', at: 0 });
+    const broken = { ...defaultSave(1000), board: { items: [it(1, 'onigiri'), { k: 2, id: 'x' }, null, { ...it(3, 'sushi'), x: 9 }], bg: 5, at: 10 } };
+    expect(migrate(broken, 2000).board).toEqual({ items: [it(1, 'onigiri'), { ...it(3, 'sushi'), x: 1 }], bg: 'cork', at: 10 });
+  });
+
   it('合併是穩定的：同一份合併兩次不變（同步才不會一直來回上傳）', () => {
     const a = base({ xp: { en: 1, ja: 2, ko: 3 }, items: { x: item(2, 5) }, days: { d: { ...emptyDay(), lessons: 1 } }, coinsAt: 3, coins: 4 });
     const b = base({ xp: { en: 9, ja: 0, ko: 1 }, items: { y: item(1, 7) }, days: { d: { ...emptyDay(), perfect: 1 } }, prefsAt: 2, name: 'B' });

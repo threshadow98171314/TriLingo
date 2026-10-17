@@ -5,7 +5,7 @@ import { mergeSaves } from '../src/core/merge';
 import { mulberry32 } from '../src/core/rng';
 import { defaultSave, migrate, type Save } from '../src/core/save';
 import { AMBIENT_KINDS, TOTOP_KINDS } from '../src/core/fx';
-import { AMBIENTS, COSMETICS, cosmeticKey, KIND_NAME, MYSTERY_SLOTS, mysteryOffers, rollSticker, TOTOPS } from '../src/core/shop';
+import { AMBIENTS, ANIM_GACHA10_COST, COSMETICS, cosmeticKey, KIND_NAME, LOOK_GACHA_COST, MYSTERY_SLOTS, mysteryOffers, rollLook, rollSticker, TOTOPS } from '../src/core/shop';
 import {
   buyConsumable,
   buyCosmetic,
@@ -16,7 +16,9 @@ import {
   getSave,
   importSave,
   pullGacha,
+  pullLook,
   resetSave,
+  setBoard,
   revealMystery,
   spendHourglass,
   spendShield,
@@ -152,6 +154,52 @@ describe('扭蛋', () => {
     // 另外還有「第一張貼紙」成就的獎勵
     expect(getSave().coins).toBeGreaterThanOrEqual(80);
     expect(getSave().stats.gacha).toBe(10);
+  });
+});
+
+describe('動態貼紙、外觀扭蛋與貼紙板', () => {
+  it('一般扭蛋機不會出動態貼紙；動態貼紙扭蛋機只出會動的貼紙', () => {
+    const rng = mulberry32(42);
+    for (let i = 0; i < 300; i++) expect(STICKER_BY_ID.get(rollSticker(rng))!.anim).toBeFalsy();
+    for (let i = 0; i < 300; i++) expect(STICKER_BY_ID.get(rollSticker(rng, 'N', 'anim'))!.anim).toBe(true);
+    // 動態貼紙每種稀有度都有（扭蛋才抽得到）
+    for (const r of ['R', 'SR', 'SSR']) expect(STICKERS.some((x) => x.anim && x.rarity === r), r).toBe(true);
+  });
+
+  it('動態貼紙十連抽：扣錢、全部是動態貼紙、保底一張超稀有以上', () => {
+    withCoins(ANIM_GACHA10_COST);
+    vi.spyOn(Math, 'random').mockReturnValue(0.9);
+    const res = pullGacha(10, 'anim')!;
+    expect(res).toHaveLength(10);
+    expect(res.every((r) => STICKER_BY_ID.get(r.id)!.anim)).toBe(true);
+    expect(['SR', 'SSR']).toContain(STICKER_BY_ID.get(res[9].id)!.rarity);
+    expect(getSave().stats.gacha).toBe(10);
+  });
+
+  it('外觀扭蛋：抽到一件還沒有的外觀並收進外觀（不自動換上）；全部都有就給動態貼紙', () => {
+    withCoins(LOOK_GACHA_COST);
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    const r = pullLook()!;
+    expect(r.kind).toBe('cosmetic');
+    if (r.kind === 'cosmetic') {
+      expect(getSave().owned).toContain(r.key);
+      expect(Object.values(getSave().equip)).toHaveLength(0);
+    }
+    expect(getSave().coins).toBeLessThan(LOOK_GACHA_COST);
+    expect(pullLook()).toBeNull();
+    const all = rollLook(mulberry32(1), () => true);
+    expect(all.kind).toBe('sticker');
+    if (all.kind === 'sticker') expect(STICKER_BY_ID.get(all.id)!.anim).toBe(true);
+  });
+
+  it('貼紙板：每種貼紙最多貼擁有的張數；位置、大小、角度超出範圍會修正', () => {
+    withCoins(0, { stickers: { onigiri: 2, sushi: 1 } });
+    const it = (k: number, id: string, x = 0.5) => ({ k, id, x, y: 0.5, s: 0.2, r: 0 });
+    setBoard({ items: [it(1, 'onigiri'), it(2, 'onigiri'), it(3, 'onigiri'), it(4, 'sushi'), it(5, 'ramen')] });
+    expect(getSave().board.items.map((i) => i.id)).toEqual(['onigiri', 'onigiri', 'sushi']);
+    setBoard({ items: [{ k: 1, id: 'sushi', x: 1.6, y: -2, s: 0.9, r: 400 }], bg: 'night' });
+    expect(getSave().board).toMatchObject({ bg: 'night', items: [{ k: 1, id: 'sushi', x: 1, y: 0, s: 0.5, r: 40 }] });
+    expect(getSave().board.at).toBeGreaterThan(0);
   });
 });
 
