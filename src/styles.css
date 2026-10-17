@@ -5761,3 +5761,125 @@ p.small {
 .song-rank.classic {
   background: linear-gradient(90deg, #f5b82e, #ff8a3d);
 }
+
+/* ───────── 版面修正：頭像按鈕、上方圖示按鈕、慢速朗讀、週 XP 圖 ───────── */
+/* 按鈕預設有內距：頭像放進 38px 的圓裡會被擠歪，一律歸零 */
+.avatar {
+  padding: 0;
+  overflow: visible;
+}
+/* 上方導覽的圖示按鈕（☁️、❓）固定成一樣大的圓 */
+.stat.icon {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  justify-content: center;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.speak-pair {
+  display: inline-flex;
+  flex: none;
+  gap: 6px;
+}
+/* 烏龜比喇叭寬：縮小一點、裁在圓裡，按鈕才不會被撐大 */
+.speak.slow {
+  overflow: hidden;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+.speak.sm.slow {
+  font-size: 0.72rem;
+}
+.week-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: -4px 0 10px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.week-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.week-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.week-legend i.goal {
+  width: 14px;
+  height: 0;
+  border-radius: 0;
+  border-top: 2px dashed color-mix(in srgb, var(--muted) 70%, transparent);
+}
+.week-col {
+  position: relative;
+  outline: none;
+  cursor: default;
+}
+.week-tip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  translate: -50% 4px;
+  z-index: 10;
+  display: grid;
+  gap: 3px;
+  min-width: 130px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font-size: 0.78rem;
+  text-align: left;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.15s,
+    translate 0.15s;
+}
+.week-tip span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.week-tip i {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+}
+.week-col:hover .week-tip,
+.week-col:focus .week-tip {
+  opacity: 1;
+  translate: -50% 0;
+}
+/* 最左、最右兩天的提示框往內對齊，才不會超出畫面（第一個子元素是目標虛線） */
+.week-col:nth-child(2) .week-tip,
+.week-col:nth-child(3) .week-tip {
+  left: 0;
+  translate: 0 4px;
+}
+.week-col:nth-child(2):hover .week-tip,
+.week-col:nth-child(2):focus .week-tip,
+.week-col:nth-child(3):hover .week-tip,
+.week-col:nth-child(3):focus .week-tip {
+  translate: 0 0;
+}
+.week-col:last-child .week-tip,
+.week-col:nth-last-child(2) .week-tip {
+  left: auto;
+  right: 0;
+  translate: 0 4px;
+}
+.week-col:last-child:hover .week-tip,
+.week-col:last-child:focus .week-tip,
+.week-col:nth-last-child(2):hover .week-tip,
+.week-col:nth-last-child(2):focus .week-tip {
+  translate: 0 0;
+}
