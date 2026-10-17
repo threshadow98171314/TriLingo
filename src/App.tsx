@@ -3,10 +3,11 @@ import { CelebrationHost } from './components/Celebrations';
 import { CourseGate } from './components/CourseGate';
 import { WelcomeTour } from './components/Guide';
 import { BottomNav, TopBar } from './components/Layout';
+import { ToTop } from './components/ToTop';
 import { Empty } from './components/ui';
 import { nowMs } from './core/date';
 import { setEggKeysEnabled } from './core/eggs';
-import { fx, seasonOf } from './core/fx';
+import { fx, seasonOf, type AmbientKind } from './core/fx';
 import { SKINS } from './core/shop';
 import { useSave } from './core/store';
 import { LANGS, type LangId } from './core/types';
@@ -146,16 +147,19 @@ export function App() {
 
   const { page, focus } = resolve(route);
 
+  // 背景飄落特效：裝備了商店買的就一直飄，沒有的話跟著季節（設定裡可以關掉季節特效）
   // 上課、玩遊戲時：不飄背景粒子，也暫停鍵盤秘技偵測（避免和作答按鍵衝突）
+  const ambient = s.equip.ambient as AmbientKind | undefined;
   useEffect(() => {
     setEggKeysEnabled(!focus);
-    fx.setAmbient(!focus && seasonal && fxSetting ? seasonOf(new Date(nowMs())) : null);
-  }, [focus, seasonal, fxSetting]);
+    fx.setAmbient(!focus && fxSetting ? (ambient ?? (seasonal ? seasonOf(new Date(nowMs())) : null)) : null);
+  }, [focus, seasonal, fxSetting, ambient]);
   return (
     <>
       {!focus && <TopBar route={route} />}
       {page}
       {!focus && <BottomNav route={route} />}
+      {!focus && <ToTop />}
       {/* 第一次打開：新手導覽（上課、玩遊戲中不打擾） */}
       {!focus && !s.guide.welcome && <WelcomeTour />}
       <CelebrationHost />

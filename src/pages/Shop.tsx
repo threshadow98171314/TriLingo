@@ -8,9 +8,10 @@ import { Avatar, Pet } from '../components/Avatar';
 import { useBoostLeft } from '../components/Layout';
 import { Coin, Modal } from '../components/ui';
 import { nowMs } from '../core/date';
-import { fx } from '../core/fx';
+import { fx, type AmbientKind } from '../core/fx';
 import { FREE_AVATARS } from '../core/save';
 import {
+  AMBIENTS,
   AVATAR_COST,
   BGS,
   BURSTS,
@@ -33,6 +34,7 @@ import {
   SKINS,
   SOUNDS,
   TITLES,
+  TOTOPS,
   type Burst,
   type Cosmetic,
   type CosmeticKind,
@@ -347,7 +349,33 @@ function CosmeticPreview({ c, size = 64 }: { c: Cosmetic; size?: number }) {
       return <span className={cx('bg-swatch pbg', `pbg-${c.id}`)} />;
     case 'sound':
       return <ItemIcon id="burst" size={size * 0.85} />;
+    case 'ambient':
+      return <AmbientPreview c={c} size={size} />;
+    case 'totop':
+      return (
+        <span className="totop-prev" style={{ width: size, height: size }}>
+          <b>{c.icon}</b>
+        </span>
+      );
   }
+}
+
+/** 飄落特效的小預覽：幾個圖案在框框裡慢慢飄 */
+export function AmbientPreview({ c, size = 64 }: { c: Cosmetic; size?: number }) {
+  const icon = c.icon ?? '';
+  // 用畫的（銀杏、泡泡、雨滴…）只放空的 <i>，由 CSS 畫出來；其他直接放文字或 emoji
+  const drawn = /^[a-z]+$/.test(icon);
+  const chars = drawn ? ['', '', '', ''] : [...icon];
+  const rise = ['heart', 'bubble', 'note', 'lantern', 'firefly'].includes(c.id);
+  return (
+    <span className={cx('amb-prev', `amb-${c.id}`, rise && 'rise')} style={{ width: size, height: size }}>
+      {[...chars, ...chars].slice(0, drawn ? 4 : 5).map((ch, i) => (
+        <i key={i} style={{ '--i': i } as CSSProperties}>
+          {ch}
+        </i>
+      ))}
+    </span>
+  );
 }
 
 function BurstIcon({ b, size }: { b?: Burst; size: number }) {
@@ -369,6 +397,12 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
     const b = BURSTS.find((x) => x.id === c.id);
     if (b) fx.burstAt(card.current, { count: 22, speed: 0.35, colors: b.colors, shapes: b.shapes, glyphs: b.glyphs });
   };
+  const [note, setNote] = useState('');
+  const tryLook = () => {
+    const done = c.kind === 'ambient' ? fx.previewAmbient(c.id as AmbientKind, 8000) : fx.toTop(card.current?.querySelector('.look-art') ?? card.current, c.id);
+    setNote(done ? (c.kind === 'ambient' ? '背景正在試看 8 秒' : '') : '特效已關閉（設定或系統的減少動態效果）');
+    if (!done || c.kind === 'ambient') setTimeout(() => setNote(''), 3000);
+  };
   return (
     <div ref={card} className={cx('look card', owned && 'owned', on && 'on', c.rare && 'rare', c.anim && 'anim')}>
       <div className="look-badges">
@@ -379,7 +413,7 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
         <CosmeticPreview c={c} size={c.kind === 'frame' ? 86 : 64} />
       </div>
       <b className={cx('look-name', c.kind === 'title' && c.fx && `title-fx-${c.fx}`)}>{c.kind === 'title' ? `「${c.name}」` : c.name}</b>
-      <small className="muted look-desc">{c.desc}</small>
+      <small className="muted look-desc">{note || c.desc}</small>
       <div className="look-actions">
         {c.kind === 'burst' && (
           <button type="button" className="link-btn" onClick={tryBurst}>
@@ -389,6 +423,11 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
         {c.kind === 'sound' && (
           <button type="button" className="link-btn" onClick={() => sfx.preview(c.id)}>
             🔊 試聽
+          </button>
+        )}
+        {(c.kind === 'ambient' || c.kind === 'totop') && (
+          <button type="button" className="link-btn" onClick={tryLook}>
+            {c.kind === 'ambient' ? '試看' : '試放'}
           </button>
         )}
         {owned ? (
@@ -422,6 +461,8 @@ const LOOK_SECTIONS: [CosmeticKind, string, Cosmetic[]][] = [
   ['pet', '上課時陪在進度條旁邊：答對會跳、答錯會一起難過，連擊 5 題還會轉一圈。', PETS],
   ['name', '個人頁上的名字特效。', NAMES],
   ['bg', '個人頁最上方的名片背景，動態背景會飄花瓣、閃星星。', BGS],
+  ['ambient', '網站背景一直飄落的東西，按「試看」先看 8 秒。沒有裝備時跟著季節（秋天楓葉、冬天雪花…）。', AMBIENTS],
+  ['totop', '頁面往下捲之後，右下角會出現「回到頂端」按鈕，按下去會播放這個特效。', TOTOPS],
   ['title', '顯示在個人頁名字下面，限定稱號有文字特效。', TITLES],
   ['burst', '答對時爆出來的特效。', BURSTS],
   ['sound', '答對時的聲音，可以先試聽。', SOUNDS],

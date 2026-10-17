@@ -2,7 +2,7 @@
 // 另外提供幾個 DOM 特效（浮動文字、大橫幅、畫面震動、閃光、彩虹模式）。
 // 沒有粒子時動畫迴圈會完全停止；設定關閉特效或系統要求「減少動態效果」時一律不播。
 
-type Shape = 'rect' | 'circle' | 'star' | 'spark' | 'glyph' | 'petal' | 'coin' | 'snow' | 'glow';
+type Shape = 'rect' | 'circle' | 'star' | 'spark' | 'glyph' | 'petal' | 'coin' | 'snow' | 'glow' | 'fan' | 'bubble' | 'text' | 'lantern' | 'plane';
 
 interface Particle {
   x: number;
@@ -30,13 +30,40 @@ interface Particle {
   /** 翻轉速度（花瓣、金幣的立體感） */
   flip?: number;
   fadeIn?: number;
+  /** 最後多少比例的壽命用來淡出（預設 0.25） */
+  fadeOut?: number;
+  /** 一閃一閃的頻率（星星、天燈） */
+  twinkle?: number;
+  /** 線條拖尾的長度倍數（雨滴、流星） */
+  tail?: number;
+  /** 依照進度 k（0→1）決定位置，用來畫固定路線的飛行特效 */
+  path?: (k: number) => { x: number; y: number; rot?: number };
+  /** 每一格都會呼叫（飛行特效的拖尾） */
+  onTick?: (p: Particle, dt: number) => void;
   /** 飛向目標（金幣飛進錢包） */
   target?: { x: number; y: number };
   onArrive?: () => void;
   onDeath?: (p: Particle) => void;
 }
 
-export type AmbientKind = 'leaf' | 'sakura' | 'snow' | 'halloween' | 'firefly';
+export type AmbientKind =
+  | 'leaf'
+  | 'sakura'
+  | 'snow'
+  | 'halloween'
+  | 'firefly'
+  | 'ginkgo'
+  | 'star'
+  | 'heart'
+  | 'bubble'
+  | 'note'
+  | 'letter'
+  | 'clover'
+  | 'sweets'
+  | 'rain'
+  | 'lantern'
+  | 'coin'
+  | 'meteor';
 
 const PALETTE = ['#8f7cff', '#22d3ee', '#34d399', '#fbbf24', '#fb7185', '#ff8a1f', '#ffffff'];
 const GOLD = ['#ffe066', '#fbbf24', '#f59e0b', '#fff3b0'];
@@ -150,19 +177,30 @@ function draw(c: CanvasRenderingContext2D, p: Particle) {
   const t = p.age;
   let alpha = 1;
   if (p.fadeIn) alpha = Math.min(1, t / p.fadeIn);
-  if (t > p.life * 0.75) alpha *= Math.max(0, (p.life - t) / (p.life * 0.25));
+  const out = p.fadeOut ?? 0.25;
+  if (out > 0 && t > p.life * (1 - out)) alpha *= Math.max(0, (p.life - t) / (p.life * out));
+  if (p.twinkle) alpha *= 0.4 + 0.6 * Math.abs(Math.sin((p.phase ?? 0) + t * p.twinkle));
   if (alpha <= 0) return;
   const x = p.x + (p.sway ? Math.sin((p.phase ?? 0) + t * (p.swayFreq ?? 0.002)) * p.sway : 0);
   const s = p.size;
   c.save();
   c.globalAlpha = alpha;
   if (p.shape === 'spark') {
-    c.strokeStyle = p.color;
+    const k = p.tail ?? 28;
+    const tx = x - p.vx * k;
+    const ty = p.y - p.vy * k;
+    if (k >= 60) {
+      // 長拖尾（流星）：頭亮尾淡
+      const gr = c.createLinearGradient(x, p.y, tx, ty);
+      gr.addColorStop(0, p.color);
+      gr.addColorStop(1, 'rgba(255,255,255,0)');
+      c.strokeStyle = gr;
+    } else c.strokeStyle = p.color;
     c.lineWidth = Math.max(1, s / 3);
     c.lineCap = 'round';
     c.beginPath();
     c.moveTo(x, p.y);
-    c.lineTo(x - p.vx * 28, p.y - p.vy * 28);
+    c.lineTo(tx, ty);
     c.stroke();
     c.restore();
     return;
@@ -238,21 +276,133 @@ function draw(c: CanvasRenderingContext2D, p: Particle) {
     case 'glyph':
       c.drawImage(glyphImage(p.glyph ?? '⭐'), -s / 2, -s / 2, s, s);
       break;
+    case 'text':
+      // 有顏色的文字（音符、假名、韓文字母）
+      c.fillStyle = p.color;
+      c.font = `800 ${Math.round(s)}px "Noto Sans JP","Noto Sans KR","Segoe UI",system-ui,sans-serif`;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillText(p.glyph ?? '♪', 0, 0);
+      break;
+    case 'fan': {
+      // 銀杏葉：兩片扇形，中間有缺口，下面一根葉柄
+      c.scale(1, 0.4 + Math.abs(Math.sin(t * (p.flip ?? 0.003))) * 0.6);
+      c.fillStyle = p.color;
+      const r = s * 0.62;
+      for (const [a, b] of [
+        [-Math.PI * 0.88, -Math.PI * 0.53],
+        [-Math.PI * 0.47, -Math.PI * 0.12],
+      ]) {
+        c.beginPath();
+        c.moveTo(0, s * 0.18);
+        c.arc(0, s * 0.18, r, a, b);
+        c.closePath();
+        c.fill();
+      }
+      c.strokeStyle = p.color;
+      c.lineWidth = Math.max(1, s / 12);
+      c.beginPath();
+      c.moveTo(0, s * 0.18);
+      c.lineTo(s * 0.04, s * 0.55);
+      c.stroke();
+      break;
+    }
+    case 'bubble': {
+      c.fillStyle = 'rgba(255,255,255,0.12)';
+      c.strokeStyle = p.color;
+      c.lineWidth = Math.max(1, s / 14);
+      c.beginPath();
+      c.arc(0, 0, s / 2, 0, Math.PI * 2);
+      c.fill();
+      c.stroke();
+      c.strokeStyle = 'rgba(255,255,255,0.85)';
+      c.lineWidth = Math.max(1, s / 10);
+      c.beginPath();
+      c.arc(0, 0, s * 0.32, Math.PI * 1.1, Math.PI * 1.45);
+      c.stroke();
+      break;
+    }
+    case 'lantern': {
+      // 天燈：暖色光暈 + 上寬下窄的燈身
+      const halo = c.createRadialGradient(0, 0, 0, 0, 0, s * 1.5);
+      halo.addColorStop(0, 'rgba(255,190,90,0.45)');
+      halo.addColorStop(1, 'rgba(255,190,90,0)');
+      c.fillStyle = halo;
+      c.beginPath();
+      c.arc(0, 0, s * 1.5, 0, Math.PI * 2);
+      c.fill();
+      const body = c.createLinearGradient(0, -s * 0.55, 0, s * 0.55);
+      body.addColorStop(0, '#ffe08a');
+      body.addColorStop(1, '#ff8a3d');
+      c.fillStyle = body;
+      c.beginPath();
+      c.moveTo(-s * 0.42, -s * 0.55);
+      c.lineTo(s * 0.42, -s * 0.55);
+      c.lineTo(s * 0.3, s * 0.5);
+      c.lineTo(-s * 0.3, s * 0.5);
+      c.closePath();
+      c.fill();
+      c.fillStyle = '#fff3b0';
+      c.beginPath();
+      c.ellipse(0, s * 0.5, s * 0.22, s * 0.07, 0, 0, Math.PI * 2);
+      c.fill();
+      break;
+    }
+    case 'plane': {
+      // 紙飛機（機頭朝上）
+      c.fillStyle = '#ffffff';
+      c.strokeStyle = '#7c8db5';
+      c.lineWidth = Math.max(1, s / 18);
+      c.beginPath();
+      c.moveTo(0, -s / 2);
+      c.lineTo(s * 0.42, s * 0.45);
+      c.lineTo(0, s * 0.22);
+      c.lineTo(-s * 0.42, s * 0.45);
+      c.closePath();
+      c.fill();
+      c.stroke();
+      c.beginPath();
+      c.moveTo(0, -s / 2);
+      c.lineTo(0, s * 0.22);
+      c.stroke();
+      break;
+    }
   }
   c.restore();
 }
 
-function spawnAmbient(dt: number) {
-  if (!ambient) return;
-  const rate = { leaf: 0.5, sakura: 0.9, snow: 2.2, halloween: 0.6, firefly: 0.8 }[ambient.kind];
-  // 背景粒子數量設上限，避免長時間開著越積越多
-  const live = parts.filter((p) => p.life > 9000).length;
-  ambient.acc += (dt / 1000) * rate;
-  while (ambient.acc >= 1) {
-    ambient.acc -= 1;
-    if (live > 28) continue;
-    const k = ambient.kind;
-    if (k === 'firefly') {
+/** 背景粒子每秒產生幾個 */
+const AMBIENT_RATE: Record<AmbientKind, number> = {
+  leaf: 0.5,
+  sakura: 0.9,
+  snow: 2.2,
+  halloween: 0.6,
+  firefly: 0.8,
+  ginkgo: 0.6,
+  star: 1.1,
+  heart: 0.5,
+  bubble: 0.7,
+  note: 0.6,
+  letter: 0.7,
+  clover: 0.45,
+  sweets: 0.45,
+  rain: 16,
+  lantern: 0.3,
+  coin: 0.5,
+  meteor: 0.6,
+};
+
+export const AMBIENT_KINDS = Object.keys(AMBIENT_RATE) as AmbientKind[];
+
+/** 產生一個背景粒子；warm 表示直接撒在畫面中（剛換特效時馬上看得到） */
+function spawnAmbientOne(k: AmbientKind, warm = false) {
+  // 背景粒子一律 life > 9000：用來和一般特效區分、飄出畫面就移除
+  const fall = { x: rand(-20, W + 20), y: warm ? rand(0, H * 0.8) : -30, life: 16000, fadeIn: 600, phase: rand(0, 6), vr: rand(-0.002, 0.002), rot: rand(0, 6) };
+  const rise = { ...fall, y: warm ? rand(H * 0.25, H) : H + 30, vr: 0, rot: rand(-0.25, 0.25) };
+  const glyphFall = (glyphs: string[], size: [number, number] = [16, 24]) =>
+    add({ ...fall, shape: 'glyph', glyph: pick(glyphs), vy: rand(0.03, 0.055), size: rand(...size), sway: rand(25, 50), swayFreq: rand(0.0008, 0.0016) });
+  switch (k) {
+    case 'firefly':
       add({
         shape: 'glow',
         x: rand(0, W),
@@ -267,16 +417,81 @@ function spawnAmbient(dt: number) {
         swayFreq: rand(0.0008, 0.0016),
         phase: rand(0, 6),
       });
-      continue;
-    }
-    const base = { x: rand(-20, W + 20), y: -30, life: 16000, fadeIn: 600, phase: rand(0, 6), vr: rand(-0.002, 0.002), rot: rand(0, 6) };
-    if (k === 'snow') add({ ...base, shape: 'snow', vy: rand(0.025, 0.06), size: rand(2, 5), sway: rand(10, 30), swayFreq: rand(0.001, 0.002) });
-    else if (k === 'sakura')
-      add({ ...base, shape: 'petal', vy: rand(0.03, 0.06), vx: rand(0.005, 0.025), size: rand(9, 14), color: pick(['#ffc6d9', '#ffb3cc', '#ffd9e6']), sway: rand(20, 45), swayFreq: rand(0.0012, 0.0024), flip: rand(0.002, 0.005) });
-    else {
-      const glyphs = k === 'halloween' && Math.random() < 0.4 ? ['🎃', '🦇'] : ['🍁', '🍂'];
-      add({ ...base, shape: 'glyph', glyph: pick(glyphs), vy: rand(0.03, 0.055), size: rand(16, 24), sway: rand(25, 50), swayFreq: rand(0.0008, 0.0016) });
-    }
+      return;
+    case 'snow':
+      add({ ...fall, shape: 'snow', vy: rand(0.025, 0.06), size: rand(2, 5), sway: rand(10, 30), swayFreq: rand(0.001, 0.002) });
+      return;
+    case 'sakura':
+      add({ ...fall, shape: 'petal', vy: rand(0.03, 0.06), vx: rand(0.005, 0.025), size: rand(9, 14), color: pick(['#ffc6d9', '#ffb3cc', '#ffd9e6']), sway: rand(20, 45), swayFreq: rand(0.0012, 0.0024), flip: rand(0.002, 0.005) });
+      return;
+    case 'ginkgo':
+      add({ ...fall, shape: 'fan', vy: rand(0.03, 0.055), vx: rand(-0.008, 0.012), size: rand(13, 19), color: pick(['#f6c445', '#f2b632', '#ffd862', '#e9a923']), sway: rand(25, 50), swayFreq: rand(0.001, 0.002), flip: rand(0.002, 0.004) });
+      return;
+    case 'star':
+      // 星空：星星在各處亮起、慢慢往下飄、一閃一閃
+      add({ ...fall, shape: 'star', x: rand(0, W), y: rand(0, H * 0.9), vy: rand(0.006, 0.016), size: rand(6, 13), color: pick([...GOLD, '#ffffff', '#c4b5ff']), life: rand(9500, 14000), fadeIn: 1500, twinkle: rand(0.0015, 0.004), vr: rand(-0.0008, 0.0008) });
+      return;
+    case 'heart':
+      add({ ...rise, shape: 'glyph', glyph: pick(['💗', '💖', '💕', '💓']), vy: -rand(0.025, 0.045), size: rand(14, 22), sway: rand(15, 35), swayFreq: rand(0.001, 0.002) });
+      return;
+    case 'bubble':
+      add({ ...rise, shape: 'bubble', vy: -rand(0.02, 0.045), size: rand(10, 26), color: pick(['#8fd0ff', '#b9a6ff', '#8fe8d6', '#ffb8d8']), sway: rand(10, 30), swayFreq: rand(0.0012, 0.0024), rot: 0 });
+      return;
+    case 'note':
+      add({ ...rise, shape: 'text', glyph: pick(['♪', '♫', '♩', '♬']), color: pick(PALETTE.slice(0, 6)), vy: -rand(0.02, 0.04), size: rand(16, 26), sway: rand(20, 40), swayFreq: rand(0.0015, 0.003), vr: rand(-0.0005, 0.0005) });
+      return;
+    case 'letter':
+      add({
+        ...fall,
+        shape: 'text',
+        glyph: pick(['あ', 'い', 'う', 'え', 'お', 'カ', 'キ', 'ク', '가', '나', '다', '한', '글', 'A', 'B', 'C', 'a', 'b', 'z']),
+        color: pick(['#ff7a7a', '#6ab8ff', '#8fdc6b', '#c4a8ff', '#ffb35c']),
+        vy: rand(0.025, 0.05),
+        size: rand(16, 26),
+        sway: rand(15, 35),
+        swayFreq: rand(0.001, 0.002),
+        rot: rand(-0.5, 0.5),
+        vr: rand(-0.0008, 0.0008),
+      });
+      return;
+    case 'clover':
+      glyphFall(['🍀', '🍀', '☘️']);
+      return;
+    case 'sweets':
+      glyphFall(['🍬', '🍭', '🍩', '🍡', '🍪', '🧁'], [16, 22]);
+      return;
+    case 'rain':
+      add({ ...fall, y: warm ? rand(0, H) : -20, shape: 'spark', vy: rand(0.5, 0.75), vx: 0.05, size: rand(2.5, 4), color: pick(['rgba(120,165,255,0.5)', 'rgba(150,185,255,0.45)']), fadeIn: 0, tail: 34, rot: 0, vr: 0 });
+      return;
+    case 'lantern':
+      add({ ...rise, shape: 'lantern', life: 45000, fadeIn: 2000, vy: -rand(0.012, 0.024), vx: rand(-0.003, 0.008), size: rand(13, 22), sway: rand(6, 16), swayFreq: rand(0.0006, 0.0012), twinkle: rand(0.0008, 0.0016), rot: rand(-0.08, 0.08) });
+      return;
+    case 'coin':
+      add({ ...fall, shape: 'coin', vy: rand(0.03, 0.05), size: rand(12, 18), flip: rand(0.004, 0.008), rot: 0, vr: 0, sway: rand(10, 25), swayFreq: rand(0.001, 0.002) });
+      return;
+    case 'meteor':
+      // 流星劃過，旁邊有小星星閃爍
+      if (Math.random() < 0.45)
+        add({ shape: 'spark', x: rand(W * 0.35, W + 120), y: warm ? rand(0, H * 0.4) : rand(-40, H * 0.3), vx: -rand(0.35, 0.55), vy: rand(0.16, 0.26), size: rand(2.5, 4), color: '#fff6c2', tail: 150, life: 9500, fadeOut: 0.1 });
+      else add({ shape: 'star', x: rand(0, W), y: rand(0, H * 0.7), size: rand(4, 8), color: pick(['#ffffff', '#fff3b0', '#c4b5ff']), life: rand(9500, 12000), fadeIn: 1200, twinkle: rand(0.002, 0.005), phase: rand(0, 6) });
+      return;
+    case 'halloween':
+      glyphFall(Math.random() < 0.4 ? ['🎃', '🦇'] : ['🍁', '🍂']);
+      return;
+    case 'leaf':
+      glyphFall(['🍁', '🍂']);
+  }
+}
+
+function spawnAmbient(dt: number) {
+  if (!ambient) return;
+  // 背景粒子數量設上限，避免長時間開著越積越多（雨滴落得快，上限放寬）
+  const live = parts.filter((p) => p.life > 9000).length;
+  const cap = ambient.kind === 'rain' ? 70 : 28;
+  ambient.acc += (dt / 1000) * AMBIENT_RATE[ambient.kind];
+  while (ambient.acc >= 1) {
+    ambient.acc -= 1;
+    if (live <= cap) spawnAmbientOne(ambient.kind);
   }
 }
 
@@ -294,6 +509,21 @@ function loop(now: number) {
     const p = parts[i];
     p.age += dt;
     if (p.age < 0) continue;
+    if (p.path) {
+      const q = p.path(Math.min(1, p.age / p.life));
+      p.x = q.x;
+      p.y = q.y;
+      if (q.rot !== undefined) p.rot = q.rot;
+      p.onTick?.(p, dt);
+      if (p.age > p.life) {
+        parts.splice(i, 1);
+        p.onDeath?.(p);
+        continue;
+      }
+      draw(ctx, p);
+      continue;
+    }
+    p.onTick?.(p, dt);
     if (p.target) {
       // 飛向目標：越飛越用力被吸過去
       const dx = p.target.x - p.x;
@@ -480,20 +710,250 @@ function coinsTo(from: Element | { x: number; y: number } | null, to: Element | 
   return true;
 }
 
+/** 頁面要的背景特效（季節或商店買的）、商店「試看」中的特效、目前正在飄的特效 */
+let wantedAmbient: AmbientKind | null = null;
+let previewAmbientKind: AmbientKind | null = null;
+let previewTimer = 0;
 let ambientKind: AmbientKind | null = null;
-/** 背景持續飄落的季節粒子；null 表示關閉 */
-function setAmbient(kind: AmbientKind | null) {
+
+function applyAmbient() {
+  const kind = previewAmbientKind ?? wantedAmbient;
   if (kind === ambientKind && (!kind || ambient)) return;
+  const changed = kind !== ambientKind;
   ambientKind = kind;
+  // 關閉或換成別的：讓已經在畫面上的背景粒子自然消失（縮短壽命）
+  if (changed) for (const p of parts) if (p.life > 9000) p.life = Math.min(p.life, p.age + 1500);
   if (!kind) {
     ambient = null;
-    // 讓已經在畫面上的背景粒子自然消失：縮短壽命
-    for (const p of parts) if (p.life > 9000) p.life = Math.min(p.life, p.age + 1500);
     return;
   }
   if (!ensureCanvas()) return;
   ambient = { kind, acc: 0.6 };
+  const warm = kind === 'rain' ? 30 : kind === 'meteor' ? 4 : 6;
+  for (let i = 0; i < warm; i++) spawnAmbientOne(kind, true);
   start();
+}
+
+/** 背景持續飄落的粒子；null 表示關閉 */
+function setAmbient(kind: AmbientKind | null) {
+  wantedAmbient = kind;
+  applyAmbient();
+}
+
+/** 商店的「試看」：暫時換成另一種背景特效，幾秒後換回來 */
+function previewAmbient(kind: AmbientKind, ms = 8000): boolean {
+  if (!fxOn()) return false;
+  clearTimeout(previewTimer);
+  previewAmbientKind = kind;
+  applyAmbient();
+  previewTimer = window.setTimeout(() => {
+    previewAmbientKind = null;
+    applyAmbient();
+  }, ms);
+  return true;
+}
+
+// ───────── 回到頂端的飛行特效 ─────────
+
+export const TOTOP_KINDS = ['rocket', 'balloon', 'plane', 'cat', 'broom', 'cloud', 'train', 'ufo', 'rainbow', 'fireworks', 'unicorn', 'dragon'] as const;
+export type ToTopKind = (typeof TOTOP_KINDS)[number];
+
+const ease = {
+  in: (k: number) => k * k,
+  out: (k: number) => 1 - (1 - k) * (1 - k),
+  inOut: (k: number) => (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2),
+};
+const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
+const RAINBOW = ['#ff6b6b', '#ffa94d', '#ffe066', '#69db7c', '#4dabf7', '#9775fa'];
+
+/** 拖尾：每隔 every 毫秒在飛行物後面撒一個粒子 */
+function trail(every: number, make: (p: Particle, n: number) => void): (p: Particle, dt: number) => void {
+  let acc = 0;
+  let n = 0;
+  return (p, dt) => {
+    acc += dt;
+    while (acc >= every) {
+      acc -= every;
+      make(p, n++);
+    }
+  };
+}
+
+/**
+ * 從按鈕的位置飛到畫面最上方的特效（id 是商店買的「回頂特效」，沒有就用預設的星光）。
+ * 只負責畫，捲動由呼叫的人做。
+ */
+function toTop(from: Element | { x: number; y: number } | null, id?: string) {
+  const a = from instanceof Element ? centerOf(from) : from;
+  if (!a || !ensureCanvas()) return false;
+  const { x: x0, y: y0 } = a;
+  const flyer = (o: Partial<Particle> & Pick<Particle, 'path' | 'life'>) => add({ x: x0, y: y0, shape: 'glyph', size: 40, fadeOut: 0.06, ...o });
+  const puff = (p: Particle, colors: string[], o: Partial<Particle> = {}) =>
+    add({ x: p.x + rand(-6, 6), y: p.y + rand(-4, 4), vx: rand(-0.04, 0.04), vy: rand(0.03, 0.12), shape: 'circle', size: rand(5, 10), life: rand(380, 620), color: pick(colors), drag: 0.97, ...o });
+  const pop = (x: number, y: number, o: BurstOptions = {}) => burst(x, y, { count: 26, speed: 0.38, ...o });
+  switch (id as ToTopKind | undefined) {
+    case 'rocket':
+      flyer({
+        glyph: '🚀',
+        life: 900,
+        size: 44,
+        path: (k) => ({ x: x0, y: lerp(y0, -80, ease.in(k)), rot: -Math.PI / 4 }),
+        onTick: trail(14, (p) => puff(p, ['#ffb347', '#ff7a3d', '#ffe066', '#cfd6e6'], { y: p.y + 24 })),
+        onDeath: () => pop(x0, 30, { colors: ['#ffe066', '#ff9a3d', '#ffffff'], shapes: ['star', 'spark'] }),
+      });
+      break;
+    case 'balloon':
+      flyer({
+        glyph: '🎈',
+        life: 1500,
+        size: 46,
+        path: (k) => ({ x: x0 + Math.sin(k * 9) * 18 - (x0 - W / 2) * 0.4 * k, y: lerp(y0, 56, ease.out(k)), rot: Math.sin(k * 9) * 0.15 }),
+        onDeath: (p) => {
+          pop(p.x, p.y, { count: 34, shapes: ['rect', 'circle'], speed: 0.45 });
+          flash('rgba(255,255,255,0.25)');
+        },
+      });
+      break;
+    case 'plane':
+      // 紙飛機：繞一個圈再衝上去
+      flyer({
+        shape: 'plane',
+        life: 1300,
+        size: 34,
+        path: (k) => {
+          const loop = Math.min(1, k / 0.55);
+          const ang = loop * Math.PI * 2;
+          const r = 46;
+          const cx = x0 - r;
+          const lx = cx + Math.cos(ang) * r;
+          const ly = y0 - Math.sin(ang) * r - loop * 30;
+          if (k < 0.55) return { x: lx, y: ly, rot: -ang };
+          const q = ease.in((k - 0.55) / 0.45);
+          return { x: lerp(lx, W * 0.5, q), y: lerp(ly, -60, q), rot: Math.atan2(W * 0.5 - lx, ly + 60) };
+        },
+        onTick: trail(24, (p) => add({ x: p.x, y: p.y, shape: 'circle', size: 3, life: 600, color: 'rgba(140,160,210,0.8)' })),
+      });
+      break;
+    case 'cat':
+      // 喵師父：一路往上跳，留下肉球腳印
+      flyer({
+        glyph: '🐱',
+        life: 1400,
+        size: 42,
+        path: (k) => {
+          const hop = Math.abs(Math.sin(k * Math.PI * 4));
+          return { x: x0 + Math.sin(k * Math.PI * 4) * 26, y: lerp(y0, -70, k) - hop * 28, rot: Math.sin(k * Math.PI * 8) * 0.2 };
+        },
+        onTick: trail(130, (p, n) => add({ x: p.x + (n % 2 ? 10 : -10), y: p.y + 26, shape: 'glyph', glyph: '🐾', size: 20, life: 1100, rot: rand(-0.3, 0.3) })),
+      });
+      break;
+    case 'broom':
+      flyer({
+        glyph: '🧹',
+        life: 1200,
+        size: 44,
+        path: (k) => ({ x: x0 - Math.sin(k * Math.PI) * W * 0.35, y: lerp(y0, -70, ease.inOut(k)), rot: -0.6 }),
+        onTick: trail(18, (p) => add({ x: p.x + 14, y: p.y + 10, vx: rand(-0.05, 0.05), vy: rand(0.02, 0.1), shape: 'star', size: rand(5, 10), life: 700, color: pick(['#ffe066', '#c4a8ff', '#ffffff']), vr: 0.01 })),
+      });
+      break;
+    case 'cloud':
+      // 筋斗雲：咻一聲飛上去，留下一串雲朵
+      flyer({
+        glyph: '☁️',
+        life: 800,
+        size: 52,
+        path: (k) => ({ x: x0 + Math.sin(k * Math.PI) * 40, y: lerp(y0, -80, ease.in(k)), rot: 0 }),
+        onTick: trail(16, (p) => puff(p, ['#ffffff', '#eef3ff', '#dfe8ff'], { size: rand(10, 18), life: 700, vy: rand(0.01, 0.05) })),
+      });
+      break;
+    case 'train':
+      // 新幹線：從下面直直往上衝，旁邊有速度線
+      flyer({
+        glyph: '🚄',
+        life: 700,
+        size: 48,
+        path: (k) => ({ x: x0, y: lerp(y0 + 40, -100, ease.in(k)), rot: Math.PI / 2 }),
+        onTick: trail(12, (p) => add({ x: p.x + rand(-26, 26), y: p.y + 30, vy: 0.6, shape: 'spark', size: 2, life: 260, color: 'rgba(120,140,200,0.7)', tail: 40 })),
+      });
+      break;
+    case 'ufo':
+      // 幽浮：降到畫面上方，用光束把你吸上去，再飛走
+      flyer({
+        x: W / 2,
+        y: -60,
+        glyph: '🛸',
+        life: 1800,
+        size: 50,
+        path: (k) => {
+          const x = W / 2 + Math.sin(k * 10) * 14;
+          if (k < 0.25) return { x, y: lerp(-60, 70, ease.out(k / 0.25)), rot: 0 };
+          if (k < 0.75) return { x, y: 70, rot: Math.sin(k * 20) * 0.06 };
+          const q = ease.in((k - 0.75) / 0.25);
+          return { x: lerp(x, W + 80, q), y: lerp(70, -40, q), rot: 0.3 };
+        },
+        onTick: trail(16, (p) => {
+          if (p.age < 1800 * 0.25 || p.age > 1800 * 0.75) return;
+          add({ x: p.x + rand(-34, 34), y: rand(p.y + 30, H), vy: -rand(0.4, 0.8), shape: 'glow', size: rand(4, 8), life: 700, color: pick(['rgba(160,255,190,0.8)', 'rgba(190,240,255,0.8)']) });
+        }),
+      });
+      break;
+    case 'rainbow':
+      // 彩虹流星：彎彎的弧線，拖著七彩的尾巴
+      flyer({
+        shape: 'star',
+        color: '#ffffff',
+        life: 1000,
+        size: 22,
+        path: (k) => ({ x: lerp(x0, W * 0.2, ease.inOut(k)), y: lerp(y0, -40, ease.inOut(k)) - Math.sin(k * Math.PI) * 60, rot: k * 8 }),
+        onTick: trail(12, (p, n) => add({ x: p.x, y: p.y, shape: 'circle', size: 9, life: 650, color: RAINBOW[n % RAINBOW.length], vy: 0.02 })),
+      });
+      break;
+    case 'fireworks':
+      fireworks(3);
+      burst(x0, y0, { count: 18, shapes: ['spark'], speed: 0.5 });
+      break;
+    case 'unicorn':
+      flyer({
+        glyph: '🦄',
+        life: 1300,
+        size: 46,
+        path: (k) => ({ x: lerp(x0, W * 0.5, ease.inOut(k)) + Math.sin(k * Math.PI * 2) * 40, y: lerp(y0, -80, ease.inOut(k)), rot: -0.3 }),
+        onTick: trail(14, (p, n) => {
+          add({ x: p.x + 16, y: p.y + 12, shape: 'circle', size: 10, life: 800, color: RAINBOW[n % RAINBOW.length], vy: 0.03 });
+          if (n % 3 === 0) add({ x: p.x + rand(-20, 20), y: p.y + rand(0, 30), shape: 'star', size: rand(6, 10), life: 900, color: '#fff3b0', vr: 0.01, vy: 0.05 });
+        }),
+        onDeath: () => rain('star', { count: 24, duration: 600 }),
+      });
+      break;
+    case 'dragon':
+      // 金龍升天：S 形往上飛，撒下金幣與星星
+      flyer({
+        glyph: '🐉',
+        life: 1700,
+        size: 56,
+        path: (k) => ({ x: x0 + Math.sin(k * Math.PI * 3) * Math.min(120, W * 0.28) - (x0 - W / 2) * k, y: lerp(y0, -90, ease.inOut(k)), rot: Math.cos(k * Math.PI * 3) * 0.35 }),
+        onTick: trail(20, (p, n) => {
+          add({ x: p.x, y: p.y + 20, vx: rand(-0.08, 0.08), vy: rand(0.05, 0.15), g: 0.0005, shape: n % 2 ? 'coin' : 'star', size: rand(10, 14), life: 900, color: pick(GOLD), flip: 0.015 });
+        }),
+        onDeath: () => {
+          banner('金龍升天！', '', 'gold');
+          rain('coin', { count: 26, duration: 900 });
+        },
+      });
+      break;
+    default:
+      // 預設：一串星光往上衝
+      flyer({
+        shape: 'star',
+        color: '#ffe066',
+        life: 650,
+        size: 18,
+        path: (k) => ({ x: x0, y: lerp(y0, -40, ease.in(k)), rot: k * 10 }),
+        onTick: trail(16, (p) => add({ x: p.x + rand(-4, 4), y: p.y + 10, shape: 'spark', vx: rand(-0.03, 0.03), vy: 0.15, size: 3, life: 320, color: pick(['#ffe066', '#ffffff', '#c4a8ff']) })),
+      });
+  }
+  start();
+  return true;
 }
 
 // ───────── DOM 特效 ─────────
@@ -588,6 +1048,8 @@ export const fx = {
   rain,
   coinsTo,
   setAmbient,
+  previewAmbient,
+  toTop,
   floatText,
   floatAt(el: Element | null | undefined, text: string, cls?: string) {
     const c = centerOf(el);
@@ -612,7 +1074,7 @@ export function seasonOf(d: Date): AmbientKind | null {
   return null;
 }
 
-export const SEASON_LABEL: Record<AmbientKind, string> = {
+export const SEASON_LABEL: Partial<Record<AmbientKind, string>> = {
   leaf: '秋天的落葉',
   halloween: '萬聖節',
   snow: '冬天的雪花',

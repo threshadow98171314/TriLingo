@@ -4,7 +4,8 @@ import { STICKER_BY_ID, STICKERS } from '../src/art/stickers';
 import { mergeSaves } from '../src/core/merge';
 import { mulberry32 } from '../src/core/rng';
 import { defaultSave, migrate, type Save } from '../src/core/save';
-import { COSMETICS, cosmeticKey, MYSTERY_SLOTS, mysteryOffers, rollSticker } from '../src/core/shop';
+import { AMBIENT_KINDS, TOTOP_KINDS } from '../src/core/fx';
+import { AMBIENTS, COSMETICS, cosmeticKey, KIND_NAME, MYSTERY_SLOTS, mysteryOffers, rollSticker, TOTOPS } from '../src/core/shop';
 import {
   buyConsumable,
   buyCosmetic,
@@ -43,6 +44,20 @@ describe('商品資料', () => {
       expect(new Set(list.map((c) => c.id)).size).toBe(list.length);
       for (const c of list) expect(c.cost, c.id).toBeGreaterThan(0);
     }
+  });
+
+  it('每一類外觀都有中文名稱；飄落特效與回頂特效都是特效引擎畫得出來的種類', () => {
+    for (const kind of Object.keys(COSMETICS)) expect(KIND_NAME[kind as keyof typeof KIND_NAME], kind).toBeTruthy();
+    for (const c of AMBIENTS) {
+      expect(AMBIENT_KINDS, c.id).toContain(c.id);
+      expect(c.icon, c.id).toBeTruthy();
+    }
+    for (const c of TOTOPS) {
+      expect(TOTOP_KINDS as readonly string[], c.id).toContain(c.id);
+      expect(c.icon, c.id).toBeTruthy();
+    }
+    // 楓葉（首頁秋天飄的那個）可以直接買，不是神秘商品限定
+    expect(AMBIENTS.find((c) => c.id === 'leaf')?.rare).toBeFalsy();
   });
 
   it('貼紙 id 不重複，四種稀有度都有', () => {

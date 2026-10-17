@@ -44,7 +44,7 @@ export const PREMIUM_AVATARS = ['🦄', '🐲', '🐳', '🐻‍❄️', '🦔']
 
 // ───────── 外觀 ─────────
 
-export type CosmeticKind = 'frame' | 'skin' | 'burst' | 'title' | 'outfit' | 'pet' | 'name' | 'bg' | 'sound';
+export type CosmeticKind = 'frame' | 'skin' | 'burst' | 'title' | 'outfit' | 'pet' | 'name' | 'bg' | 'sound' | 'ambient' | 'totop';
 
 export interface Cosmetic {
   kind: CosmeticKind;
@@ -58,6 +58,8 @@ export interface Cosmetic {
   anim?: boolean;
   /** 稱號的文字特效 */
   fx?: 'gold' | 'rainbow' | 'neon' | 'fire';
+  /** 商店卡片上的預覽圖案（飄落特效、回頂特效） */
+  icon?: string;
 }
 
 export const cosmeticKey = (kind: CosmeticKind, id: string) => `${kind}:${id}`;
@@ -72,6 +74,8 @@ export const KIND_NAME: Record<CosmeticKind, string> = {
   name: '名牌特效',
   bg: '名片背景',
   sound: '答對音效',
+  ambient: '飄落特效',
+  totop: '回頂特效',
 };
 
 export const FRAMES: Cosmetic[] = [
@@ -249,6 +253,43 @@ export const SOUNDS: Cosmetic[] = [
   { kind: 'sound', id: 'coin', name: '金幣', desc: '每答對一題都像撿到錢，只在神秘商品出現。', cost: 260, rare: true },
 ];
 
+/** 飄落特效：網站背景一直飄的東西（沒有裝備時跟著季節：秋天楓葉、冬天雪花、春天櫻花、夏天螢火蟲） */
+export const AMBIENTS: Cosmetic[] = [
+  { kind: 'ambient', id: 'leaf', name: '楓葉', desc: '紅色、橘色的楓葉一年四季都飄。', cost: 100, icon: '🍁🍂🍁' },
+  { kind: 'ambient', id: 'sakura', name: '櫻花', desc: '粉紅色的花瓣翻轉著飄下來。', cost: 120, icon: '🌸🌸🌸' },
+  { kind: 'ambient', id: 'snow', name: '雪花', desc: '靜靜飄落的白雪。', cost: 100, icon: '❄❅❆' },
+  { kind: 'ambient', id: 'ginkgo', name: '銀杏', desc: '東京神宮外苑的金黃色銀杏葉。', cost: 120, icon: 'ginkgo' },
+  { kind: 'ambient', id: 'firefly', name: '螢火蟲', desc: '夏夜的小光點在畫面下方慢慢飛。', cost: 140, icon: 'firefly' },
+  { kind: 'ambient', id: 'star', name: '星空', desc: '星星在各處亮起，一閃一閃。', cost: 140, icon: '★✦★' },
+  { kind: 'ambient', id: 'heart', name: '愛心', desc: '愛心從下面慢慢飄上來。', cost: 120, icon: '💗💖💕' },
+  { kind: 'ambient', id: 'bubble', name: '泡泡', desc: '彩色的肥皂泡泡往上飄。', cost: 120, icon: 'bubble' },
+  { kind: 'ambient', id: 'note', name: '音符', desc: '彩色的音符跟著旋律飄上來。', cost: 120, icon: '♪♫♬' },
+  { kind: 'ambient', id: 'letter', name: '三語字母', desc: 'あ、가、A 從天而降。', cost: 140, icon: 'あ가A' },
+  { kind: 'ambient', id: 'clover', name: '幸運草', desc: '四葉幸運草帶來好運。', cost: 120, icon: '🍀☘️🍀' },
+  { kind: 'ambient', id: 'sweets', name: '甜點', desc: '糖果、糰子、甜甜圈掉下來。', cost: 120, icon: '🍬🍡🍩' },
+  { kind: 'ambient', id: 'rain', name: '梅雨', desc: '六月的細雨，適合安靜念書。', cost: 120, icon: 'rain' },
+  { kind: 'ambient', id: 'halloween', name: '萬聖節', desc: '南瓜、蝙蝠和落葉一起飄。', cost: 140, icon: '🎃🦇🍂' },
+  { kind: 'ambient', id: 'lantern', name: '平溪天燈', desc: '溫暖的天燈慢慢升上夜空。', cost: 220, icon: 'lantern' },
+  { kind: 'ambient', id: 'meteor', name: '流星雨', desc: '流星劃過星空，快許願！只在神秘商品出現。', cost: 380, rare: true, icon: 'meteor' },
+  { kind: 'ambient', id: 'coin', name: '金幣雨', desc: '金幣一直掉下來，只在神秘商品出現。', cost: 400, rare: true, icon: 'coin' },
+];
+
+/** 回頂特效：按「回到頂端」時飛上去的東西 */
+export const TOTOPS: Cosmetic[] = [
+  { kind: 'totop', id: 'rocket', name: '火箭', desc: '噴著火焰直衝頂端。', cost: 120, icon: '🚀' },
+  { kind: 'totop', id: 'balloon', name: '氣球', desc: '輕飄飄地升上去，到頂端「啵」一聲爆開。', cost: 100, icon: '🎈' },
+  { kind: 'totop', id: 'plane', name: '紙飛機', desc: '先繞一個圈，再咻地飛上去。', cost: 100, icon: '✈️' },
+  { kind: 'totop', id: 'cat', name: '喵師父跳跳', desc: '一路往上跳，留下肉球腳印。', cost: 140, icon: '🐱' },
+  { kind: 'totop', id: 'broom', name: '魔女掃帚', desc: '騎著掃帚灑下星星。', cost: 140, icon: '🧹' },
+  { kind: 'totop', id: 'cloud', name: '筋斗雲', desc: '一個筋斗十萬八千里。', cost: 150, icon: '☁️' },
+  { kind: 'totop', id: 'train', name: '新幹線', desc: '時速 320 公里，一秒到頂。', cost: 150, icon: '🚄' },
+  { kind: 'totop', id: 'ufo', name: '幽浮', desc: '飛碟降下來，用光束把你吸上去。', cost: 200, icon: '🛸' },
+  { kind: 'totop', id: 'rainbow', name: '彩虹流星', desc: '拖著七彩尾巴的流星。', cost: 180, icon: '🌈' },
+  { kind: 'totop', id: 'fireworks', name: '煙火', desc: '回到頂端的同時放一場煙火。', cost: 180, icon: '🎆' },
+  { kind: 'totop', id: 'unicorn', name: '獨角獸', desc: '踩著彩虹飛上去，還會下星星雨，只在神秘商品出現。', cost: 420, rare: true, icon: '🦄' },
+  { kind: 'totop', id: 'dragon', name: '金龍升天', desc: '金龍盤旋而上，撒下一場金幣雨，只在神秘商品出現。', cost: 480, rare: true, icon: '🐉' },
+];
+
 export const COSMETICS: Record<CosmeticKind, Cosmetic[]> = {
   frame: FRAMES,
   skin: SKINS,
@@ -259,6 +300,8 @@ export const COSMETICS: Record<CosmeticKind, Cosmetic[]> = {
   name: NAMES,
   bg: BGS,
   sound: SOUNDS,
+  ambient: AMBIENTS,
+  totop: TOTOPS,
 };
 
 export function cosmeticOf(key: string): Cosmetic | undefined {

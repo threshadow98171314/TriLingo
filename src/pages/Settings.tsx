@@ -309,7 +309,7 @@ export function SettingsPage() {
             }}
           />
         </Row>
-        <Row title="季節特效" desc={season ? `首頁背景會飄${SEASON_LABEL[season]}` : '首頁背景隨季節飄落的落葉、櫻花、雪花'}>
+        <Row title="季節特效" desc={`沒有裝備商店的「飄落特效」時，背景隨季節飄落葉、櫻花、雪花${season ? `（現在是${SEASON_LABEL[season]}）` : ''}`}>
           <Toggle on={set.seasonal} label="季節特效" onChange={(v) => updateSettings({ seasonal: v })} />
         </Row>
         <Row title="主題">
