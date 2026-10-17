@@ -391,198 +391,162 @@
   font-weight: 900;
 }
 
-/* ───────── 名片背景（個人頁最上方的卡片） ───────── */
-.pbg {
+/* ───────── 名片背景（個人頁最上方的名片，插畫在 art/scenes.tsx） ───────── */
+.has-scene {
   position: relative;
   overflow: hidden;
   isolation: isolate;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
-.pbg::before,
-.pbg::after {
+.card-scene {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+}
+/* 左邊（文字那一側）稍微壓暗，字才看得清楚 */
+.has-scene::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
+  background: linear-gradient(90deg, rgba(10, 8, 30, 0.42), rgba(10, 8, 30, 0.12) 70%, transparent);
   pointer-events: none;
 }
-.pbg-sunset {
-  background: linear-gradient(160deg, rgba(255, 154, 139, 0.55), rgba(255, 106, 136, 0.45) 45%, rgba(106, 76, 147, 0.6)), var(--card);
+.has-scene .muted {
+  color: rgba(255, 255, 255, 0.85);
 }
-.pbg-bamboo {
-  background:
-    repeating-linear-gradient(90deg, transparent 0 34px, rgba(80, 160, 80, 0.35) 34px 44px, transparent 44px 70px, rgba(60, 130, 60, 0.28) 70px 78px),
-    linear-gradient(180deg, rgba(150, 220, 140, 0.35), rgba(40, 110, 60, 0.45)),
-    var(--card);
-}
-.pbg-city {
-  background:
-    linear-gradient(0deg, rgba(20, 24, 60, 0.95) 0 18%, transparent 18%),
-    repeating-linear-gradient(90deg, rgba(30, 36, 80, 0.95) 0 22px, transparent 22px 30px, rgba(40, 46, 96, 0.95) 30px 48px, transparent 48px 60px),
-    linear-gradient(180deg, #1a1446 0%, #3b2a7a 60%, #ff8a6b 100%);
-  background-size:
-    100% 100%,
-    100% 42%,
-    100% 100%;
-  background-position: bottom, bottom, top;
-  background-repeat: no-repeat;
-}
-.pbg-starry {
-  background: linear-gradient(180deg, #0b0f2e, #241a5a), var(--card);
-}
-.pbg-starry::before {
-  background-image:
-    radial-gradient(1.6px 1.6px at 12% 22%, #fff 99%, transparent),
-    radial-gradient(1.2px 1.2px at 30% 70%, #fff 99%, transparent),
-    radial-gradient(2px 2px at 48% 30%, #ffe680 99%, transparent),
-    radial-gradient(1.4px 1.4px at 66% 60%, #fff 99%, transparent),
-    radial-gradient(1.8px 1.8px at 82% 18%, #cfe6ff 99%, transparent),
-    radial-gradient(1.2px 1.2px at 90% 80%, #fff 99%, transparent),
-    radial-gradient(1.4px 1.4px at 22% 88%, #fff 99%, transparent),
-    radial-gradient(1.6px 1.6px at 58% 86%, #ffd1f0 99%, transparent);
-  animation: fa-twinkle 2.6s ease-in-out infinite;
-}
-.pbg-starry::after {
-  background-image:
-    radial-gradient(1.4px 1.4px at 18% 50%, #fff 99%, transparent),
-    radial-gradient(1.8px 1.8px at 40% 12%, #fff 99%, transparent),
-    radial-gradient(1.2px 1.2px at 74% 40%, #fff 99%, transparent),
-    radial-gradient(2px 2px at 94% 55%, #ffe680 99%, transparent),
-    radial-gradient(1.2px 1.2px at 6% 75%, #fff 99%, transparent);
-  animation: fa-twinkle 3.4s ease-in-out infinite 1.2s;
-}
-.pbg-sakura {
-  background: linear-gradient(180deg, rgba(255, 209, 227, 0.4), rgba(255, 143, 184, 0.3)), var(--card);
-}
-.pbg-sakura::before,
-.pbg-sakura::after {
-  inset: -60px 0 0;
-  background-image:
-    radial-gradient(5px 3.5px at 10% 10%, #ffb3cc 98%, transparent),
-    radial-gradient(4px 3px at 35% 30%, #fff 98%, transparent),
-    radial-gradient(5px 3.5px at 60% 5%, #ff9fbf 98%, transparent),
-    radial-gradient(4px 3px at 85% 25%, #ffd1e3 98%, transparent),
-    radial-gradient(5px 3.5px at 75% 55%, #ffb3cc 98%, transparent),
-    radial-gradient(4px 3px at 20% 60%, #fff 98%, transparent);
-  background-size: 100% 120px;
-  animation: pbg-fall 6s linear infinite;
-}
-.pbg-sakura::after {
-  animation-duration: 9s;
-  animation-delay: -3s;
-  opacity: 0.7;
-}
-@keyframes pbg-fall {
-  from {
-    transform: translate(0, 0);
-  }
-  to {
-    transform: translate(30px, 120px);
-  }
-}
-.pbg-aurora {
-  background: linear-gradient(180deg, #0a1a33, #102a44), var(--card);
-}
-.pbg-aurora::before {
-  inset: -40%;
-  background:
-    radial-gradient(40% 30% at 30% 40%, rgba(78, 240, 176, 0.55), transparent 70%),
-    radial-gradient(35% 28% at 70% 50%, rgba(196, 123, 255, 0.5), transparent 70%),
-    radial-gradient(30% 22% at 50% 65%, rgba(92, 200, 255, 0.45), transparent 70%);
-  filter: blur(8px);
-  animation: pbg-aurora 9s ease-in-out infinite alternate;
-}
-@keyframes pbg-aurora {
-  from {
-    transform: translateX(-12%) rotate(-6deg);
-  }
-  to {
-    transform: translateX(12%) rotate(6deg);
-  }
-}
-.pbg-ocean {
-  background: linear-gradient(180deg, rgba(120, 200, 255, 0.35), rgba(30, 90, 170, 0.55)), var(--card);
-}
-.pbg-ocean::before,
-.pbg-ocean::after {
-  top: auto;
-  height: 46px;
-  background: radial-gradient(28px 18px at 28px 0, transparent 98%, rgba(255, 255, 255, 0.35) 100%) 0 0 / 56px 46px repeat-x;
-  animation: pbg-wave 4s linear infinite;
-}
-.pbg-ocean::after {
-  bottom: -12px;
-  opacity: 0.6;
-  animation-duration: 6s;
-  animation-direction: reverse;
-}
-@keyframes pbg-wave {
-  to {
-    background-position: 56px 0;
-  }
-}
-.pbg-galaxy {
-  background: radial-gradient(circle at 30% 40%, rgba(196, 75, 214, 0.5), transparent 55%), radial-gradient(circle at 75% 60%, rgba(31, 111, 214, 0.5), transparent 55%), #0b0820;
-}
-.pbg-galaxy::before {
-  inset: -50%;
-  background:
-    conic-gradient(from 0deg, transparent 0 10%, rgba(255, 255, 255, 0.08) 12% 18%, transparent 20% 45%, rgba(255, 200, 255, 0.08) 48% 55%, transparent 58%),
-    radial-gradient(1.5px 1.5px at 20% 30%, #fff 99%, transparent),
-    radial-gradient(1.5px 1.5px at 70% 20%, #fff 99%, transparent),
-    radial-gradient(2px 2px at 40% 70%, #ffe680 99%, transparent),
-    radial-gradient(1.5px 1.5px at 80% 75%, #fff 99%, transparent);
-  animation: fa-spin 40s linear infinite;
-  transform-origin: center;
-}
-.pbg-fireworks {
-  background: linear-gradient(180deg, #0b0f2e, #2a1650), var(--card);
-}
-.pbg-fireworks::before,
-.pbg-fireworks::after {
-  background:
-    radial-gradient(circle at 25% 35%, transparent 0 8px, rgba(255, 122, 122, 0.9) 9px 10px, transparent 11px 18px, rgba(255, 211, 77, 0.8) 19px 20px, transparent 21px),
-    radial-gradient(circle at 75% 30%, transparent 0 10px, rgba(122, 216, 255, 0.9) 11px 12px, transparent 13px 22px, rgba(196, 168, 255, 0.8) 23px 24px, transparent 25px);
-  animation: pbg-burst 2.4s ease-out infinite;
-}
-.pbg-fireworks::after {
-  background: radial-gradient(circle at 55% 55%, transparent 0 8px, rgba(143, 220, 107, 0.9) 9px 10px, transparent 11px 18px, rgba(255, 159, 191, 0.85) 19px 20px, transparent 21px);
-  animation-delay: 1.2s;
-}
-@keyframes pbg-burst {
-  0% {
-    transform: scale(0.3);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1.4);
-    opacity: 0;
-  }
-}
-.pbg-sunset,
-.pbg-bamboo,
-.pbg-city,
-.pbg-starry,
-.pbg-aurora,
-.pbg-galaxy,
-.pbg-fireworks {
+.has-scene .name-input {
   color: #fff;
 }
-.pbg-city .muted,
-.pbg-starry .muted,
-.pbg-aurora .muted,
-.pbg-galaxy .muted,
-.pbg-fireworks .muted {
-  color: rgba(255, 255, 255, 0.75);
+.has-scene .me-chips .chip {
+  text-shadow: none;
 }
 .bg-swatch {
+  display: grid;
+  align-items: end;
   width: 100%;
   max-width: 120px;
   height: 64px;
+  padding: 6px 8px;
   border-radius: 12px;
   border: 2px solid var(--line);
+}
+.bg-swatch b {
+  font-size: 0.75rem;
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ward-art .bg-swatch {
+  width: 54px;
+  height: 42px;
+  padding: 3px 4px;
+}
+.ward-art .bg-swatch b {
+  font-size: 0.55rem;
+}
+.cs-twinkle {
+  animation: cs-twinkle 2.4s ease-in-out infinite;
+}
+@keyframes cs-twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.cs-shoot {
+  animation: cs-shoot 4.5s ease-in infinite;
+}
+@keyframes cs-shoot {
+  0%,
+  70% {
+    transform: translate(-40px, -18px);
+    opacity: 0;
+  }
+  75% {
+    opacity: 1;
+  }
+  90%,
+  100% {
+    transform: translate(140px, 60px);
+    opacity: 0;
+  }
+}
+.cs-fall {
+  animation: cs-fall 6s linear infinite;
+}
+@keyframes cs-fall {
+  from {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  to {
+    transform: translate(40px, 190px) rotate(300deg);
+  }
+}
+.cs-aurora {
+  animation: cs-aurora 7s ease-in-out infinite alternate;
+}
+@keyframes cs-aurora {
+  from {
+    transform: translateX(-24px) skewX(-6deg);
+    opacity: 0.7;
+  }
+  to {
+    transform: translateX(24px) skewX(6deg);
+    opacity: 1;
+  }
+}
+.cs-wave {
+  animation: cs-wave 5s linear infinite;
+}
+.cs-wave.slow {
+  animation-duration: 8s;
+  animation-direction: reverse;
+}
+@keyframes cs-wave {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-75px);
+  }
+}
+.cs-spin {
+  animation: cs-spin 30s linear infinite;
+}
+@keyframes cs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.cs-burst {
+  animation: cs-burst 3.2s ease-out infinite;
+}
+@keyframes cs-burst {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-scene * {
+    animation: none !important;
+  }
 }
 
 /* ───────── 傳說貼紙：金色光暈 ───────── */
@@ -1517,4 +1481,159 @@ svg [class*='sa-'] {
     linear-gradient(90deg, rgba(255, 140, 180, 0.22) 50%, transparent 0) 0 0 / 24px 24px,
     linear-gradient(rgba(255, 140, 180, 0.22) 50%, transparent 0) 0 0 / 24px 24px,
     #ffffff;
+}
+
+/* ───────── 扭蛋機台：三台並排，點一台在下面顯示說明與按鈕 ───────── */
+.gacha-hall {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.machine-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.machine-card {
+  --mc: #ff7a8f;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 4px 8px;
+  border-radius: 16px;
+  border: 2px solid var(--line);
+  background: var(--card-2);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+.machine-card.mc-anim,
+.machine-detail.mc-anim {
+  --mc: #8f7cff;
+}
+.machine-card.mc-look,
+.machine-detail.mc-look {
+  --mc: #f5b82e;
+}
+.machine-card b {
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+.machine-card small {
+  font-size: 0.8rem;
+}
+.machine-card:hover {
+  border-color: color-mix(in srgb, var(--mc) 60%, var(--line));
+}
+.machine-card.on {
+  transform: translateY(-3px);
+  border-color: var(--mc);
+  background: color-mix(in srgb, var(--mc) 16%, var(--card-2));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--mc) 30%, transparent);
+}
+.machine-card:not(.on) .gacha-art {
+  opacity: 0.75;
+}
+.machine-detail {
+  --mc: #ff7a8f;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--mc) 45%, var(--line));
+  background: color-mix(in srgb, var(--mc) 8%, var(--card-2));
+  text-align: center;
+}
+.machine-detail h2 {
+  margin: 0 0 4px;
+}
+.machine-detail p {
+  margin: 0;
+}
+.machine-detail .gacha-btns {
+  justify-content: center;
+}
+.ga-spin .ga-knob {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ga-knob 0.35s linear infinite;
+}
+.ga-spin .ga-caps {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ga-shake 0.14s ease-in-out infinite alternate;
+}
+@keyframes ga-knob {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ga-shake {
+  from {
+    transform: translate(-1.5px, 1px) rotate(-3deg);
+  }
+  to {
+    transform: translate(1.5px, -1px) rotate(3deg);
+  }
+}
+
+/* 貼紙簿的主題篩選 */
+.theme-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.theme-chip {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card-2);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.theme-chip small {
+  margin-left: 5px;
+  font-size: 0.72rem;
+  opacity: 0.8;
+}
+.theme-chip.on {
+  color: var(--text);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--card-2));
+}
+
+/* 外觀收集進度 */
+.look-progress {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+}
+.look-prog-row {
+  display: grid;
+  grid-template-columns: 28px 5.5em minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--card-2);
+  color: inherit;
+  text-decoration: none;
+}
+.look-prog-row:hover {
+  outline: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+}
+.look-prog-row b {
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.look-prog-row small {
+  font-size: 0.78rem;
+  font-weight: 700;
 }

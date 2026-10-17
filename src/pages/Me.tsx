@@ -5,6 +5,7 @@ import { STICKERS } from '../art/stickers';
 import { Avatar, Pet } from '../components/Avatar';
 import { RankEmblem, RankLine } from '../components/RankEmblem';
 import { StickerBoard } from '../components/StickerBoard';
+import { CardScene } from '../art/scenes';
 import { Coin, LangBadge } from '../components/ui';
 import { META_LIST } from '../content';
 import { ACHIEVEMENTS } from '../core/achievements';
@@ -56,7 +57,8 @@ function ProfileCard() {
   const achGot = ACHIEVEMENTS.filter((a) => s.ach[a.id]).length;
   const stickerCount = STICKERS.filter((x) => s.stickers[x.id]).length;
   return (
-    <section className={cx('card profile-head', s.equip.bg && `pbg pbg-${s.equip.bg}`)}>
+    <section className={cx('card profile-head', s.equip.bg && 'has-scene')}>
+      {s.equip.bg && <CardScene id={s.equip.bg} />}
       <Avatar id={s.avatar} frame={s.equip.frame} size={84} className="profile-avatar" />
       <div className="grow">
         {s.equip.name && !editing ? (

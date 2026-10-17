@@ -2,6 +2,7 @@
 import type { CSSProperties } from 'react';
 import { ItemIcon } from '../art/items';
 import { MascotArt } from '../art/mascot';
+import { CardScene } from '../art/scenes';
 import { BURSTS, SKINS, type Burst, type Cosmetic, type CosmeticKind } from '../core/shop';
 import { useSave } from '../core/store';
 import { cx } from '../core/util';
@@ -41,7 +42,13 @@ export function CosmeticPreview({ c, size = 64 }: { c: Cosmetic; size?: number }
     case 'name':
       return <span className={cx('name-sample', `name-fx-${c.id}`)}>{s.name || '學習者'}</span>;
     case 'bg':
-      return <span className={cx('bg-swatch pbg', `pbg-${c.id}`)} />;
+      // 縮小的名片：背景插畫＋名字，一眼看出差別
+      return (
+        <span className="bg-swatch has-scene">
+          <CardScene id={c.id} />
+          <b>{s.name || '學習者'}</b>
+        </span>
+      );
     case 'sound':
       return <ItemIcon id="burst" size={size * 0.85} />;
     case 'ambient':
