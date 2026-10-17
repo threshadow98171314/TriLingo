@@ -5574,11 +5574,11 @@ p.small {
   gap: 1px;
   min-width: 0;
 }
+/* 歌名可以換行，不截掉 */
 .song-info b {
   font-size: 1rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 .song-info small {
   font-size: 0.78rem;
@@ -5990,13 +5990,22 @@ p.small {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 16%, var(--card-2));
 }
+/* 名稱最多兩行，不截掉 */
 .ward-tile small {
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-size: 0.74rem;
   font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+/* 稱號：徽章比較寬，格子放寬 */
+.ward-grid.wide {
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+}
+.ward-grid.wide .ward-art {
+  width: 100%;
+  overflow: visible;
 }
 .ward-art {
   width: 56px;

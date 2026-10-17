@@ -13,12 +13,12 @@ import { lastDays, nowMs, today } from '../core/date';
 import { fx, seasonOf, SEASON_LABEL } from '../core/fx';
 import { rankOf, TIERS } from '../core/ranks';
 import type { Save } from '../core/save';
-import { BURSTS, COSMETICS, cosmeticKey, KIND_NAME, TITLES, type Cosmetic, type CosmeticKind } from '../core/shop';
+import { BURSTS, COSMETICS, cosmeticKey, KIND_NAME, TITLE_TIER_NAME, TITLES, type Cosmetic, type CosmeticKind } from '../core/shop';
 import { sfx } from '../core/sfx';
 import { equipCosmetic, setProfile, useSave } from '../core/store';
 import { cx, sum } from '../core/util';
 import { href, useRoute } from '../router';
-import { CosmeticPreview, isLookKind, KindPicker, type LookKind } from '../components/LookPreview';
+import { CosmeticPreview, isLookKind, KindPicker, TitleBadge, type LookKind } from '../components/LookPreview';
 
 type Tab = 'looks' | 'board' | 'stats';
 const TABS: [Tab, string][] = [
@@ -80,7 +80,11 @@ function ProfileCard() {
             onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
           />
         )}
-        {title && <p className={cx('profile-title', title.fx && `title-fx-${title.fx}`)}>「{title.name}」</p>}
+        {title && (
+          <p className="profile-title">
+            <TitleBadge t={title} />
+          </p>
+        )}
         {s.equip.pet && (
           <p className="profile-pet">
             <Pet id={s.equip.pet} size={30} /> <small className="muted">學習夥伴陪你一起上課</small>
@@ -207,7 +211,7 @@ function Wardrobe() {
             {KIND_HINT[kind]}・<a href={href(`/shop?tab=looks&kind=${kind}`)}>到商店看看</a>
           </small>
         </header>
-        <div className="ward-grid">
+        <div className={cx('ward-grid', kind === 'title' && 'wide')}>
           <Tile on={!s.equip[kind]} label={none} className="none" onClick={() => equipCosmetic(kind, null)}>
             <span className="ward-none" aria-hidden>
               {kind === 'ambient' ? '🍂' : '∅'}
@@ -217,7 +221,7 @@ function Wardrobe() {
             <Tile
               key={c.id}
               on={s.equip[kind] === c.id}
-              label={kind === 'title' ? `「${c.name}」` : c.name}
+              label={kind === 'title' ? `${TITLE_TIER_NAME[c.tier ?? 1]}稱號` : c.name}
               className={cx(c.anim && 'anim', c.rare && 'rare')}
               onClick={(el) => {
                 const on = s.equip[kind] === c.id;

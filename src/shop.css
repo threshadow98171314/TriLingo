@@ -1637,3 +1637,344 @@ svg [class*='sa-'] {
   font-size: 0.78rem;
   font-weight: 700;
 }
+
+/* ───────── 稱號徽章：銅 → 銀 → 金 → 白金 → 傳說 ───────── */
+.tbadge {
+  --glow: transparent;
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  padding: 5px 16px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 900;
+  line-height: 1.3;
+  white-space: nowrap;
+  text-shadow: none;
+  box-shadow: 0 0 12px var(--glow);
+}
+.tbadge.small {
+  padding: 3px 9px;
+  font-size: 0.72rem;
+}
+.tb-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.tb-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* 銅：素面 */
+.tbadge.tier-1 {
+  color: #fff;
+  border: 1px solid #8a4a20;
+}
+.tier-1 .tb-bg {
+  background: linear-gradient(180deg, #eab088, #b86c3a);
+}
+/* 銀：一道光滑過 */
+.tbadge.tier-2 {
+  color: #27303f;
+  border: 1px solid #8792ab;
+}
+.tier-2 .tb-bg {
+  background: linear-gradient(180deg, #ffffff, #cfd7e6 55%, #9aa6c0);
+}
+.tier-2 .tb-bg::after,
+.tier-3 .tb-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.95) 45%, transparent 60%);
+  transform: translateX(-130%);
+  animation: tb-sheen 3.6s ease-in-out infinite;
+}
+@keyframes tb-sheen {
+  0%,
+  55% {
+    transform: translateX(-130%);
+  }
+  85%,
+  100% {
+    transform: translateX(130%);
+  }
+}
+/* 金：金光、光暈、閃光 */
+.tbadge.tier-3 {
+  --glow: rgba(255, 200, 60, 0.6);
+  color: #5a3a00;
+  border: 1px solid #a66c00;
+}
+.tier-3 .tb-bg {
+  background: linear-gradient(180deg, #fff3b0, #f5c33a 52%, #c98a10);
+}
+.tier-3 .tb-bg::after {
+  animation-duration: 2.6s;
+}
+/* 白金：彩虹流光邊框 */
+.tbadge.tier-4 {
+  --glow: rgba(180, 140, 255, 0.65);
+  color: #fff;
+  padding: 6px 18px;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
+}
+.tier-4 .tb-bg {
+  border: 2.5px solid transparent;
+  background:
+    linear-gradient(90deg, #4a3aa8, #7a3ab0, #3a5ab0) padding-box,
+    linear-gradient(90deg, #ff7a7a, #ffe066, #8fdc6b, #6ab8ff, #b48cff, #ff7a7a) border-box;
+  background-size:
+    100% 100%,
+    300% 100%;
+  animation: tb-flow 3s linear infinite;
+}
+@keyframes tb-flow {
+  from {
+    background-position:
+      0 0,
+      0% 0;
+  }
+  to {
+    background-position:
+      0 0,
+      300% 0;
+  }
+}
+/* 傳說：專屬特效＋皇冠 */
+.tbadge.tier-5 {
+  color: #fff;
+  padding: 7px 20px;
+  margin-top: 10px;
+  font-size: 1.02rem;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.85);
+}
+.tbadge.tier-5.small {
+  margin-top: 6px;
+  padding: 3px 10px;
+  font-size: 0.74rem;
+}
+.tb-crown {
+  position: absolute;
+  top: -0.95em;
+  left: 50%;
+  translate: -50% 0;
+  color: #ffd34d;
+  font-size: 1.1em;
+  line-height: 1;
+  text-shadow: 0 0 8px rgba(255, 210, 80, 0.9);
+  animation: tb-crown 2s ease-in-out infinite;
+}
+@keyframes tb-crown {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-6deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(6deg);
+  }
+}
+.tb-spark {
+  position: absolute;
+  font-style: normal;
+  font-size: 0.7em;
+  color: #fff6c2;
+  text-shadow: 0 0 6px #ffe066;
+  animation: tb-twinkle 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.tb-spark.s1 {
+  top: -0.45em;
+  left: 0.2em;
+}
+.tb-spark.s2 {
+  bottom: -0.4em;
+  right: 0.25em;
+  animation-delay: 0.8s;
+}
+@keyframes tb-twinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.6);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+/* 火焰 */
+.tfx-flame {
+  --glow: rgba(255, 110, 30, 0.85);
+}
+.tfx-flame .tb-bg,
+.tier-4.tfx-fire .tb-bg {
+  border: 0;
+  background: linear-gradient(0deg, #c4200a, #ff5a1f 35%, #ffa53d 65%, #ffe066);
+  background-size: 100% 220%;
+  animation: tb-fire 0.8s ease-in-out infinite alternate;
+}
+@keyframes tb-fire {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 100%;
+  }
+}
+.tfx-flame .tb-bg::before {
+  content: '';
+  position: absolute;
+  inset: 40% -10% -20%;
+  background: radial-gradient(ellipse at 50% 100%, rgba(255, 240, 160, 0.9), transparent 60%);
+  animation: tb-flicker 0.35s steps(2) infinite;
+}
+@keyframes tb-flicker {
+  50% {
+    opacity: 0.6;
+  }
+}
+/* 極光 */
+.tfx-aurora {
+  --glow: rgba(60, 230, 180, 0.75);
+}
+.tfx-aurora .tb-bg {
+  background: linear-gradient(90deg, #0b2238, #17b890, #7a5cff, #2fd0e0, #0b2238);
+  background-size: 300% 100%;
+  animation: tb-flow1 5s linear infinite;
+}
+@keyframes tb-flow1 {
+  to {
+    background-position: 300% 0;
+  }
+}
+/* 全像（彩虹貼紙那種反光） */
+.tfx-prism {
+  --glow: rgba(255, 255, 255, 0.8);
+  color: #3a2a5a !important;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.9) !important;
+}
+.tfx-prism .tb-bg {
+  background: linear-gradient(115deg, #ff9fd0, #9fe0ff, #fff3a0, #b8a0ff, #9fffc8, #ff9fd0);
+  background-size: 300% 300%;
+  animation: tb-flow1 3.5s linear infinite;
+}
+/* 櫻花：花瓣飄過 */
+.tfx-sakura {
+  --glow: rgba(255, 140, 190, 0.8);
+}
+.tfx-sakura .tb-bg {
+  background: linear-gradient(180deg, #ff9fc4, #e2558f);
+}
+.tfx-sakura .tb-bg::after {
+  content: '';
+  position: absolute;
+  inset: -20px 0 0;
+  background-image:
+    radial-gradient(3px 2px at 15% 20%, #fff 98%, transparent),
+    radial-gradient(3px 2px at 45% 0%, #ffe3ee 98%, transparent),
+    radial-gradient(3px 2px at 75% 30%, #fff 98%, transparent),
+    radial-gradient(3px 2px at 90% 5%, #ffe3ee 98%, transparent);
+  animation: tb-petal 2.6s linear infinite;
+}
+@keyframes tb-petal {
+  to {
+    transform: translate(10px, 24px);
+  }
+}
+/* 銀河：星星在背景流動 */
+.tfx-galaxy {
+  --glow: rgba(150, 110, 255, 0.85);
+}
+.tfx-galaxy .tb-bg {
+  background:
+    radial-gradient(1.2px 1.2px at 10% 30%, #fff 98%, transparent) 0 0 / 40px 20px,
+    radial-gradient(1px 1px at 60% 70%, #fff6c2 98%, transparent) 0 0 / 30px 16px,
+    radial-gradient(circle at 30% 50%, #c44bd6, transparent 60%),
+    radial-gradient(circle at 75% 50%, #1f6fd6, transparent 60%),
+    #120a35;
+  animation: tb-stars 4s linear infinite;
+}
+@keyframes tb-stars {
+  to {
+    background-position:
+      40px 0,
+      -30px 0,
+      0 0,
+      0 0,
+      0 0;
+  }
+}
+/* 神秘商品限定的霓虹 */
+.tbadge.tfx-neon {
+  --glow: rgba(255, 43, 214, 0.75);
+  color: #fff;
+  border: 1px solid #ff2bd6;
+  text-shadow:
+    0 0 4px #ff2bd6,
+    0 0 10px #ff2bd6;
+  animation: fx-text-neon 2.8s infinite;
+}
+.tfx-neon .tb-bg {
+  background: #1a0f2e;
+}
+/* 稱號等級標籤、達成進度 */
+.tier-chip.t1 {
+  color: #b86c3a;
+}
+.tier-chip.t2 {
+  color: #8792ab;
+}
+.tier-chip.t3 {
+  color: #c98a10;
+  border-color: #f5c33a;
+}
+.tier-chip.t4 {
+  color: #9d7cff;
+  border-color: #9d7cff;
+}
+.tier-chip.t5 {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(90deg, #ff7a7a, #ffb35c, #b48cff);
+}
+.earn-prog {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  font-size: 0.74rem;
+}
+.profile-title {
+  margin: 2px 0 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tbadge,
+  .tbadge * {
+    animation: none !important;
+  }
+}
+/* 神秘商品限定：金色流光、彩虹 */
+.tfx-gold {
+  --glow: rgba(255, 215, 90, 0.95);
+}
+.tfx-gold .tb-bg {
+  background: linear-gradient(180deg, #fffbe0, #ffd34d 45%, #e09a10);
+}
+.tfx-rainbow .tb-bg {
+  border: 0;
+  background: linear-gradient(90deg, #ff7a7a, #ffb35c, #ffe066, #8fdc6b, #6ab8ff, #b48cff, #ff7a7a);
+  background-size: 300% 100%;
+  animation: tb-flow1 4s linear infinite;
+}
+.tbadge.tfx-rainbow {
+  text-shadow: 0 1px 3px rgba(40, 20, 80, 0.8);
+}
+.tfx-fire {
+  --glow: rgba(255, 110, 30, 0.7);
+}

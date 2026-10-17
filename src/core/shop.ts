@@ -1,7 +1,11 @@
 // 商店的商品目錄：道具、外觀（頭像、頭像框、主題色、答對特效、稱號、喵師父裝扮）、扭蛋與每日神秘商品。
 // 價格以「每天把任務做完大約能拿 70–100 金幣」為基準。
 import { STICKERS, type Rarity } from '../art/stickers';
+import { EGGS } from './eggData';
+import { rankOf, TIERS, TOP_TIER } from './ranks';
 import { hashStr, mulberry32, pick, type Rng } from './rng';
+import type { Save } from './save';
+import type { LangId } from './types';
 
 // ───────── 道具 ─────────
 
@@ -56,10 +60,20 @@ export interface Cosmetic {
   rare?: boolean;
   /** 會動的高級外觀 */
   anim?: boolean;
-  /** 稱號的文字特效 */
-  fx?: 'gold' | 'rainbow' | 'neon' | 'fire';
+  /** 稱號的特效（傳說稱號各有專屬特效） */
+  fx?: 'gold' | 'rainbow' | 'neon' | 'fire' | 'flame' | 'aurora' | 'prism' | 'sakura' | 'galaxy';
+  /** 稱號等級：1 銅、2 銀、3 金、4 白金、5 傳說 */
+  tier?: 1 | 2 | 3 | 4 | 5;
+  /** 達成條件才拿得到（不能用金幣買） */
+  earn?: TitleGoal;
   /** 商店卡片上的預覽圖案（飄落特效、回頂特效） */
   icon?: string;
+}
+
+export interface TitleGoal {
+  desc: string;
+  goal: number;
+  value: (s: Save) => number;
 }
 
 export const cosmeticKey = (kind: CosmeticKind, id: string) => `${kind}:${id}`;
@@ -158,37 +172,64 @@ export const BURSTS: Burst[] = [
   { kind: 'burst', id: 'feast', name: '美食祭', desc: '壽司、飯糰、糰子從天而降，只在神秘商品出現。', cost: 260, shapes: ['glyph'], glyphs: ['🍣', '🍙', '🍡', '🍜'], rare: true },
 ];
 
+/** 稱號的等級：銅、銀用金幣買；金、白金、傳說要達成條件才拿得到，等級越高特效越華麗 */
+export const TITLE_TIER_NAME = ['', '銅', '銀', '金', '白金', '傳說'] as const;
+
+const tierAt = (s: Save, l: LangId) => rankOf(s.xp[l]).tier;
+const learned = (s: Save, prefix = '') => Object.keys(s.items).filter((k) => k.startsWith(prefix)).length;
+const MASTER = TIERS.findIndex((t) => t.id === 'master');
+const PLATINUM = TIERS.findIndex((t) => t.id === 'platinum');
+
+/** 達成條件才拿得到的稱號 */
+const goal = (desc: string, target: number, value: (s: Save) => number): TitleGoal => ({ desc, goal: target, value });
+
 export const TITLES: Cosmetic[] = [
-  { kind: 'title', id: 'rookie', name: '見習生', desc: '每個高手都是從這裡開始的。', cost: 30 },
-  { kind: 'title', id: 'hunter', name: '單字獵人', desc: '看到不會的字就想抓起來。', cost: 80 },
-  { kind: 'title', id: 'grammar', name: '文法魔法師', desc: '時態、助詞、語尾變化難不倒你。', cost: 80 },
-  { kind: 'title', id: 'ear', name: '順風耳', desc: '聽力題是你的主場。', cost: 80 },
-  { kind: 'title', id: 'night', name: '深夜學霸', desc: '月亮是你的讀書燈。', cost: 60 },
-  { kind: 'title', id: 'morning', name: '晨型人', desc: '早起的鳥兒有單字背。', cost: 60 },
-  { kind: 'title', id: 'traveler', name: '旅行家', desc: '學語言就是為了去更多地方。', cost: 100 },
-  { kind: 'title', id: 'otaku', name: '動漫通', desc: '不看字幕的日子不遠了。', cost: 100 },
-  { kind: 'title', id: 'kdrama', name: '韓劇迷', desc: '오빠、대박、진짜？都聽得懂。', cost: 100 },
-  { kind: 'title', id: 'toeic', name: '多益戰士', desc: '目標金色證書！', cost: 120 },
-  { kind: 'title', id: 'trilingual', name: '三語達人', desc: '英日韓都說得出口。', cost: 200 },
-  { kind: 'title', id: 'legend', name: '傳說學者', desc: '金光閃閃的稱號，只在神秘商品出現。', cost: 300, rare: true, fx: 'gold' },
-  { kind: 'title', id: 'kana', name: '假名職人', desc: '平假名、片假名閉著眼睛都會。', cost: 80 },
-  { kind: 'title', id: 'kanji', name: '漢字達人', desc: '讀音、寫法、意思全部掌握。', cost: 120 },
-  { kind: 'title', id: 'hangul', name: '韓文字母王', desc: '子音母音一秒拼好。', cost: 80 },
-  { kind: 'title', id: 'detective', name: '文法偵探', desc: '一眼看穿句子的結構。', cost: 100 },
-  { kind: 'title', id: 'collector', name: '例句收藏家', desc: '每個字都要聽三句例句才滿足。', cost: 100 },
-  { kind: 'title', id: 'combo', name: '連擊之王', desc: '一路答對停不下來。', cost: 120 },
-  { kind: 'title', id: 'cardmaster', name: '卡牌大師', desc: '單字卡牌對決的常勝軍。', cost: 150 },
-  { kind: 'title', id: 'wordsmith', name: '猜詞名偵探', desc: '三次以內就能猜中。', cost: 120 },
-  { kind: 'title', id: 'chain', name: '接龍王', desc: 'しりとり、끝말잇기都難不倒你。', cost: 120 },
-  { kind: 'title', id: 'cafe', name: '咖啡因戰士', desc: '一杯咖啡一百個單字。', cost: 60 },
-  { kind: 'title', id: 'subtitle', name: '人肉字幕組', desc: '看劇不需要字幕。', cost: 150 },
-  { kind: 'title', id: 'toeic990', name: '多益 990', desc: '滿分是唯一的目標。', cost: 200 },
-  { kind: 'title', id: 'n1', name: 'N1 合格者', desc: '日檢最高級，衝！', cost: 200 },
-  { kind: 'title', id: 'topik6', name: 'TOPIK 6 級', desc: '韓檢最高級，화이팅！', cost: 200 },
-  { kind: 'title', id: 'sage', name: '星之賢者', desc: '閃著彩虹光的稱號，只在神秘商品出現。', cost: 360, rare: true, fx: 'rainbow' },
-  { kind: 'title', id: 'dragon', name: '龍之語者', desc: '燃燒著火焰的稱號，只在神秘商品出現。', cost: 360, rare: true, fx: 'fire' },
-  { kind: 'title', id: 'neon', name: '夜之霓虹', desc: '閃爍的霓虹燈稱號，只在神秘商品出現。', cost: 320, rare: true, fx: 'neon' },
+  // ───── 銅：金幣購買 ─────
+  { kind: 'title', id: 'rookie', name: '見習生', desc: '每個高手都是從這裡開始的。', cost: 30, tier: 1 },
+  { kind: 'title', id: 'morning', name: '晨型人', desc: '早起的鳥兒有單字背。', cost: 60, tier: 1 },
+  { kind: 'title', id: 'night', name: '深夜學霸', desc: '月亮是你的讀書燈。', cost: 60, tier: 1 },
+  { kind: 'title', id: 'cafe', name: '咖啡因戰士', desc: '一杯咖啡一百個單字。', cost: 60, tier: 1 },
+  { kind: 'title', id: 'hunter', name: '單字獵人', desc: '看到不會的字就想抓起來。', cost: 80, tier: 1 },
+  { kind: 'title', id: 'grammar', name: '文法魔法師', desc: '時態、助詞、語尾變化難不倒你。', cost: 80, tier: 1 },
+  { kind: 'title', id: 'ear', name: '順風耳', desc: '聽力題是你的主場。', cost: 80, tier: 1 },
+  // ───── 銀：金幣購買，有一道光滑過 ─────
+  { kind: 'title', id: 'traveler', name: '旅行家', desc: '學語言就是為了去更多地方。', cost: 120, tier: 2 },
+  { kind: 'title', id: 'otaku', name: '動漫通', desc: '不看字幕的日子不遠了。', cost: 120, tier: 2 },
+  { kind: 'title', id: 'kdrama', name: '韓劇迷', desc: '오빠、대박、진짜？都聽得懂。', cost: 120, tier: 2 },
+  { kind: 'title', id: 'detective', name: '讀解偵探', desc: '長篇文章也能一眼找到關鍵句。', cost: 150, tier: 2 },
+  { kind: 'title', id: 'toeic', name: '多益戰士', desc: '目標金色證書！', cost: 150, tier: 2 },
+  { kind: 'title', id: 'subtitle', name: '人肉字幕組', desc: '看劇不需要字幕。', cost: 180, tier: 2 },
+  // ───── 金：達成條件，金光閃閃 ─────
+  { kind: 'title', id: 'kana', name: '假名職人', desc: '平假名、片假名閉著眼睛都會。', cost: 0, tier: 3, earn: goal('學會 200 個假名（五十音關卡）', 200, (s) => learned(s, 'ja.kana')) },
+  { kind: 'title', id: 'hangul', name: '韓文字母王', desc: '子音母音一秒拼好。', cost: 0, tier: 3, earn: goal('學會 70 個韓文字母（字母關卡）', 70, (s) => learned(s, 'ko.hangul')) },
+  { kind: 'title', id: 'wordsmith', name: '猜詞名偵探', desc: '三次以內就能猜中。', cost: 0, tier: 3, earn: goal('完成 30 次猜詞', 30, (s) => s.stats.wordles) },
+  { kind: 'title', id: 'chain', name: '接龍王', desc: 'しりとり、끝말잇기都難不倒你。', cost: 0, tier: 3, earn: goal('接龍對戰贏 20 場', 20, (s) => s.stats.chainWins) },
+  { kind: 'title', id: 'combo', name: '連擊之王', desc: '一路答對停不下來。', cost: 0, tier: 3, earn: goal('最高連擊達到 50', 50, (s) => s.stats.maxCombo) },
+  { kind: 'title', id: 'cardmaster', name: '卡牌大師', desc: '單字卡牌對決的常勝軍。', cost: 0, tier: 3, earn: goal('單字卡牌對決通關 3 次', 3, (s) => s.stats.duelWins) },
+  { kind: 'title', id: 'collector', name: '千詞收藏家', desc: '腦袋裡已經有一千個字。', cost: 0, tier: 3, earn: goal('學會 1,000 個單字或短句', 1000, (s) => learned(s)) },
+  { kind: 'title', id: 'streak30', name: '月月精進', desc: '一整個月沒有一天偷懶。', cost: 0, tier: 3, earn: goal('連勝紀錄達到 30 天', 30, (s) => s.streak.best) },
+  // ───── 白金：達成條件，彩虹流光 ─────
+  { kind: 'title', id: 'kanji', name: '漢字達人', desc: '讀音、寫法、意思全部掌握。', cost: 0, tier: 4, earn: goal('日文學會 1,500 個單字或短句', 1500, (s) => learned(s, 'ja.')) },
+  { kind: 'title', id: 'toeic990', name: '多益 990', desc: '滿分是唯一的目標。', cost: 0, tier: 4, earn: goal('英文段位達到「大師」', MASTER, (s) => tierAt(s, 'en')) },
+  { kind: 'title', id: 'n1', name: 'N1 合格者', desc: '日檢最高級，衝！', cost: 0, tier: 4, earn: goal('日文段位達到「大師」', MASTER, (s) => tierAt(s, 'ja')) },
+  { kind: 'title', id: 'topik6', name: 'TOPIK 6 級', desc: '韓檢最高級，화이팅！', cost: 0, tier: 4, earn: goal('韓文段位達到「大師」', MASTER, (s) => tierAt(s, 'ko')) },
+  { kind: 'title', id: 'trilingual', name: '三語達人', desc: '英日韓都說得出口。', cost: 0, tier: 4, earn: goal('三種語言都達到「白金」段位', PLATINUM, (s) => Math.min(tierAt(s, 'en'), tierAt(s, 'ja'), tierAt(s, 'ko'))) },
+  { kind: 'title', id: 'perfect100', name: '完美主義者', desc: '一題都不能錯。', cost: 0, tier: 4, earn: goal('100 堂課全部答對', 100, (s) => s.stats.perfect) },
+  // ───── 傳說：達成條件，專屬特效＋皇冠 ─────
+  { kind: 'title', id: 'streak100', name: '百日不輟', desc: '一百天，每天都燃燒著學習的熱情。', cost: 0, tier: 5, fx: 'flame', earn: goal('連勝紀錄達到 100 天', 100, (s) => s.streak.best) },
+  { kind: 'title', id: 'words5000', name: '萬語通', desc: '五千個字在腦中流動。', cost: 0, tier: 5, fx: 'aurora', earn: goal('學會 5,000 個單字或短句', 5000, (s) => learned(s)) },
+  { kind: 'title', id: 'museum', name: '貼紙博物館長', desc: '每一張貼紙都收藏在你的館裡。', cost: 0, tier: 5, fx: 'prism', earn: goal(`收集全部 ${STICKERS.length} 種貼紙`, STICKERS.length, (s) => STICKERS.filter((x) => s.stickers[x.id]).length) },
+  { kind: 'title', id: 'egghunter', name: '彩蛋獵人', desc: '網站裡沒有你找不到的秘密。', cost: 0, tier: 5, fx: 'sakura', earn: goal(`發現全部 ${EGGS.length} 個彩蛋`, EGGS.length, (s) => EGGS.filter((e) => s.eggs[e.id]).length) },
+  { kind: 'title', id: 'sage3', name: '三語聖哲', desc: '三種語言都站上了頂點。', cost: 0, tier: 5, fx: 'galaxy', earn: goal('三種語言都達到「聖哲」段位', TOP_TIER, (s) => Math.min(tierAt(s, 'en'), tierAt(s, 'ja'), tierAt(s, 'ko'))) },
+  // ───── 神秘商品限定 ─────
+  { kind: 'title', id: 'legend', name: '傳說學者', desc: '金光閃閃的稱號，只在神秘商品出現。', cost: 300, rare: true, tier: 3, fx: 'gold' },
+  { kind: 'title', id: 'neon', name: '夜之霓虹', desc: '閃爍的霓虹燈稱號，只在神秘商品出現。', cost: 320, rare: true, tier: 3, fx: 'neon' },
+  { kind: 'title', id: 'sage', name: '星之賢者', desc: '閃著彩虹光的稱號，只在神秘商品出現。', cost: 360, rare: true, tier: 4, fx: 'rainbow' },
+  { kind: 'title', id: 'dragon', name: '龍之語者', desc: '燃燒著火焰的稱號，只在神秘商品出現。', cost: 360, rare: true, tier: 4, fx: 'fire' },
 ];
+
+/** 達成條件才拿得到的稱號（不能買、不會出現在神秘商品和扭蛋裡） */
+export const EARNED_TITLES = TITLES.filter((t) => t.earn);
 
 export const OUTFITS: Cosmetic[] = [
   { kind: 'outfit', id: 'glasses', name: '圓框眼鏡', desc: '戴上眼鏡的喵師父看起來更有學問了。', cost: 80 },
@@ -249,6 +290,20 @@ export const SOUNDS: Cosmetic[] = [
   { kind: 'sound', id: 'pop', name: '泡泡', desc: '啵！一聲輕快的泡泡。', cost: 100 },
   { kind: 'sound', id: 'meow', name: '喵喵', desc: '喵師父幫你喊加油。', cost: 150 },
   { kind: 'sound', id: 'taiko', name: '太鼓', desc: '咚！像太鼓達人一樣。', cost: 150 },
+  { kind: 'sound', id: 'kalimba', name: '拇指琴', desc: '叮叮，清脆的撥音。', cost: 120 },
+  { kind: 'sound', id: 'marimba', name: '馬林巴', desc: '咚咚，溫潤的木頭聲。', cost: 120 },
+  { kind: 'sound', id: 'water', name: '水滴', desc: '啵，一滴水落進水面。', cost: 100 },
+  { kind: 'sound', id: 'kawaii', name: '可愛嗶咻', desc: '像手機遊戲一樣的可愛音效。', cost: 100 },
+  { kind: 'sound', id: 'whistle', name: '口哨', desc: '咻～答得漂亮！', cost: 120 },
+  { kind: 'sound', id: 'clap', name: '拍手', desc: '啪啪啪，掌聲鼓勵。', cost: 120 },
+  { kind: 'sound', id: 'piano', name: '鋼琴和弦', desc: '一個明亮的大三和弦。', cost: 150 },
+  { kind: 'sound', id: 'pinpon', name: '正解叮咚', desc: '益智節目答對時的「叮咚」。', cost: 150 },
+  { kind: 'sound', id: 'koto', name: '日本箏', desc: '和風的撥弦聲，適合學日文。', cost: 160 },
+  { kind: 'sound', id: 'gayageum', name: '伽倻琴', desc: '韓國傳統樂器的撥弦聲，適合學韓文。', cost: 160 },
+  { kind: 'sound', id: 'magic', name: '魔法亮晶晶', desc: '一串往上飛的閃亮高音。', cost: 160 },
+  { kind: 'sound', id: 'levelup', name: 'RPG 升級', desc: '每答對一題都像升了一級。', cost: 180 },
+  { kind: 'sound', id: 'musicbox', name: '音樂盒', desc: '叮叮咚咚的音樂盒，只在神秘商品出現。', cost: 260, rare: true },
+  { kind: 'sound', id: 'fanfare', name: '勝利號角', desc: '噠噠噠～噠！只在神秘商品出現。', cost: 280, rare: true },
   { kind: 'sound', id: 'harp', name: '豎琴', desc: '夢幻的豎琴琶音，只在神秘商品出現。', cost: 260, rare: true },
   { kind: 'sound', id: 'coin', name: '金幣', desc: '每答對一題都像撿到錢，只在神秘商品出現。', cost: 260, rare: true },
 ];
@@ -366,7 +421,7 @@ export type LookRoll = { kind: 'cosmetic'; key: string } | { kind: 'sticker'; id
 export function rollLook(rng: Rng, owned: (key: string) => boolean): LookRoll {
   const left = Object.values(COSMETICS)
     .flat()
-    .filter((c) => !owned(cosmeticKey(c.kind, c.id)));
+    .filter((c) => !c.earn && !owned(cosmeticKey(c.kind, c.id)));
   const rares = left.filter((c) => c.rare);
   const normal = left.filter((c) => !c.rare);
   const r = rng();
@@ -428,7 +483,7 @@ function mysterySlot(day: string, slot: number, owned: (key: string) => boolean)
   const rng = mulberry32(hashStr(`mystery:${day}:${slot}`));
   const unowned = Object.values(COSMETICS)
     .flat()
-    .filter((c) => !owned(cosmeticKey(c.kind, c.id)));
+    .filter((c) => !c.earn && !owned(cosmeticKey(c.kind, c.id)));
   const avatars = PREMIUM_AVATARS.filter((id) => !owned(`avatar:${id}`));
   if (slot === 0) {
     const rares = unowned.filter((c) => c.rare);
@@ -437,7 +492,7 @@ function mysterySlot(day: string, slot: number, owned: (key: string) => boolean)
       return { kind: 'cosmetic', key: cosmeticKey(c.kind, c.id), cost: c.cost, was: c.cost };
     }
     if (avatars.length) return { kind: 'avatar', id: pick(avatars, rng), cost: 100, was: PREMIUM_AVATAR_COST };
-    return { kind: 'gacha10', cost: 330, was: GACHA10_COST };
+    return { kind: 'gacha10', cost: 360, was: GACHA10_COST };
   }
   if (slot === 1) {
     const normal = unowned.filter((c) => !c.rare);

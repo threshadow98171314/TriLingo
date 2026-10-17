@@ -41,10 +41,13 @@ afterEach(() => {
 });
 
 describe('商品資料', () => {
-  it('外觀的 id 在同一類裡不重複，價錢都大於 0', () => {
+  it('外觀的 id 在同一類裡不重複；能買的價錢都大於 0，達成條件的稱號不能買', () => {
     for (const list of Object.values(COSMETICS)) {
       expect(new Set(list.map((c) => c.id)).size).toBe(list.length);
-      for (const c of list) expect(c.cost, c.id).toBeGreaterThan(0);
+      for (const c of list) {
+        if (c.earn) expect(c.cost, c.id).toBe(0);
+        else expect(c.cost, c.id).toBeGreaterThan(0);
+      }
     }
   });
 
@@ -190,6 +193,19 @@ describe('動態貼紙、外觀扭蛋與貼紙板', () => {
     const all = rollLook(mulberry32(1), () => true);
     expect(all.kind).toBe('sticker');
     if (all.kind === 'sticker') expect(STICKER_BY_ID.get(all.id)!.anim).toBe(true);
+  });
+
+  it('達成條件的稱號：條件一到就自動收進外觀，不能用金幣買，也不會出現在外觀扭蛋', () => {
+    withCoins(1000, { streak: { count: 30, best: 30, last: '', freezes: 0 } });
+    expect(buyCosmetic('title:streak30')).toBe(false);
+    expect(getSave().owned).toContain('title:streak30');
+    expect(getSave().owned).not.toContain('title:streak100');
+    // 沒有被扣錢（連勝成就可能會加錢）
+    expect(getSave().coins).toBeGreaterThanOrEqual(1000);
+    for (let i = 0; i < 200; i++) {
+      const r = rollLook(mulberry32(i), () => false);
+      if (r.kind === 'cosmetic') expect(COSMETICS.title.find((c) => `title:${c.id}` === r.key)?.earn, r.key).toBeFalsy();
+    }
   });
 
   it('貼紙板：每種貼紙最多貼擁有的張數；位置、大小、角度超出範圍會修正', () => {

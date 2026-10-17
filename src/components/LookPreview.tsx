@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { ItemIcon } from '../art/items';
 import { MascotArt } from '../art/mascot';
 import { CardScene } from '../art/scenes';
-import { BURSTS, SKINS, type Burst, type Cosmetic, type CosmeticKind } from '../core/shop';
+import { BURSTS, SKINS, TITLE_TIER_NAME, type Burst, type Cosmetic, type CosmeticKind } from '../core/shop';
 import { useSave } from '../core/store';
 import { cx } from '../core/util';
 import { Avatar, Pet } from './Avatar';
@@ -30,7 +30,7 @@ export function CosmeticPreview({ c, size = 64 }: { c: Cosmetic; size?: number }
     case 'burst':
       return <BurstIcon b={BURSTS.find((x) => x.id === c.id)} size={size} />;
     case 'title':
-      return <ItemIcon id="title" size={size} />;
+      return <TitleBadge t={c} small={size < 56} />;
     case 'outfit':
       return <MascotArt outfit={c.id} size={size} />;
     case 'pet':
@@ -85,6 +85,37 @@ export function BurstIcon({ b, size }: { b?: Burst; size: number }) {
   return (
     <span className="burst-icon" style={{ width: size, height: size, '--c1': b?.colors?.[0] ?? '#ffd34d', '--c2': b?.colors?.[1] ?? '#ff9fbf' } as CSSProperties}>
       {glyph ? <b>{glyph}</b> : <ItemIcon id="burst" size={size * 0.8} />}
+    </span>
+  );
+}
+
+// ───────── 稱號徽章 ─────────
+
+/**
+ * 稱號：銅（素面）→ 銀（光澤滑過）→ 金（金光、閃光）→ 白金（彩虹流光、閃光）
+ * → 傳說（專屬特效：火焰、極光、全像、櫻花、銀河，加上皇冠）。
+ */
+export function TitleBadge({ t, small }: { t: Cosmetic; small?: boolean }) {
+  const tier = t.tier ?? 1;
+  return (
+    <span className={cx('tbadge', `tier-${tier}`, t.fx && `tfx-${t.fx}`, small && 'small')} title={`${TITLE_TIER_NAME[tier]}稱號「${t.name}」`}>
+      <span className="tb-bg" aria-hidden />
+      {tier >= 5 && (
+        <span className="tb-crown" aria-hidden>
+          ♛
+        </span>
+      )}
+      {tier >= 3 && (
+        <>
+          <i className="tb-spark s1" aria-hidden>
+            ✦
+          </i>
+          <i className="tb-spark s2" aria-hidden>
+            ✦
+          </i>
+        </>
+      )}
+      <span className="tb-text">{t.name}</span>
     </span>
   );
 }

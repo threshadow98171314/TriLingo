@@ -28,6 +28,7 @@ import {
   LOOK_GACHA_COST,
   LOOK_ODDS,
   MYSTERY_SLOTS,
+  TITLE_TIER_NAME,
   PREMIUM_AVATAR_COST,
   PREMIUM_AVATARS,
   RARITY_ODDS,
@@ -345,6 +346,7 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
   return (
     <div ref={card} className={cx('look card', owned && 'owned', on && 'on', c.rare && 'rare', c.anim && 'anim')}>
       <div className="look-badges">
+        {c.kind === 'title' && <span className={cx('chip tier-chip', `t${c.tier ?? 1}`)}>{TITLE_TIER_NAME[c.tier ?? 1]}</span>}
         {c.anim && <span className="chip anim">✨ 動態</span>}
         {c.rare && <span className="chip">限定</span>}
         {on && <span className="chip ok">使用中</span>}
@@ -352,8 +354,16 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
       <div className="look-art">
         <CosmeticPreview c={c} size={c.kind === 'frame' ? 86 : 64} />
       </div>
-      <b className={cx('look-name', c.kind === 'title' && c.fx && `title-fx-${c.fx}`)}>{c.kind === 'title' ? `「${c.name}」` : c.name}</b>
+      {c.kind !== 'title' && <b className="look-name">{c.name}</b>}
       <small className="muted look-desc">{note || c.desc}</small>
+      {c.earn && !owned && (
+        <div className="earn-prog">
+          <Bar v={Math.min(1, c.earn.value(s) / c.earn.goal)} color="var(--gold)" />
+          <small>
+            {c.earn.desc}（{Math.min(c.earn.goal, c.earn.value(s)).toLocaleString()} / {c.earn.goal.toLocaleString()}）
+          </small>
+        </div>
+      )}
       <div className="look-actions">
         {tryBtn && (
           <button type="button" className="btn small ghost try-btn" onClick={tryBtn[1]}>
@@ -364,6 +374,8 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
           <button type="button" className={cx('btn small', on ? 'ghost' : 'primary')} onClick={() => equipCosmetic(c.kind, on ? null : c.id)}>
             {on ? '取下' : '換上'}
           </button>
+        ) : c.earn ? (
+          <span className="chip">🔒 達成後自動獲得</span>
         ) : c.rare ? (
           <span className="chip">神秘商品限定</span>
         ) : (
@@ -389,7 +401,7 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
 /** 每一類的說明 */
 export const KIND_DESC: Record<CosmeticKind, string> = {
   frame: '框住你的頭像，名片和上方導覽列都看得到。標「✨ 動態」的會動！',
-  title: '顯示在名片的名字下面，限定稱號有文字特效。',
+  title: '顯示在名片的名字下面。銅、銀稱號用金幣買；金、白金、傳說稱號要達成條件才拿得到，等級越高特效越華麗（傳說稱號還有皇冠）。',
   name: '名片上的名字特效。',
   bg: '個人頁最上方的名片背景。',
   pet: '上課時陪在進度條旁邊：答對會跳、答錯會一起難過，連擊 5 題還會轉一圈。',

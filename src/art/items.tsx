@@ -568,6 +568,8 @@ const FRAMES: Record<string, () => ReactNode> = {
   ),
 };
 
+export const FRAME_ART_IDS = Object.keys(FRAMES);
+
 /** 頭像框：疊在頭像外面（比頭像大一圈） */
 export function FrameArt({ id }: { id: string }) {
   const draw = FRAMES[id];

@@ -20,6 +20,8 @@ import {
   cosmeticKey,
   cosmeticOf,
   DUPE_REFUND,
+  EARNED_TITLES,
+  TITLE_TIER_NAME,
   ANIM_GACHA10_COST,
   ANIM_GACHA_COST,
   GACHA10_COST,
@@ -126,6 +128,13 @@ function unlockAchievements(d: Save) {
     d.ach[a.id] = nowMs();
     addCoins(d, a.coins);
     pending.push({ type: 'toast', icon: a.icon, title: `成就解鎖：${a.title}`, text: `${a.desc}　＋${a.coins} 金幣` });
+  }
+  // 達成條件的稱號：條件一到就自動收進外觀
+  for (const t of EARNED_TITLES) {
+    const key = cosmeticKey('title', t.id);
+    if (d.owned.includes(key) || t.earn!.value(d) < t.earn!.goal) continue;
+    d.owned.push(key);
+    pending.push({ type: 'toast', icon: '🎖️', title: `獲得${TITLE_TIER_NAME[t.tier ?? 3]}稱號「${t.name}」`, text: `${t.earn!.desc}。到個人頁就能換上。` });
   }
 }
 
@@ -680,7 +689,7 @@ export function buyCosmetic(key: string): boolean {
   let ok = false;
   mutate((d) => {
     const c = cosmeticOf(key);
-    if (!c || c.rare || d.owned.includes(key) || !pay(d, c.cost)) return;
+    if (!c || c.rare || c.earn || d.owned.includes(key) || !pay(d, c.cost)) return;
     d.owned.push(key);
     d.equip[c.kind] = c.id;
     d.prefsAt = Date.now();
