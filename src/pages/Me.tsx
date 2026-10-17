@@ -1,4 +1,4 @@
-// 「我的」頁：名片（頭像、暱稱、稱號、夥伴、背景）、外觀切換（商店買的東西都在這裡換）、貼紙板、學習紀錄
+// 個人頁：名片（頭像、暱稱、稱號、夥伴、背景）、外觀切換（商店買的東西都在這裡換）、貼紙板、學習紀錄
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { AVATAR_NAME } from '../art/avatars';
 import { STICKERS } from '../art/stickers';
@@ -17,7 +17,7 @@ import { sfx } from '../core/sfx';
 import { equipCosmetic, setProfile, useSave } from '../core/store';
 import { cx, sum } from '../core/util';
 import { href, useRoute } from '../router';
-import { CosmeticPreview } from '../components/LookPreview';
+import { CosmeticPreview, isLookKind, KindPicker, type LookKind } from '../components/LookPreview';
 
 type Tab = 'looks' | 'board' | 'stats';
 const TABS: [Tab, string][] = [
@@ -131,8 +131,6 @@ const KIND_HINT: Record<CosmeticKind, string> = {
   outfit: '首頁喵師父的裝扮',
 };
 
-const ORDER: CosmeticKind[] = ['frame', 'pet', 'name', 'bg', 'title', 'ambient', 'totop', 'burst', 'sound', 'skin', 'outfit'];
-
 function Tile({ on, onClick, label, children, className }: { on: boolean; onClick: (el: HTMLElement) => void; label: string; children: ReactNode; className?: string }) {
   return (
     <button type="button" className={cx('ward-tile', on && 'on', className)} aria-pressed={on} onClick={(e) => onClick(e.currentTarget)} title={label}>
@@ -149,15 +147,18 @@ function Tile({ on, onClick, label, children, className }: { on: boolean; onClic
 
 function Wardrobe() {
   const s = useSave();
-  const jump = (id: string) => document.getElementById(`ward-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const season = seasonOf(new Date(nowMs()));
-  // 從扭蛋結果點「到我的換上」：直接跳到那一類
-  const kind = useRoute().query.get('kind');
+  // 從扭蛋結果點「到個人頁換上」：直接打開那一類
+  const q = useRoute().query.get('kind');
+  const [kind, setKind] = useState<LookKind>(isLookKind(q) ? q : 'avatar');
   useEffect(() => {
-    if (!kind) return;
-    const t = setTimeout(() => document.getElementById(`ward-${kind}`)?.scrollIntoView({ block: 'start' }), 50);
-    return () => clearTimeout(t);
-  }, [kind]);
+    if (isLookKind(q)) setKind(q);
+  }, [q]);
+  const pick = (k: LookKind) => {
+    setKind(k);
+    history.replaceState(null, '', href(`/me?tab=looks&kind=${k}`));
+  };
+  const count = (k: LookKind) => (k === 'avatar' ? String(s.avatars.length) : `${COSMETICS[k].filter((c) => s.owned.includes(cosmeticKey(k, c.id))).length}/${COSMETICS[k].length}`);
 
   /** 換上之後順便示範一下（特效、音效） */
   const demo = (c: Cosmetic, el: HTMLElement) => {
@@ -168,77 +169,70 @@ function Wardrobe() {
     else if (c.kind === 'totop') fx.toTop(el, c.id);
   };
 
+  if (kind === 'avatar') {
+    return (
+      <>
+        <KindPicker value={kind} onPick={pick} count={count} />
+        <section className="card panel">
+          <header className="panel-head">
+            <h2>頭像</h2>
+            <small className="muted">
+              擁有 {s.avatars.length} 個・<a href={href('/shop?tab=looks&kind=avatar')}>到商店買更多</a>
+            </small>
+          </header>
+          <div className="ward-grid">
+            {s.avatars.map((a) => (
+              <Tile key={a} on={a === s.avatar} label={AVATAR_NAME[a] ?? a} onClick={() => setProfile({ avatar: a })}>
+                <Avatar id={a} size={44} />
+              </Tile>
+            ))}
+          </div>
+        </section>
+      </>
+    );
+  }
+
+  const all = COSMETICS[kind];
+  const mine = all.filter((c) => s.owned.includes(cosmeticKey(kind, c.id)));
+  const none = kind === 'ambient' && season ? `跟著季節（${SEASON_LABEL[season]?.replace(/^.*的/, '')}）` : NONE_LABEL[kind];
   return (
     <>
-      <nav className="looks-nav" aria-label="外觀分類">
-        <button type="button" onClick={() => jump('avatar')}>
-          頭像
-        </button>
-        {ORDER.map((kind) => (
-          <button key={kind} type="button" onClick={() => jump(kind)}>
-            {KIND_NAME[kind]}
-          </button>
-        ))}
-      </nav>
-
-      <section className="card panel anchor" id="ward-avatar">
+      <KindPicker value={kind} onPick={pick} count={count} />
+      <section className="card panel">
         <header className="panel-head">
-          <h2>頭像</h2>
+          <h2>{KIND_NAME[kind]}</h2>
           <small className="muted">
-            擁有 {s.avatars.length} 個・<a href={href('/shop?tab=looks&kind=avatar')}>到商店買更多</a>
+            {KIND_HINT[kind]}・<a href={href(`/shop?tab=looks&kind=${kind}`)}>到商店看看</a>
           </small>
         </header>
         <div className="ward-grid">
-          {s.avatars.map((a) => (
-            <Tile key={a} on={a === s.avatar} label={AVATAR_NAME[a] ?? a} onClick={() => setProfile({ avatar: a })}>
-              <Avatar id={a} size={44} />
+          <Tile on={!s.equip[kind]} label={none} className="none" onClick={() => equipCosmetic(kind, null)}>
+            <span className="ward-none" aria-hidden>
+              {kind === 'ambient' ? '🍂' : '∅'}
+            </span>
+          </Tile>
+          {mine.map((c) => (
+            <Tile
+              key={c.id}
+              on={s.equip[kind] === c.id}
+              label={kind === 'title' ? `「${c.name}」` : c.name}
+              className={cx(c.anim && 'anim', c.rare && 'rare')}
+              onClick={(el) => {
+                const on = s.equip[kind] === c.id;
+                equipCosmetic(kind, on ? null : c.id);
+                if (!on) demo(c, el);
+              }}
+            >
+              <CosmeticPreview c={c} size={48} />
             </Tile>
           ))}
+          {!mine.length && (
+            <a className="ward-empty muted" href={href(`/shop?tab=looks&kind=${kind}`)}>
+              還沒有{KIND_NAME[kind]}，去商店逛逛 →
+            </a>
+          )}
         </div>
       </section>
-
-      {ORDER.map((kind) => {
-        const all = COSMETICS[kind];
-        const mine = all.filter((c) => s.owned.includes(cosmeticKey(kind, c.id)));
-        const none = kind === 'ambient' && season ? `跟著季節（${SEASON_LABEL[season]?.replace(/^.*的/, '')}）` : NONE_LABEL[kind];
-        return (
-          <section key={kind} className="card panel anchor" id={`ward-${kind}`}>
-            <header className="panel-head">
-              <h2>{KIND_NAME[kind]}</h2>
-              <small className="muted">
-                {KIND_HINT[kind]}・擁有 {mine.length} / {all.length}・<a href={href(`/shop?tab=looks&kind=${kind}`)}>到商店看看</a>
-              </small>
-            </header>
-            <div className="ward-grid">
-              <Tile on={!s.equip[kind]} label={none} className="none" onClick={() => equipCosmetic(kind, null)}>
-                <span className="ward-none" aria-hidden>
-                  {kind === 'ambient' ? '🍂' : '∅'}
-                </span>
-              </Tile>
-              {mine.map((c) => (
-                <Tile
-                  key={c.id}
-                  on={s.equip[kind] === c.id}
-                  label={kind === 'title' ? `「${c.name}」` : c.name}
-                  className={cx(c.anim && 'anim', c.rare && 'rare')}
-                  onClick={(el) => {
-                    const on = s.equip[kind] === c.id;
-                    equipCosmetic(kind, on ? null : c.id);
-                    if (!on) demo(c, el);
-                  }}
-                >
-                  <CosmeticPreview c={c} size={48} />
-                </Tile>
-              ))}
-              {!mine.length && (
-                <a className="ward-empty muted" href={href(`/shop?tab=looks&kind=${kind}`)}>
-                  還沒有{KIND_NAME[kind]}，去商店逛逛 →
-                </a>
-              )}
-            </div>
-          </section>
-        );
-      })}
     </>
   );
 }

@@ -902,7 +902,7 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
         <RankLine xp={s.xp[lang]} size={76} />
       </section>
 
-      <nav className="tabs">
+      <nav className="tabs" style={{ '--tab-cols': Math.ceil(tabs.length / 2) } as CSSProperties}>
         {tabs.map((t) => (
           <a key={t.id} href={href(t.to)} className={cx(tab === t.id && 'on')}>
             <span className="tab-icon" aria-hidden>

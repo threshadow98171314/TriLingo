@@ -1,19 +1,17 @@
 // 商店：今日神秘商品、道具、外觀（頭像、頭像框、主題色、答對特效、稱號、喵師父裝扮）、扭蛋與貼紙簿
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { AVATAR_NAME, AvatarArt } from '../art/avatars';
-import { FramePreview, ItemIcon } from '../art/items';
+import { AVATAR_NAME } from '../art/avatars';
+import { ItemIcon } from '../art/items';
 import { RARITY_NAME, STICKER_BY_ID, STICKERS, StickerArt, type Sticker } from '../art/stickers';
 import { Avatar } from '../components/Avatar';
-import { CosmeticPreview } from '../components/LookPreview';
+import { CosmeticPreview, isLookKind, KindPicker, type LookKind } from '../components/LookPreview';
 import { useBoostLeft } from '../components/Layout';
 import { Coin, Modal } from '../components/ui';
 import { nowMs } from '../core/date';
 import { fx, type AmbientKind } from '../core/fx';
 import { FREE_AVATARS } from '../core/save';
 import {
-  AMBIENTS,
   AVATAR_COST,
-  BGS,
   BURSTS,
   CONSUMABLE_BY_ID,
   ANIM_GACHA10_COST,
@@ -23,24 +21,16 @@ import {
   CONSUMABLES,
   cosmeticKey,
   cosmeticOf,
-  FRAMES,
   GACHA10_COST,
   GACHA_COST,
   KIND_NAME,
   LOOK_GACHA_COST,
   LOOK_ODDS,
   MYSTERY_SLOTS,
-  NAMES,
-  OUTFITS,
-  PETS,
   PREMIUM_AVATAR_COST,
   PREMIUM_AVATARS,
   RARITY_ODDS,
   SHOP_AVATARS,
-  SKINS,
-  SOUNDS,
-  TITLES,
-  TOTOPS,
   type Cosmetic,
   type CosmeticKind,
   type MysteryOffer,
@@ -195,6 +185,18 @@ function resultText(r: MysteryResult): string {
   }
 }
 
+/** 特價標示：原價（劃線）＋省多少，避免看起來像同一件商品有兩個價錢 */
+function SaleTag({ was, cost }: { was: number; cost: number }) {
+  return (
+    <span className="sale-tag">
+      <span className="sale-was">
+        原價 <s>{was}</s>
+      </span>
+      <span className="sale-off">省 {was - cost}</span>
+    </span>
+  );
+}
+
 function MysteryCard() {
   const s = useSave();
   const left = useUntilMidnight();
@@ -260,18 +262,19 @@ function MysteryCard() {
                 <small className="mystery-done">✓ 已購買{r ? `：${resultText(r)}` : ''}</small>
               ) : (
                 <div className="mystery-buy">
-                  {was && (
-                    <s className="muted">
-                      <Coin n={was} />
-                    </s>
-                  )}
+                  {was && !blocked && <SaleTag was={was} cost={offer.cost} />}
                   <button
                     type="button"
                     className="btn gold small"
                     disabled={!!blocked || s.coins < offer.cost}
                     onClick={(e) => buy(slot, (e.currentTarget as HTMLElement).closest('.moffer'))}
                   >
-                    {blocked ?? <Coin n={offer.cost} />}
+                    {blocked ?? (
+                      <>
+                        {was ? '特價 ' : ''}
+                        <Coin n={offer.cost} />
+                      </>
+                    )}
                   </button>
                 </div>
               )}
@@ -335,11 +338,15 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
     setNote(done ? (c.kind === 'ambient' ? '背景正在試看 8 秒' : '') : '特效已關閉（設定或系統的減少動態效果）');
     if (!done || c.kind === 'ambient') setTimeout(() => setNote(''), 3000);
   };
+  // 試用按鈕：答對特效、回頂特效「試放」，飄落特效「試看」，音效「試聽」
+  const tryBtn: [string, () => void] | null =
+    c.kind === 'burst' ? ['✨ 試放', tryBurst] : c.kind === 'sound' ? ['🔊 試聽', () => sfx.preview(c.id)] : c.kind === 'ambient' ? ['👀 試看', tryLook] : c.kind === 'totop' ? ['🚀 試放', tryLook] : null;
   return (
     <div ref={card} className={cx('look card', owned && 'owned', on && 'on', c.rare && 'rare', c.anim && 'anim')}>
       <div className="look-badges">
         {c.anim && <span className="chip anim">✨ 動態</span>}
         {c.rare && <span className="chip">限定</span>}
+        {on && <span className="chip ok">使用中</span>}
       </div>
       <div className="look-art">
         <CosmeticPreview c={c} size={c.kind === 'frame' ? 86 : 64} />
@@ -347,19 +354,9 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
       <b className={cx('look-name', c.kind === 'title' && c.fx && `title-fx-${c.fx}`)}>{c.kind === 'title' ? `「${c.name}」` : c.name}</b>
       <small className="muted look-desc">{note || c.desc}</small>
       <div className="look-actions">
-        {c.kind === 'burst' && (
-          <button type="button" className="link-btn" onClick={tryBurst}>
-            試放
-          </button>
-        )}
-        {c.kind === 'sound' && (
-          <button type="button" className="link-btn" onClick={() => sfx.preview(c.id)}>
-            🔊 試聽
-          </button>
-        )}
-        {(c.kind === 'ambient' || c.kind === 'totop') && (
-          <button type="button" className="link-btn" onClick={tryLook}>
-            {c.kind === 'ambient' ? '試看' : '試放'}
+        {tryBtn && (
+          <button type="button" className="btn small ghost try-btn" onClick={tryBtn[1]}>
+            {tryBtn[0]}
           </button>
         )}
         {owned ? (
@@ -388,93 +385,106 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
   );
 }
 
-const LOOK_SECTIONS: [CosmeticKind, string, Cosmetic[]][] = [
-  ['frame', '框住你的頭像，「我的」頁名片和上方導覽列都看得到。標「✨ 動態」的會動！', FRAMES],
-  ['pet', '上課時陪在進度條旁邊：答對會跳、答錯會一起難過，連擊 5 題還會轉一圈。', PETS],
-  ['name', '「我的」頁名片上的名字特效。', NAMES],
-  ['bg', '「我的」頁最上方的名片背景，動態背景會飄花瓣、閃星星。', BGS],
-  ['ambient', '網站背景一直飄落的東西，按「試看」先看 8 秒。沒有裝備時跟著季節（秋天楓葉、冬天雪花…）。', AMBIENTS],
-  ['totop', '頁面往下捲之後，右下角會出現「回到頂端」按鈕，按下去會播放這個特效。', TOTOPS],
-  ['title', '顯示在名片的名字下面，限定稱號有文字特效。', TITLES],
-  ['burst', '答對時爆出來的特效。', BURSTS],
-  ['sound', '答對時的聲音，可以先試聽。', SOUNDS],
-  ['skin', '換掉整個網站的強調色（按鈕、進度條、連結）。', SKINS],
-  ['outfit', '首頁的喵師父會穿上。', OUTFITS],
-];
+/** 每一類的說明 */
+export const KIND_DESC: Record<CosmeticKind, string> = {
+  frame: '框住你的頭像，名片和上方導覽列都看得到。標「✨ 動態」的會動！',
+  title: '顯示在名片的名字下面，限定稱號有文字特效。',
+  name: '名片上的名字特效。',
+  bg: '個人頁最上方的名片背景。',
+  pet: '上課時陪在進度條旁邊：答對會跳、答錯會一起難過，連擊 5 題還會轉一圈。',
+  outfit: '首頁的喵師父會穿上。',
+  ambient: '網站背景一直飄落的東西，按「試看」先看 8 秒。沒有裝備時跟著季節（秋天楓葉、冬天雪花…）。',
+  totop: '頁面往下捲之後，右下角會出現「回到頂端」按鈕，按下去會播放這個特效。',
+  burst: '答對時爆出來的特效。',
+  sound: '答對時的聲音，可以先試聽。',
+  skin: '換掉整個網站的強調色（按鈕、進度條、連結）。',
+};
+
+const ALL_AVATARS = [...FREE_AVATARS, ...SHOP_AVATARS, ...PREMIUM_AVATARS];
 
 function LooksTab() {
   const s = useSave();
-  const avatars = [...FREE_AVATARS, ...SHOP_AVATARS, ...PREMIUM_AVATARS, ...s.avatars.filter((a) => ![...FREE_AVATARS, ...SHOP_AVATARS, ...PREMIUM_AVATARS].includes(a))];
-  const jump = (id: string) => document.getElementById(`look-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  // 從「我的」頁點「到商店看看」：直接跳到那一類
-  const kind = useRoute().query.get('kind');
+  const q = useRoute().query.get('kind');
+  const [kind, setKind] = useState<LookKind>(isLookKind(q) ? q : 'avatar');
   useEffect(() => {
-    if (!kind) return;
-    const t = setTimeout(() => document.getElementById(`look-${kind}`)?.scrollIntoView({ block: 'start' }), 50);
-    return () => clearTimeout(t);
-  }, [kind]);
+    if (isLookKind(q)) setKind(q);
+  }, [q]);
+  const pick = (k: LookKind) => {
+    setKind(k);
+    // 換分類不換頁（換頁會捲回最上面），只更新網址
+    history.replaceState(null, '', href(`/shop?tab=looks&kind=${k}`));
+  };
+  const count = (k: LookKind) =>
+    k === 'avatar' ? `${s.avatars.length}/${ALL_AVATARS.length}` : `${COSMETICS[k].filter((c) => s.owned.includes(cosmeticKey(k, c.id))).length}/${COSMETICS[k].length}`;
   return (
     <>
-      <nav className="looks-nav" aria-label="外觀分類">
-        <button type="button" onClick={() => jump('avatar')}>
-          頭像
-        </button>
-        {LOOK_SECTIONS.map(([kind]) => (
-          <button key={kind} type="button" onClick={() => jump(kind)}>
-            {KIND_NAME[kind]}
-          </button>
-        ))}
-      </nav>
-      <section className="card panel" id="look-avatar">
-        <header className="panel-head">
-          <h2>頭像</h2>
-          <small className="muted">
-            一般 {AVATAR_COST}、高級 {PREMIUM_AVATAR_COST} 金幣（高級頭像會動）
-          </small>
-        </header>
-        <div className="shop-avatars">
-          {avatars.map((a) => {
-            const owned = s.avatars.includes(a);
-            const premium = PREMIUM_AVATARS.includes(a);
-            const cost = premium ? PREMIUM_AVATAR_COST : AVATAR_COST;
-            const sellable = premium || SHOP_AVATARS.includes(a);
-            return (
-              <button
-                key={a}
-                type="button"
-                className={cx('shop-avatar', owned && 'owned', s.avatar === a && 'on', premium && 'premium')}
-                disabled={!owned && (!sellable || s.coins < cost)}
-                title={AVATAR_NAME[a]}
-                onClick={() => (owned ? setProfile({ avatar: a }) : ok(buyAvatar(a)))}
-              >
-                <Avatar id={a} frame={s.avatar === a ? s.equip.frame : undefined} size={52} />
-                <small className="avatar-name">{AVATAR_NAME[a] ?? ''}</small>
-                {owned ? <small>{s.avatar === a ? '使用中' : '已擁有'}</small> : sellable ? <Coin n={cost} /> : <small>彩蛋限定</small>}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {LOOK_SECTIONS.map(([kind, desc, list]) => (
-        <section key={kind} className="card panel" id={`look-${kind}`}>
-          <header className="panel-head">
-            <h2>{KIND_NAME[kind]}</h2>
-            <small className="muted">{desc}</small>
-          </header>
-          {kind === 'skin' && s.equip.skin && (
-            <button type="button" className="link-btn" onClick={() => equipCosmetic('skin', null)}>
-              換回預設的紫色
-            </button>
-          )}
-          <div className="looks">
-            {list.map((c) => (
-              <CosmeticCard key={c.id} c={c} />
-            ))}
-          </div>
-        </section>
-      ))}
+      <KindPicker value={kind} onPick={pick} count={count} />
+      {kind === 'avatar' ? <AvatarShop /> : <LookSection kind={kind} />}
     </>
+  );
+}
+
+function AvatarShop() {
+  const s = useSave();
+  const avatars = [...ALL_AVATARS, ...s.avatars.filter((a) => !ALL_AVATARS.includes(a))];
+  return (
+    <section className="card panel">
+      <header className="panel-head">
+        <h2>頭像</h2>
+        <small className="muted">
+          一般 {AVATAR_COST}、高級 {PREMIUM_AVATAR_COST} 金幣（高級頭像會動）
+        </small>
+      </header>
+      <div className="shop-avatars">
+        {avatars.map((a) => {
+          const owned = s.avatars.includes(a);
+          const premium = PREMIUM_AVATARS.includes(a);
+          const cost = premium ? PREMIUM_AVATAR_COST : AVATAR_COST;
+          const sellable = premium || SHOP_AVATARS.includes(a);
+          return (
+            <button
+              key={a}
+              type="button"
+              className={cx('shop-avatar', owned && 'owned', s.avatar === a && 'on', premium && 'premium')}
+              disabled={!owned && (!sellable || s.coins < cost)}
+              title={AVATAR_NAME[a]}
+              onClick={() => (owned ? setProfile({ avatar: a }) : ok(buyAvatar(a)))}
+            >
+              <Avatar id={a} frame={s.avatar === a ? s.equip.frame : undefined} size={52} />
+              <small className="avatar-name">{AVATAR_NAME[a] ?? ''}</small>
+              {owned ? <small>{s.avatar === a ? '使用中' : '已擁有'}</small> : sellable ? <Coin n={cost} /> : <small>彩蛋限定</small>}
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function LookSection({ kind }: { kind: CosmeticKind }) {
+  const s = useSave();
+  const list = COSMETICS[kind];
+  const mine = list.filter((c) => s.owned.includes(cosmeticKey(kind, c.id))).length;
+  return (
+    <section className="card panel">
+      <header className="panel-head">
+        <h2>{KIND_NAME[kind]}</h2>
+        <small className="muted">
+          擁有 {mine} / {list.length}
+        </small>
+      </header>
+      <p className="muted small kind-desc">{KIND_DESC[kind]}</p>
+      {s.equip[kind] && (
+        <button type="button" className="link-btn kind-reset" onClick={() => equipCosmetic(kind, null)}>
+          {kind === 'skin' ? '換回預設的紫色' : kind === 'ambient' ? '取下，改回跟著季節' : `取下目前的${KIND_NAME[kind]}`}
+        </button>
+      )}
+      <div className="looks">
+        {list.map((c) => (
+          <CosmeticCard key={c.id} c={c} />
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -538,7 +548,7 @@ function GachaTab() {
     },
     anim: {
       title: '動態貼紙扭蛋機',
-      desc: `會動的貼紙：揮手、眨眼、冒煙、心跳、搗麻糬……一共 ${animTotal} 張，全部都是稀有以上，可以貼在「我的」頁的貼紙板上。`,
+      desc: `會動的貼紙：揮手、眨眼、冒煙、心跳、搗麻糬……一共 ${animTotal} 張，全部都是稀有以上，可以貼在個人頁的貼紙板上。`,
       odds: `十連抽保底一張超稀有以上。機率：${ANIM_ODDS.map(([r, p]) => `${RARITY_NAME[r]} ${Math.round(p * 100)}%`).join('、')}`,
       cost: ANIM_GACHA_COST,
       cost10: ANIM_GACHA10_COST,
@@ -592,7 +602,7 @@ function GachaTab() {
         <header className="panel-head">
           <h2>貼紙簿</h2>
           <small className="muted">
-            已收集 {have} / {STICKERS.length}・收集到的貼紙可以到 <a href={href('/me?tab=board')}>🧸 我的 → 貼紙板</a> 布置
+            已收集 {have} / {STICKERS.length}・收集到的貼紙可以到 <a href={href('/me?tab=board')}>個人頁 → 貼紙板</a> 布置
           </small>
         </header>
         {THEMES.map((th) => (
@@ -660,7 +670,7 @@ function LookResult({ k, onClose }: { k: string; onClose: () => void }) {
       </div>
       <div className="modal-actions">
         <a className="btn ghost" href={href(`/me?tab=looks&kind=${c.kind}`)} onClick={onClose}>
-          到「我的」換上
+          到個人頁換上
         </a>
         <button type="button" className="btn primary" onClick={onClose} autoFocus>
           好耶

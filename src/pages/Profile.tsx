@@ -1,4 +1,4 @@
-// 成就頁：成就與彩蛋收藏冊（名片、外觀切換、學習紀錄在「我的」頁）
+// 成就頁：成就與彩蛋收藏冊（名片、外觀切換、學習紀錄在個人頁）
 import { Bar, Coin } from '../components/ui';
 import { ACHIEVEMENTS } from '../core/achievements';
 import { EGGS } from '../core/eggData';
@@ -106,7 +106,7 @@ export function ProfilePage() {
         </div>
       </section>
       <p className="muted small ach-note">
-        頭像、名片、外觀切換與學習紀錄都在 <a href={href('/me')}>🧸 我的</a>。
+        頭像、名片、外觀切換與學習紀錄都在 <a href={href('/me')}>個人頁</a>。
       </p>
 
       {/* 手機上頁面很長：提供快速跳到各區塊 */}

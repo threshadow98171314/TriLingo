@@ -1,8 +1,8 @@
-// 外觀商品的預覽圖：商店與「我的」頁共用
+// 外觀商品的預覽圖與分類選擇器：商店與個人頁共用
 import type { CSSProperties } from 'react';
 import { ItemIcon } from '../art/items';
 import { MascotArt } from '../art/mascot';
-import { BURSTS, SKINS, type Burst, type Cosmetic } from '../core/shop';
+import { BURSTS, SKINS, type Burst, type Cosmetic, type CosmeticKind } from '../core/shop';
 import { useSave } from '../core/store';
 import { cx } from '../core/util';
 import { Avatar, Pet } from './Avatar';
@@ -79,5 +79,44 @@ export function BurstIcon({ b, size }: { b?: Burst; size: number }) {
     <span className="burst-icon" style={{ width: size, height: size, '--c1': b?.colors?.[0] ?? '#ffd34d', '--c2': b?.colors?.[1] ?? '#ff9fbf' } as CSSProperties}>
       {glyph ? <b>{glyph}</b> : <ItemIcon id="burst" size={size * 0.8} />}
     </span>
+  );
+}
+
+// ───────── 外觀分類選擇器 ─────────
+
+export type LookKind = CosmeticKind | 'avatar';
+
+/** 外觀的分類：依「名片 → 夥伴 → 特效 → 聲音與主題」排 */
+export const LOOK_KINDS: { id: LookKind; icon: string; name: string }[] = [
+  { id: 'avatar', icon: '🐣', name: '頭像' },
+  { id: 'frame', icon: '🖼️', name: '頭像框' },
+  { id: 'title', icon: '🎖️', name: '稱號' },
+  { id: 'name', icon: '✒️', name: '名牌特效' },
+  { id: 'bg', icon: '🌄', name: '名片背景' },
+  { id: 'pet', icon: '🐹', name: '學習夥伴' },
+  { id: 'outfit', icon: '🎩', name: '喵師父裝扮' },
+  { id: 'ambient', icon: '🍁', name: '飄落特效' },
+  { id: 'totop', icon: '🚀', name: '回頂特效' },
+  { id: 'burst', icon: '✨', name: '答對特效' },
+  { id: 'sound', icon: '🔔', name: '答對音效' },
+  { id: 'skin', icon: '🎨', name: '主題色' },
+];
+
+export const isLookKind = (k: string | null | undefined): k is LookKind => LOOK_KINDS.some((x) => x.id === k);
+
+/** 所有分類一次排出來（會換行，不用左右滑），點一下只顯示那一類 */
+export function KindPicker({ value, onPick, count }: { value: LookKind; onPick: (k: LookKind) => void; count: (k: LookKind) => string }) {
+  return (
+    <div className="kind-picker" role="tablist" aria-label="外觀分類">
+      {LOOK_KINDS.map((k) => (
+        <button key={k.id} type="button" role="tab" aria-selected={value === k.id} className={cx('kind-btn', value === k.id && 'on')} onClick={() => onPick(k.id)}>
+          <span className="kind-icon" aria-hidden>
+            {k.icon}
+          </span>
+          <span className="kind-name">{k.name}</span>
+          <small>{count(k.id)}</small>
+        </button>
+      ))}
+    </div>
   );
 }

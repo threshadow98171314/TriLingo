@@ -12,7 +12,7 @@ import { Coin, flameTier } from './ui';
 const NAV = [
   { to: '/', icon: '🏠', label: '首頁', match: (p: string[]) => p.length === 0 || p[0] === 'l' },
   { to: '/profile', icon: '🏆', label: '成就', match: (p: string[]) => p[0] === 'profile' },
-  { to: '/me', icon: '🧸', label: '我的', match: (p: string[]) => p[0] === 'me' },
+  { to: '/me', icon: '', label: '個人', match: (p: string[]) => p[0] === 'me' },
   { to: '/shop', icon: '🛒', label: '商店', match: (p: string[]) => p[0] === 'shop' },
   { to: '/settings', icon: '⚙️', label: '設定', match: (p: string[]) => p[0] === 'settings' },
 ];
@@ -87,7 +87,7 @@ export function TopBar({ route }: { route: Route }) {
           <a className="stat" href={href('/shop')} title="金幣" data-coin-target>
             <Coin n={s.coins} />
           </a>
-          <a className={cx('avatar', route.parts[0] === 'me' && 'on')} href={href('/me')} title={`${s.name}・我的`}>
+          <a className={cx('avatar', route.parts[0] === 'me' && 'on')} href={href('/me')} title={`${s.name}・個人頁`}>
             <Avatar id={s.avatar} frame={s.equip.frame} size={30} />
           </a>
         </div>
@@ -97,11 +97,19 @@ export function TopBar({ route }: { route: Route }) {
 }
 
 export function BottomNav({ route }: { route: Route }) {
+  const s = useSave();
   return (
     <nav className="bottomnav">
       {NAV.map((n) => (
         <a key={n.to} href={href(n.to)} className={cx(n.match(route.parts) && 'on')}>
-          <span>{n.icon}</span>
+          {/* 「個人」用自己的頭像當圖示 */}
+          {n.icon ? (
+            <span>{n.icon}</span>
+          ) : (
+            <span className="nav-avatar">
+              <Avatar id={s.avatar} size={24} />
+            </span>
+          )}
           {n.label}
         </a>
       ))}

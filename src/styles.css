@@ -1192,16 +1192,15 @@ rt {
 
 .tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   padding: 5px;
   border-radius: 16px;
   background: var(--card);
   border: 1px solid var(--line);
-  overflow-x: auto;
-  scrollbar-width: none;
 }
 .tabs a {
-  flex: 1;
+  flex: 1 1 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3812,14 +3811,9 @@ button.dex-tile:hover {
 
 /* ───────── 成就頁：快速跳轉 ───────── */
 .jump-bar {
-  position: sticky;
-  /* 緊貼在頂部導覽列（高 59px）下方 */
-  top: 58px;
-  z-index: 20;
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
   padding: 6px;
   margin: 0 -6px;
   background: color-mix(in srgb, var(--bg) 88%, transparent);
@@ -4085,6 +4079,12 @@ button.dex-tile:hover {
   line-height: 1;
 }
 @media (max-width: 520px) {
+  /* 手機上分頁很多（日文有 7 個）：排成兩列，全部看得到 */
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(var(--tab-cols, 4), minmax(0, 1fr));
+    overflow: visible;
+  }
   .tabs a {
     flex-direction: column;
     gap: 2px;
@@ -4585,6 +4585,8 @@ kbd,
 }
 .try-list {
   display: grid;
+  /* 欄寬不跟著輸入框的預設寬度撐大 */
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   margin-bottom: 14px;
 }
@@ -4615,6 +4617,8 @@ kbd,
 .try-form .type-input {
   flex: 1;
   width: auto;
+  /* 輸入框預設有最小寬度，手機上會把整張卡片撐出畫面 */
+  min-width: 0;
   margin: 0;
   padding: 8px 12px;
   font-size: 1.1rem;
@@ -4837,7 +4841,7 @@ kbd,
 .looks {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 136px), 1fr));
 }
 .look {
   display: grid;
@@ -4870,9 +4874,19 @@ kbd,
 }
 .look-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 6px;
   margin-top: 4px;
+}
+/* 按鈕裡的字不換行：放不下就整顆換到下一行，不會變成直排 */
+.look-actions > * {
+  flex: none;
+  white-space: nowrap;
+}
+.try-btn {
+  padding-inline: 10px;
 }
 .frame-preview {
   display: grid;
@@ -6103,5 +6117,126 @@ p.small {
   .topbar-in:has(.stat.cloud, .stat.boost) .brand b,
   .stat .boost-x {
     display: none;
+  }
+}
+
+/* ───────── 外觀分類選擇器（商店、個人頁） ───────── */
+.kind-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 12px;
+}
+@media (min-width: 620px) {
+  .kind-picker {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+.kind-btn {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  min-width: 0;
+  padding: 7px 2px 6px;
+  border-radius: 14px;
+  border: 2px solid var(--line);
+  background: var(--card);
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+.kind-btn:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+}
+.kind-btn.on {
+  color: var(--text);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--card));
+}
+.kind-icon {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.kind-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.kind-btn small {
+  font-size: 0.68rem;
+  font-weight: 700;
+  opacity: 0.8;
+}
+.kind-desc {
+  margin: -4px 0 4px;
+}
+.kind-reset {
+  justify-self: start;
+  padding-left: 0;
+}
+
+/* ───────── 特價標示 ───────── */
+.sale-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 0.78rem;
+}
+.sale-was {
+  color: var(--muted);
+}
+.sale-was s {
+  text-decoration-thickness: 2px;
+}
+.sale-off {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #ff6b6b 18%, transparent);
+  color: #ff6b6b;
+  font-weight: 900;
+}
+.moffer .mystery-buy {
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* 底部導覽「個人」：自己的頭像 */
+.bottomnav a .nav-avatar {
+  display: grid;
+  place-items: center;
+  height: 1.56rem;
+  filter: none;
+  opacity: 0.75;
+}
+.bottomnav a.on .nav-avatar {
+  opacity: 1;
+}
+
+/* 設定頁：手機上控制項放不下時換到下一行（語音選單＋試聽、主題三選一） */
+@media (max-width: 520px) {
+  .set-row {
+    flex-wrap: wrap;
+  }
+  /* 標題至少留 9 個字寬，控制項放不下就整個換行（不會把標題擠成直排） */
+  .set-row .grow {
+    min-width: 9em;
+  }
+  .set-ctl {
+    max-width: 100%;
+    min-width: 0;
+    margin-left: auto;
+  }
+  .set-ctl select {
+    min-width: 0;
+    max-width: 210px;
   }
 }

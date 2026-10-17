@@ -476,7 +476,8 @@ function spawnAmbientOne(k: AmbientKind, warm = false) {
       else add({ shape: 'star', x: rand(0, W), y: rand(0, H * 0.7), size: rand(4, 8), color: pick(['#ffffff', '#fff3b0', '#c4b5ff']), life: rand(9500, 12000), fadeIn: 1200, twinkle: rand(0.002, 0.005), phase: rand(0, 6) });
       return;
     case 'halloween':
-      glyphFall(Math.random() < 0.4 ? ['🎃', '🦇'] : ['🍁', '🍂']);
+      // 萬聖節：南瓜、蝙蝠、幽靈、糖果、蜘蛛網（不混楓葉，免得看起來像秋天落葉）
+      glyphFall(['🎃', '🎃', '🦇', '🦇', '👻', '🍬', '🕸️']);
       return;
     case 'leaf':
       glyphFall(['🍁', '🍂']);

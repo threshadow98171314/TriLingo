@@ -160,7 +160,7 @@ export interface BoardItem {
   r: number;
 }
 
-/** 貼紙板：「我的」頁可以把收集到的貼紙貼上去布置 */
+/** 貼紙板：個人頁可以把收集到的貼紙貼上去布置 */
 export interface BoardState {
   items: BoardItem[];
   /** 板子的背景（軟木板、筆記本、黑板…） */

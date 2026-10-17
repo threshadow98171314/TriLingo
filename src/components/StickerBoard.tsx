@@ -158,7 +158,7 @@ export function StickerBoard() {
               <StickerArt id={it.id} size="100%" />
             </div>
           ))}
-          {!items.length && <p className="board-empty">點下面「我的貼紙」貼上來，再拖曳到喜歡的位置</p>}
+          {!items.length && <p className="board-empty">點下面「貼紙收藏」裡的貼紙貼上來，再拖曳到喜歡的位置</p>}
         </div>
 
         <div className="board-tools" aria-label="調整選取的貼紙">
@@ -209,7 +209,7 @@ export function StickerBoard() {
 
       <section className="card panel">
         <header className="panel-head">
-          <h2>我的貼紙</h2>
+          <h2>貼紙收藏</h2>
           <small className="muted">
             {owned.length} 種・同一種貼紙最多貼擁有的張數・<a href={href('/shop?tab=gacha')}>去轉扭蛋</a>
           </small>

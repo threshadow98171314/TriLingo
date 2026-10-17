@@ -217,7 +217,7 @@ export const PETS: Cosmetic[] = [
   { kind: 'pet', id: '🐲', name: '小龍', desc: '會冒出小火花的龍寶寶，只在神秘商品出現。', cost: 450, anim: true, rare: true },
 ];
 
-/** 名牌特效：「我的」頁名片上的名字 */
+/** 名牌特效：個人頁名片上的名字 */
 export const NAMES: Cosmetic[] = [
   { kind: 'name', id: 'sakura', name: '櫻花粉', desc: '名字染上柔和的櫻花漸層。', cost: 100 },
   { kind: 'name', id: 'ice', name: '冰晶藍', desc: '冰涼透明的藍色漸層。', cost: 100 },
@@ -228,7 +228,7 @@ export const NAMES: Cosmetic[] = [
   { kind: 'name', id: 'star', name: '星光閃爍', desc: '名字旁邊有星星在閃，只在神秘商品出現。', cost: 400, anim: true, rare: true },
 ];
 
-/** 名片背景：「我的」頁最上方的名片 */
+/** 名片背景：個人頁最上方的名片 */
 export const BGS: Cosmetic[] = [
   { kind: 'bg', id: 'sunset', name: '晚霞', desc: '橘粉色的傍晚天空。', cost: 150 },
   { kind: 'bg', id: 'bamboo', name: '竹林', desc: '嵐山竹林的清新綠意。', cost: 150 },
@@ -268,7 +268,7 @@ export const AMBIENTS: Cosmetic[] = [
   { kind: 'ambient', id: 'clover', name: '幸運草', desc: '四葉幸運草帶來好運。', cost: 120, icon: '🍀☘️🍀' },
   { kind: 'ambient', id: 'sweets', name: '甜點', desc: '糖果、糰子、甜甜圈掉下來。', cost: 120, icon: '🍬🍡🍩' },
   { kind: 'ambient', id: 'rain', name: '梅雨', desc: '六月的細雨，適合安靜念書。', cost: 120, icon: 'rain' },
-  { kind: 'ambient', id: 'halloween', name: '萬聖節', desc: '南瓜、蝙蝠和落葉一起飄。', cost: 140, icon: '🎃🦇🍂' },
+  { kind: 'ambient', id: 'halloween', name: '萬聖節', desc: '南瓜、蝙蝠、幽靈和糖果一起飄。', cost: 140, icon: '🎃🦇👻' },
   { kind: 'ambient', id: 'lantern', name: '平溪天燈', desc: '溫暖的天燈慢慢升上夜空。', cost: 220, icon: 'lantern' },
   { kind: 'ambient', id: 'meteor', name: '流星雨', desc: '流星劃過星空，快許願！只在神秘商品出現。', cost: 380, rare: true, icon: 'meteor' },
   { kind: 'ambient', id: 'coin', name: '金幣雨', desc: '金幣一直掉下來，只在神秘商品出現。', cost: 400, rare: true, icon: 'coin' },

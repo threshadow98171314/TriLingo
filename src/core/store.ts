@@ -760,7 +760,7 @@ export function setBoard(patch: { items?: BoardItem[]; bg?: string }) {
 
 export type LookPull = { kind: 'cosmetic'; key: string } | ({ kind: 'sticker' } & GachaPull);
 
-/** 外觀扭蛋：抽到一件還沒有的外觀（不會自動換上，到「我的」頁切換）；沒抽中就是一張動態貼紙 */
+/** 外觀扭蛋：抽到一件還沒有的外觀（不會自動換上，到個人頁切換）；沒抽中就是一張動態貼紙 */
 export function pullLook(): LookPull | null {
   let out: LookPull | null = null;
   mutate((d) => {

@@ -107,7 +107,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   a('收藏', 'sticker_30', '📚', '貼紙大收藏家', '收集 30 種貼紙', 30, stickers, 120),
   a('收藏', 'sticker_anim5', '✨', '會動的收藏', '收集 5 種動態貼紙', 5, (s) => STICKERS.filter((x) => x.anim && (s.stickers[x.id] ?? 0) > 0).length, 80),
   a('收藏', 'sticker_all', '🌈', '貼紙簿完成', `收集全部 ${STICKERS.length} 種貼紙`, STICKERS.length, stickers, 500),
-  a('收藏', 'board_8', '🖼️', '貼紙板設計師', '在「我的」頁的貼紙板上貼 8 張貼紙', 8, (s) => s.board.items.length, 40),
+  a('收藏', 'board_8', '🖼️', '貼紙板設計師', '在個人頁的貼紙板上貼 8 張貼紙', 8, (s) => s.board.items.length, 40),
   a('收藏', 'looks_3', '🎨', '時尚達人', '擁有 3 件外觀（頭像框、主題色、特效、稱號或裝扮）', 3, (s) => s.owned.length, 40),
 
   ...TIERS.slice(1).map((t, i) =>
