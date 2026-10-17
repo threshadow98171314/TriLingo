@@ -217,7 +217,7 @@ export const PETS: Cosmetic[] = [
   { kind: 'pet', id: '🐲', name: '小龍', desc: '會冒出小火花的龍寶寶，只在神秘商品出現。', cost: 450, anim: true, rare: true },
 ];
 
-/** 名牌特效：個人頁上的名字 */
+/** 名牌特效：「我的」頁名片上的名字 */
 export const NAMES: Cosmetic[] = [
   { kind: 'name', id: 'sakura', name: '櫻花粉', desc: '名字染上柔和的櫻花漸層。', cost: 100 },
   { kind: 'name', id: 'ice', name: '冰晶藍', desc: '冰涼透明的藍色漸層。', cost: 100 },
@@ -228,7 +228,7 @@ export const NAMES: Cosmetic[] = [
   { kind: 'name', id: 'star', name: '星光閃爍', desc: '名字旁邊有星星在閃，只在神秘商品出現。', cost: 400, anim: true, rare: true },
 ];
 
-/** 名片背景：個人頁最上方的卡片 */
+/** 名片背景：「我的」頁最上方的名片 */
 export const BGS: Cosmetic[] = [
   { kind: 'bg', id: 'sunset', name: '晚霞', desc: '橘粉色的傍晚天空。', cost: 150 },
   { kind: 'bg', id: 'bamboo', name: '竹林', desc: '嵐山竹林的清新綠意。', cost: 150 },

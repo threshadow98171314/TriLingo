@@ -25,6 +25,7 @@ import { MatchPage } from './pages/MatchGame';
 import { MemoryPage } from './pages/Memory';
 import { MockPage } from './pages/Mock';
 import { LessonPage, ListenPage, ReviewPage, TypingPage } from './pages/Practice';
+import { MePage } from './pages/Me';
 import { ProfilePage } from './pages/Profile';
 import { SettingsPage } from './pages/Settings';
 import { ShopPage } from './pages/Shop';
@@ -43,6 +44,7 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
 
   if (p.length === 0) return view(<Home />);
   if (p[0] === 'profile') return view(<ProfilePage />);
+  if (p[0] === 'me') return view(<MePage />);
   if (p[0] === 'shop') return view(<ShopPage />);
   if (p[0] === 'settings') return view(<SettingsPage />);
   if (p[0] === 'help') return view(<HelpPage />);

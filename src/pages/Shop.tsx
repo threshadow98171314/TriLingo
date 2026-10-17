@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { AVATAR_NAME, AvatarArt } from '../art/avatars';
 import { FramePreview, ItemIcon } from '../art/items';
-import { MascotArt } from '../art/mascot';
 import { RARITY_NAME, STICKER_BY_ID, STICKERS, StickerArt, type Sticker } from '../art/stickers';
-import { Avatar, Pet } from '../components/Avatar';
+import { Avatar } from '../components/Avatar';
+import { CosmeticPreview } from '../components/LookPreview';
 import { useBoostLeft } from '../components/Layout';
 import { Coin, Modal } from '../components/ui';
 import { nowMs } from '../core/date';
@@ -35,7 +35,6 @@ import {
   SOUNDS,
   TITLES,
   TOTOPS,
-  type Burst,
   type Cosmetic,
   type CosmeticKind,
   type MysteryOffer,
@@ -312,81 +311,6 @@ function ItemsTab() {
 
 // ───────── 外觀 ─────────
 
-/** 外觀的預覽圖 */
-function CosmeticPreview({ c, size = 64 }: { c: Cosmetic; size?: number }) {
-  const s = useSave();
-  switch (c.kind) {
-    case 'frame':
-      return (
-        <span className="frame-preview" style={{ width: size, height: size }}>
-          <Avatar id={s.avatar} frame={c.id} size={size * 0.72} />
-        </span>
-      );
-    case 'skin': {
-      const sk = SKINS.find((x) => x.id === c.id);
-      return (
-        <span className="skin-swatch" style={{ width: size, height: size, '--a': sk?.a, '--b': sk?.b } as CSSProperties}>
-          <i />
-          <i />
-        </span>
-      );
-    }
-    case 'burst':
-      return <BurstIcon b={BURSTS.find((x) => x.id === c.id)} size={size} />;
-    case 'title':
-      return <ItemIcon id="title" size={size} />;
-    case 'outfit':
-      return <MascotArt outfit={c.id} size={size} />;
-    case 'pet':
-      return (
-        <span className="pet-preview">
-          <Pet id={c.id} size={size * 0.85} />
-        </span>
-      );
-    case 'name':
-      return <span className={cx('name-sample', `name-fx-${c.id}`)}>{s.name || '學習者'}</span>;
-    case 'bg':
-      return <span className={cx('bg-swatch pbg', `pbg-${c.id}`)} />;
-    case 'sound':
-      return <ItemIcon id="burst" size={size * 0.85} />;
-    case 'ambient':
-      return <AmbientPreview c={c} size={size} />;
-    case 'totop':
-      return (
-        <span className="totop-prev" style={{ width: size, height: size }}>
-          <b>{c.icon}</b>
-        </span>
-      );
-  }
-}
-
-/** 飄落特效的小預覽：幾個圖案在框框裡慢慢飄 */
-export function AmbientPreview({ c, size = 64 }: { c: Cosmetic; size?: number }) {
-  const icon = c.icon ?? '';
-  // 用畫的（銀杏、泡泡、雨滴…）只放空的 <i>，由 CSS 畫出來；其他直接放文字或 emoji
-  const drawn = /^[a-z]+$/.test(icon);
-  const chars = drawn ? ['', '', '', ''] : [...icon];
-  const rise = ['heart', 'bubble', 'note', 'lantern', 'firefly'].includes(c.id);
-  return (
-    <span className={cx('amb-prev', `amb-${c.id}`, rise && 'rise')} style={{ width: size, height: size }}>
-      {[...chars, ...chars].slice(0, drawn ? 4 : 5).map((ch, i) => (
-        <i key={i} style={{ '--i': i } as CSSProperties}>
-          {ch}
-        </i>
-      ))}
-    </span>
-  );
-}
-
-function BurstIcon({ b, size }: { b?: Burst; size: number }) {
-  const glyph = b?.glyphs?.[0];
-  return (
-    <span className="burst-icon" style={{ width: size, height: size, '--c1': b?.colors?.[0] ?? '#ffd34d', '--c2': b?.colors?.[1] ?? '#ff9fbf' } as CSSProperties}>
-      {glyph ? <b>{glyph}</b> : <ItemIcon id="burst" size={size * 0.8} />}
-    </span>
-  );
-}
-
 function CosmeticCard({ c }: { c: Cosmetic }) {
   const s = useSave();
   const key = cosmeticKey(c.kind, c.id);
@@ -457,13 +381,13 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
 }
 
 const LOOK_SECTIONS: [CosmeticKind, string, Cosmetic[]][] = [
-  ['frame', '框住你的頭像，個人頁和上方導覽列都看得到。標「✨ 動態」的會動！', FRAMES],
+  ['frame', '框住你的頭像，「我的」頁名片和上方導覽列都看得到。標「✨ 動態」的會動！', FRAMES],
   ['pet', '上課時陪在進度條旁邊：答對會跳、答錯會一起難過，連擊 5 題還會轉一圈。', PETS],
-  ['name', '個人頁上的名字特效。', NAMES],
-  ['bg', '個人頁最上方的名片背景，動態背景會飄花瓣、閃星星。', BGS],
+  ['name', '「我的」頁名片上的名字特效。', NAMES],
+  ['bg', '「我的」頁最上方的名片背景，動態背景會飄花瓣、閃星星。', BGS],
   ['ambient', '網站背景一直飄落的東西，按「試看」先看 8 秒。沒有裝備時跟著季節（秋天楓葉、冬天雪花…）。', AMBIENTS],
   ['totop', '頁面往下捲之後，右下角會出現「回到頂端」按鈕，按下去會播放這個特效。', TOTOPS],
-  ['title', '顯示在個人頁名字下面，限定稱號有文字特效。', TITLES],
+  ['title', '顯示在名片的名字下面，限定稱號有文字特效。', TITLES],
   ['burst', '答對時爆出來的特效。', BURSTS],
   ['sound', '答對時的聲音，可以先試聽。', SOUNDS],
   ['skin', '換掉整個網站的強調色（按鈕、進度條、連結）。', SKINS],
@@ -474,6 +398,13 @@ function LooksTab() {
   const s = useSave();
   const avatars = [...FREE_AVATARS, ...SHOP_AVATARS, ...PREMIUM_AVATARS, ...s.avatars.filter((a) => ![...FREE_AVATARS, ...SHOP_AVATARS, ...PREMIUM_AVATARS].includes(a))];
   const jump = (id: string) => document.getElementById(`look-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // 從「我的」頁點「到商店看看」：直接跳到那一類
+  const kind = useRoute().query.get('kind');
+  useEffect(() => {
+    if (!kind) return;
+    const t = setTimeout(() => document.getElementById(`look-${kind}`)?.scrollIntoView({ block: 'start' }), 50);
+    return () => clearTimeout(t);
+  }, [kind]);
   return (
     <>
       <nav className="looks-nav" aria-label="外觀分類">

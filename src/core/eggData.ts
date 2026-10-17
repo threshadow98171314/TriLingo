@@ -1,4 +1,4 @@
-// 彩蛋清單（純資料）。觸發方式寫在 eggs.ts 與 store.ts；收藏冊在個人頁。
+// 彩蛋清單（純資料）。觸發方式寫在 eggs.ts 與 store.ts；收藏冊在成就頁。
 // 提示故意寫得有點隱晦，但看得懂的人一定找得到。
 
 export interface EggDef {
