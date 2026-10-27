@@ -12,6 +12,7 @@ import { SKINS } from './core/shop';
 import { useSave } from './core/store';
 import { LANGS, type LangId } from './core/types';
 import { ArtGallery } from './pages/ArtGallery';
+import { BigTwoPage } from './pages/BigTwo';
 import { BlitzPage } from './pages/Blitz';
 import { CardDuelPage } from './pages/CardDuel';
 import { CrosswordPage } from './pages/Crossword';
@@ -28,6 +29,7 @@ import { LessonPage, ListenPage, ReviewPage, TypingPage } from './pages/Practice
 import { MePage } from './pages/Me';
 import { ProfilePage } from './pages/Profile';
 import { SettingsPage } from './pages/Settings';
+import { SevensPage } from './pages/Sevens';
 import { ShopPage } from './pages/Shop';
 import { TrueFalsePage } from './pages/TrueFalse';
 import { TypingGuidePage } from './pages/TypingGuide';
@@ -89,6 +91,8 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
         if (p[3] === 'crossword') return gated(<CrosswordPage lang={lang} daily={route.query.get('daily') === '1'} />);
         if (p[3] === 'match') return gated(<MatchPage lang={lang} />);
         if (p[3] === 'duel') return gated(<CardDuelPage lang={lang} />);
+        if (p[3] === 'sevens') return gated(<SevensPage lang={lang} />);
+        if (p[3] === 'bigtwo') return gated(<BigTwoPage lang={lang} />);
         if (p[3] === 'chain') return gated(<WordChainPage lang={lang} />);
         if (p[3] === 'wordle') return gated(<WordlePage lang={lang} daily={route.query.get('daily') === '1'} />);
         if (p[3] === 'blitz') return gated(<BlitzPage lang={lang} />);

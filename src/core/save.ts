@@ -114,6 +114,11 @@ export interface Stats {
   /** 接龍對戰：玩完的場數、贏的場數 */
   chains: number;
   chainWins: number;
+  /** 排七、大老二：玩完的局數、拿第一的局數 */
+  sevens: number;
+  sevensWins: number;
+  bigtwo: number;
+  bigtwoWins: number;
 }
 
 /** 道具庫存（連勝保護在 streak.freezes、雙倍 XP 在 boostUntil） */
@@ -331,6 +336,10 @@ export function defaultSave(now: number): Save {
       wordles: 0,
       chains: 0,
       chainWins: 0,
+      sevens: 0,
+      sevensWins: 0,
+      bigtwo: 0,
+      bigtwoWins: 0,
     },
     best: { blitz: { en: 0, ja: 0, ko: 0 }, match: {}, memory: {}, tf: { en: 0, ja: 0, ko: 0 }, duel: { en: 0, ja: 0, ko: 0 }, chain: { en: 0, ja: 0, ko: 0 } },
     stage: {},

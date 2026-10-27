@@ -1725,6 +1725,8 @@ button.dex-tile:hover {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  /* 進場的滑入動畫不要讓頁面短暫出現左右捲動 */
+  overflow-x: clip;
 }
 .session-top {
   position: sticky;
@@ -2311,11 +2313,11 @@ button.dex-tile:hover {
 .result-parts span {
   color: var(--muted);
 }
+/* 統計數字：放不下就換到下一列（不會把文字擠成直排） */
 .result-lines {
   width: 100%;
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 92px), 1fr));
   gap: 8px;
 }
 .result-lines > div {
@@ -2325,7 +2327,9 @@ button.dex-tile:hover {
   border: 1px solid var(--line);
 }
 .result-lines b {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 .result-lines small {
   color: var(--muted);

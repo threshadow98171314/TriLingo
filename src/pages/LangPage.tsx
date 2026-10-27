@@ -324,7 +324,17 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
 
 // ───────── 遊樂場 ─────────
 
+type ArcadeCat = 'daily' | 'table' | 'words' | 'skills';
+
+const ARCADE_CATS: [ArcadeCat, string, string][] = [
+  ['daily', '⭐', '每日'],
+  ['table', '🃏', '對戰與牌桌'],
+  ['words', '🧩', '單字遊戲'],
+  ['skills', '🎧', '聽力與打字'],
+];
+
 interface Game {
+  cat: ArcadeCat;
   icon: string;
   title: string;
   desc: string;
@@ -339,6 +349,7 @@ interface Game {
 
 function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
   useVoices();
+  const [cat, setCat] = useState<ArcadeCat | 'all'>('all');
   const vocab = learnedVocab(s, lang).length;
   const words = learnedVocab(s, lang).filter((i) => i.kind !== 'char').length;
   const pictured = learnedVocab(s, lang).filter((i) => i.kind !== 'char' && pictureOf(i.m)).length;
@@ -352,6 +363,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
   const games: Game[] = [
     {
       icon: '🧠',
+      cat: 'daily',
       title: '今日複習',
       desc: '間隔複習：在快要忘記的時候複習，記得最牢。沒有到期的字時，可以做加強練習。',
       to: `/l/${lang}/review`,
@@ -362,6 +374,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     },
     {
       icon: '⚔️',
+      cat: 'table',
       title: '單字卡牌對決',
       desc: '回合制卡牌冒險：用學過的單字組牌組、一路打上 10 層。出牌前要答對牌上的字，連對 3 題會心一擊；看怪物的意圖決定攻守，挑牌、升級、收集遺物。',
       to: `/l/${lang}/play/duel`,
@@ -371,7 +384,30 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
       hot: s.stats.duels === 0 && words >= UNLOCK.duel,
     },
     {
+      cat: 'table',
+      icon: '🂧',
+      title: '排七',
+      desc: '和 Emma、さくら、민준 四人接龍：每種花色從 7 往上下接，沒牌能接就要蓋牌罰分，罰分最少的贏。每出一張牌前要先答對一個學過的字。',
+      to: `/l/${lang}/play/sevens`,
+      need: UNLOCK.sevens,
+      have: words,
+      badge: s.stats.sevens > 0 ? `第一名 ${s.stats.sevensWins} 次` : '新・牌桌',
+      hot: s.stats.sevens === 0 && words >= UNLOCK.sevens,
+    },
+    {
+      cat: 'table',
+      icon: '🂢',
+      title: '大老二',
+      desc: '四人比誰先出完：單張、對子、順子、葫蘆、鐵支、同花順，2 最大、黑桃最大。每次出牌前要先答對一個學過的字，答錯就只能過。',
+      to: `/l/${lang}/play/bigtwo`,
+      need: UNLOCK.bigtwo,
+      have: words,
+      badge: s.stats.bigtwo > 0 ? `第一名 ${s.stats.bigtwoWins} 次` : '新・牌桌',
+      hot: s.stats.bigtwo === 0 && words >= UNLOCK.bigtwo,
+    },
+    {
       icon: '🔗',
+      cat: 'table',
       title: lang === 'ja' ? '接龍對戰（しりとり）' : lang === 'ko' ? '接龍對戰（끝말잇기）' : '接龍對戰（Word Chain）',
       desc:
         lang === 'ja'
@@ -386,6 +422,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     },
     {
       icon: '🔠',
+      cat: 'words',
       title: '猜詞',
       desc:
         lang === 'en'
@@ -400,6 +437,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     },
     {
       icon: '📆',
+      cat: 'daily',
       title: '每日猜詞',
       desc: '每天一題，從整個課程出題（可能是還沒學過的字），猜中多拿 15 XP。',
       to: `/l/${lang}/play/wordle?daily=1`,
@@ -410,6 +448,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     },
     {
       icon: '🧩',
+      cat: 'words',
       title: '填字遊戲',
       desc: '看中文提示，把學過的單字填進交叉的格子裡。每次都是新的盤面。',
       to: `/l/${lang}/play/crossword`,
@@ -418,6 +457,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     },
     {
       icon: '📅',
+      cat: 'daily',
       title: '每日填字',
       desc: '每天一題固定的題目，完成可以多拿 20 XP。',
       to: `/l/${lang}/play/crossword?daily=1`,
@@ -428,6 +468,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     },
     {
       icon: '🃏',
+      cat: 'words',
       title: '配對消消樂',
       desc: '和時間賽跑，把單字和意思配成一對消掉。三回合計時。',
       to: `/l/${lang}/play/match`,
@@ -437,6 +478,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     },
     {
       icon: '⏱️',
+      cat: 'words',
       title: '限時快答',
       desc: '60 秒內能答對幾題？連擊越高，每題分數越多；答錯會扣時間。',
       to: `/l/${lang}/play/blitz`,
@@ -446,6 +488,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     },
     {
       icon: '🎧',
+      cat: 'skills',
       title: '聽力特訓',
       desc: '不看字，只聽聲音選意思。朝「不用字幕」的目標前進。',
       to: `/l/${lang}/play/listen`,
@@ -457,6 +500,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
   games.push(
     {
       icon: '🖼️',
+      cat: 'words',
       title: '看圖猜字',
       desc: '看可愛的插圖選出單字，或看單字選出插圖。動物、食物、地點、日用品…學過的字越多，圖越多。',
       to: `/l/${lang}/play/pics`,
@@ -467,6 +511,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     },
     {
       icon: '🗂️',
+      cat: 'words',
       title: '分類大挑戰',
       desc: lang === 'en' ? '把單字放進正確的主題，還有一回合要分詞性（名詞、動詞、形容詞），多益文法題最愛考。' : '把學過的單字放進正確的主題分類，用情境把字串起來，記得更牢。',
       to: `/l/${lang}/play/sort`,
@@ -476,6 +521,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     },
     {
       icon: '✅',
+      cat: 'words',
       title: '真假快判',
       desc: '字和意思配對正確嗎？45 秒內憑直覺按 ✓ 或 ✗，連擊越高分數越多。',
       to: `/l/${lang}/play/truefalse`,
@@ -485,6 +531,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     },
     {
       icon: '🃏',
+      cat: 'words',
       title: '記憶翻牌',
       desc: '12 張蓋著的牌，一次翻兩張，把字和意思配成一對。考驗記憶力也複習單字。',
       to: `/l/${lang}/play/memory`,
@@ -496,6 +543,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
   if (lang === 'ja') {
     games.push({
       icon: 'あ',
+      cat: 'words',
       title: '假名對對碰',
       desc: '翻牌找出平假名和對應的片假名（あ↔ア），兩種假名一起記熟。',
       to: `/l/${lang}/play/memory?kana=1`,
@@ -507,6 +555,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     games.push(
       {
         icon: '⌨️',
+        cat: 'skills',
         title: '打字特訓',
         desc:
           lang === 'ja'
@@ -520,6 +569,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
       },
       {
         icon: '🎹',
+        cat: 'skills',
         title: '打字教室',
         desc: lang === 'ja' ? '促音、長音、ん、拗音、外來語怎麼打？看說明，當場試打。' : '韓文鍵盤配置、雙子音、複合母音、收尾音怎麼打？看說明，當場試打。',
         to: `/l/${lang}/typing-guide`,
@@ -529,38 +579,70 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     );
   }
 
+  const shown = cat === 'all' ? ARCADE_CATS.map((c) => c[0]) : [cat];
   return (
-    <div className="arcade">
-      {games.map((g) => {
-        const locked = g.have < g.need;
+    <>
+      {/* 遊戲很多：依類型分組，可以只看一類 */}
+      <div className="arcade-cats" role="tablist" aria-label="遊戲分類">
+        {([['all', '🎮', '全部'], ...ARCADE_CATS] as [ArcadeCat | 'all', string, string][]).map(([id, icon, name]) => {
+          const list = id === 'all' ? games : games.filter((g) => g.cat === id);
+          const hot = list.some((g) => g.hot && g.have >= g.need);
+          return (
+            <button key={id} type="button" role="tab" aria-selected={cat === id} className={cx('arcade-cat', cat === id && 'on')} onClick={() => setCat(id)}>
+              <span aria-hidden>{icon}</span>
+              {name}
+              <small>{list.length}</small>
+              {hot && <i className="arcade-dot" aria-label="有新挑戰" />}
+            </button>
+          );
+        })}
+      </div>
+      {shown.map((c) => {
+        const list = games.filter((g) => g.cat === c);
+        if (!list.length) return null;
+        const [, icon, name] = ARCADE_CATS.find((x) => x[0] === c)!;
         return (
-          <article key={g.title} className={cx('game card', locked && 'locked', g.hot && !locked && 'hot')}>
-            <div className="game-icon">{g.icon}</div>
-            <div className="grow">
-              <h3>
-                {g.title}
-                {g.badge && !locked && <span className={cx('chip', g.hot && 'warn')}>{g.badge}</span>}
+          <section key={c} className="arcade-group">
+            {cat === 'all' && (
+              <h3 className="group-label">
+                {icon} {name}
               </h3>
-              <p className="muted">{g.desc}</p>
-              {locked ? (
-                <div className="game-lock">
-                  <Bar v={g.have / g.need} />
-                  <small>
-                    🔒 再學會 {g.need - g.have} 個字詞就能解鎖（{g.have} / {g.need}）
-                  </small>
-                </div>
-              ) : g.blocked ? (
-                <small className="warn-text">{g.blocked}</small>
-              ) : (
-                <a className="btn primary small" href={href(g.to)}>
-                  開始
-                </a>
-              )}
+            )}
+            <div className="arcade">
+              {list.map((g) => {
+                const locked = g.have < g.need;
+                return (
+                  <article key={g.title} className={cx('game card', locked && 'locked', g.hot && !locked && 'hot')}>
+                    <div className="game-icon">{g.icon}</div>
+                    <div className="grow">
+                      <h3>
+                        {g.title}
+                        {g.badge && !locked && <span className={cx('chip', g.hot && 'warn')}>{g.badge}</span>}
+                      </h3>
+                      <p className="muted">{g.desc}</p>
+                      {locked ? (
+                        <div className="game-lock">
+                          <Bar v={g.have / g.need} />
+                          <small>
+                            🔒 再學會 {g.need - g.have} 個字詞就能解鎖（{g.have} / {g.need}）
+                          </small>
+                        </div>
+                      ) : g.blocked ? (
+                        <small className="warn-text">{g.blocked}</small>
+                      ) : (
+                        <a className="btn primary small" href={href(g.to)}>
+                          開始
+                        </a>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
-          </article>
+          </section>
         );
       })}
-    </div>
+    </>
   );
 }
 

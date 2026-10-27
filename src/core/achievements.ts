@@ -101,6 +101,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   a('遊戲', 'memory_10', '🃏', '過目不忘', '完成 10 次記憶翻牌', 10, (s) => s.stats.memories, 30),
   a('遊戲', 'blitz_200', '⏱️', '手腦並用', '限時快答拿到 200 分', 200, bestBlitz, 20),
   a('遊戲', 'blitz_500', '🚀', '快答之神', '限時快答拿到 500 分', 500, bestBlitz, 80),
+  a('遊戲', 'cards_1', '🂡', '牌桌初體驗', '排七或大老二拿到第一名', 1, (s) => s.stats.sevensWins + s.stats.bigtwoWins, 20),
+  a('遊戲', 'cards_10', '🎴', '牌桌常勝軍', '排七、大老二合計拿到 10 次第一名', 10, (s) => s.stats.sevensWins + s.stats.bigtwoWins, 80),
   a('遊戲', 'coins_500', '💰', '小富翁', '累計獲得 500 金幣', 500, (s) => s.coinsEarned, 50),
   a('收藏', 'sticker_1', '🎴', '第一張貼紙', '從扭蛋機抽到第一張貼紙', 1, stickers, 10),
   a('收藏', 'sticker_12', '📒', '貼紙收藏家', '收集 12 種貼紙', 12, stickers, 60),

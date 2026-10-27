@@ -1,11 +1,12 @@
 // 單字卡牌對決：回合制卡牌冒險（規則在 engine/duel.ts）。
 // 每張牌都綁著一個學過的字，出牌前要答題：答對全力發動、連對 3 題變會心一擊、答錯威力減半。
 // 冒險進度存在這台裝置的 localStorage，離開再回來可以接著玩。
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { MonsterArt } from '../art/monsters';
 import { ResultScreen, type ResultData } from '../components/Result';
-import { Modal, SpeakBtn, Tx } from '../components/ui';
-import { courseIndex, META } from '../content';
+import { Modal, Tx } from '../components/ui';
+import { buildQuiz, QuizPanel, useWords, wordsOk, type QMode, type Quiz, type Words } from '../components/WordQuiz';
+import { META } from '../content';
 import { learnedVocab, UNLOCK } from '../core/progress';
 import { sample } from '../core/rng';
 import { sfx } from '../core/sfx';
@@ -13,10 +14,10 @@ import { finishGame, getSave, recordAnswer, useSave } from '../core/store';
 import type { LangId, VocabItem } from '../core/types';
 import { cx } from '../core/util';
 import * as D from '../engine/duel';
-import { front, headOf, isVocab, readingEx, recall, recog, sayOf, type ChoiceEx } from '../engine/exercises';
+import { front } from '../engine/exercises';
 import { hasKanji } from '../engine/furigana';
 import { nav } from '../router';
-import { Blocked, ctxOf } from './Practice';
+import { Blocked } from './Practice';
 
 const storeKey = (lang: LangId) => `trilingo.duel.${lang}`;
 
@@ -40,34 +41,6 @@ function storeRun(lang: LangId, run: D.Run | null) {
   }
 }
 
-// ───────── 單字與題目 ─────────
-
-interface Words {
-  ids: string[];
-  get: (id: string) => VocabItem | undefined;
-  pool: (i: VocabItem) => VocabItem[];
-}
-
-const wordsOk = (i: VocabItem) => i.kind !== 'char';
-
-function useWords(lang: LangId): Words {
-  return useMemo(() => {
-    const idx = courseIndex(lang).items;
-    const learned = learnedVocab(getSave(), lang).filter(wordsOk);
-    const byId = new Map(learned.map((i) => [i.id, i]));
-    return {
-      ids: learned.map((i) => i.id),
-      get: (id: string) => byId.get(id) ?? (idx.get(id)?.item as VocabItem | undefined),
-      pool: (i: VocabItem) => {
-        const same = (idx.get(i.id)?.unit.items ?? []).filter(isVocab).filter(wordsOk);
-        return same.length >= 8 ? same : [...same, ...sample(learned, 24)];
-      },
-    };
-  }, [lang]);
-}
-
-type QMode = 'w2m' | 'm2w' | 'read';
-
 /** 攻擊牌：看字選意思；防禦牌：看意思選字；技能、能力牌：日文有漢字的考讀音，其他看字選意思 */
 function qmodeOf(c: D.CardInst, item: VocabItem, lang: LangId): QMode {
   const t = D.CARDS[c.id].type;
@@ -82,12 +55,6 @@ function faceOf(mode: QMode, item: VocabItem, lang: LangId): { s: string; lang: 
   if (mode === 'm2w') return { s: item.m, lang: 'zh' };
   if (mode === 'read') return { s: item.w, lang };
   return { s: front(item, lang), lang };
-}
-
-function buildQuiz(mode: QMode, item: VocabItem, pool: VocabItem[], lang: LangId): ChoiceEx {
-  const ctx = { ...ctxOf(lang), typing: false };
-  if (mode === 'read') return readingEx(item, pool, ctx) ?? recog(item, pool, ctx);
-  return mode === 'm2w' ? recall(item, pool, ctx) : recog(item, pool, ctx);
 }
 
 // ───────── 小元件 ─────────
@@ -193,87 +160,6 @@ function DeckList({ deck, lang, pick, filter }: { deck: D.CardInst[]; lang: Lang
         const ok = !filter || filter(c);
         return <CardFace key={c.uid} c={c} lang={lang} small dim={!ok} onClick={pick && ok ? () => pick(c) : undefined} />;
       })}
-    </div>
-  );
-}
-
-// ───────── 答題 ─────────
-
-interface Quiz {
-  uid: number;
-  target?: number;
-  ex: ChoiceEx;
-  item: VocabItem;
-  seconds: number;
-  started: number;
-  picked?: number;
-}
-
-function QuizPanel({ quiz, lang, title, onPick, onDone }: { quiz: Quiz; lang: LangId; title: ReactNode; onPick: (i: number) => void; onDone: () => void }) {
-  const [now, setNow] = useState(Date.now());
-  const answered = quiz.picked !== undefined;
-  const left = Math.max(0, quiz.seconds * 1000 - (now - quiz.started));
-  // 父層重新渲染時 callback 會換新的：用 ref 拿最新的，計時器才不會被重設
-  const cb = useRef({ onPick, onDone });
-  cb.current = { onPick, onDone };
-  useEffect(() => {
-    if (answered) return;
-    const t = setInterval(() => setNow(Date.now()), 100);
-    return () => clearInterval(t);
-  }, [answered]);
-  useEffect(() => {
-    if (!answered && left <= 0) cb.current.onPick(-1);
-  }, [answered, left]);
-  const correct = quiz.picked === quiz.ex.answer;
-  // 答對很快繼續，答錯多停一下讓你看正解
-  useEffect(() => {
-    if (!answered) return;
-    const t = setTimeout(() => cb.current.onDone(), correct ? 900 : 2400);
-    return () => clearTimeout(t);
-  }, [answered, correct]);
-
-  return (
-    <div className="dquiz card">
-      <div className="dquiz-head">
-        {title}
-        <div className="dquiz-time">
-          <i style={{ width: `${(left / (quiz.seconds * 1000)) * 100}%` }} className={cx(left < 3000 && 'low')} />
-        </div>
-      </div>
-      <p className="ex-label">{quiz.ex.label}</p>
-      {quiz.ex.prompt && (
-        <div className={cx('dquiz-prompt', quiz.ex.big && 'big')}>
-          <Tx s={quiz.ex.prompt.s} lang={quiz.ex.prompt.lang} />
-        </div>
-      )}
-      <div className="dquiz-opts">
-        {quiz.ex.options.map((o, i) => (
-          <button
-            key={i}
-            type="button"
-            className={cx('opt', answered && i === quiz.ex.answer && 'right', answered && i === quiz.picked && i !== quiz.ex.answer && 'wrong')}
-            disabled={answered}
-            onClick={() => {
-              // 剛跳出來的 0.3 秒內不收答案：避免點牌時連點到選項
-              if (Date.now() - quiz.started > 300) onPick(i);
-            }}
-          >
-            <Tx s={o.s} lang={o.lang} />
-          </button>
-        ))}
-      </div>
-      {answered && (
-        <div className={cx('dquiz-reveal', correct ? 'ok' : 'bad')}>
-          <b>{correct ? '答對了！' : quiz.picked === -1 ? '時間到！' : '答錯了'}</b>
-          <span>
-            <Tx s={headOf(quiz.item)} lang={lang} />　{quiz.item.m}
-          </span>
-          <SpeakBtn text={sayOf(quiz.item, lang)} lang={lang} size="sm" />
-          <button type="button" className="link-btn" onClick={onDone}>
-            繼續 →
-          </button>
-        </div>
-      )}
     </div>
   );
 }

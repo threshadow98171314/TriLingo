@@ -206,6 +206,7 @@ export const TITLES: Cosmetic[] = [
   { kind: 'title', id: 'chain', name: '接龍王', desc: 'しりとり、끝말잇기都難不倒你。', cost: 0, tier: 3, earn: goal('接龍對戰贏 20 場', 20, (s) => s.stats.chainWins) },
   { kind: 'title', id: 'combo', name: '連擊之王', desc: '一路答對停不下來。', cost: 0, tier: 3, earn: goal('最高連擊達到 50', 50, (s) => s.stats.maxCombo) },
   { kind: 'title', id: 'cardmaster', name: '卡牌大師', desc: '單字卡牌對決的常勝軍。', cost: 0, tier: 3, earn: goal('單字卡牌對決通關 3 次', 3, (s) => s.stats.duelWins) },
+  { kind: 'title', id: 'tableking', name: '牌桌王者', desc: '排七卡人、大老二壓人，牌桌上沒有對手。', cost: 0, tier: 3, earn: goal('排七、大老二合計拿到 15 次第一名', 15, (s) => s.stats.sevensWins + s.stats.bigtwoWins) },
   { kind: 'title', id: 'collector', name: '千詞收藏家', desc: '腦袋裡已經有一千個字。', cost: 0, tier: 3, earn: goal('學會 1,000 個單字或短句', 1000, (s) => learned(s)) },
   { kind: 'title', id: 'streak30', name: '月月精進', desc: '一整個月沒有一天偷懶。', cost: 0, tier: 3, earn: goal('連勝紀錄達到 30 天', 30, (s) => s.streak.best) },
   // ───── 白金：達成條件，彩虹流光 ─────

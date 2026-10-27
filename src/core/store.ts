@@ -416,7 +416,7 @@ export function finishLesson(a: { lang: LangId; unit: Unit; lesson: Lesson; stat
   return out;
 }
 
-export type GameId = 'review' | 'crossword' | 'match' | 'blitz' | 'listen' | 'typing' | 'truefalse' | 'memory' | 'pics' | 'sort' | 'duel' | 'wordle' | 'chain';
+export type GameId = 'review' | 'crossword' | 'match' | 'blitz' | 'listen' | 'typing' | 'truefalse' | 'memory' | 'pics' | 'sort' | 'duel' | 'wordle' | 'chain' | 'sevens' | 'bigtwo';
 
 export function finishGame(a: {
   lang: LangId;
@@ -495,6 +495,12 @@ export function finishGame(a: {
         record = (d.best.chain[a.lang] ?? 0) > 0;
         d.best.chain[a.lang] = score;
       }
+    } else if (a.game === 'sevens') {
+      d.stats.sevens++;
+      if (a.win) d.stats.sevensWins++;
+    } else if (a.game === 'bigtwo') {
+      d.stats.bigtwo++;
+      if (a.win) d.stats.bigtwoWins++;
     } else if (a.game === 'wordle') {
       if (a.win) d.stats.wordles++;
       if (a.daily && !log.dailyWordle?.[a.lang]) {

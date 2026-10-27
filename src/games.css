@@ -990,3 +990,404 @@ button.dcard:hover:not(.dim) {
   text-align: center;
   margin: -8px 0 24px;
 }
+
+/* ───────── 撲克牌：排七、大老二 ───────── */
+.pcard {
+  --cw: 50px;
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--cw);
+  aspect-ratio: 5 / 7;
+  padding: 0;
+  border-radius: 7px;
+  border: 1px solid #c3cadb;
+  background: linear-gradient(180deg, #ffffff, #f1f4fb);
+  color: #1d2340;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+  font: inherit;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s,
+    opacity 0.15s;
+}
+button.pcard {
+  cursor: pointer;
+}
+.pcard.red {
+  color: #d63a3a;
+}
+.pc-corner {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  display: grid;
+  justify-items: center;
+  font-size: calc(var(--cw) * 0.3);
+  line-height: 1;
+}
+.pc-corner b {
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+.pc-corner i {
+  font-style: normal;
+  font-size: 0.85em;
+}
+.pc-suit {
+  position: absolute;
+  right: 4px;
+  bottom: 3px;
+  font-size: calc(var(--cw) * 0.52);
+  line-height: 1;
+}
+.pcard.sel {
+  transform: translateY(-12px);
+  box-shadow:
+    0 0 0 3px var(--accent),
+    0 8px 16px rgba(0, 0, 0, 0.3);
+}
+.pcard.hint {
+  transform: translateY(-7px);
+  box-shadow:
+    0 0 0 2px #ffd34d,
+    0 0 14px rgba(255, 211, 77, 0.8);
+}
+.pcard.dim {
+  filter: brightness(0.78) saturate(0.7);
+}
+.pcard.shake {
+  animation: chest-shake 0.35s ease-in-out;
+}
+.pcard.small {
+  --cw: 34px;
+}
+/* 手牌：一列排開，張數多時自動重疊（手機上不會超出畫面） */
+.hand {
+  --cw: 50px;
+  display: flex;
+  justify-content: center;
+  padding: 16px 2px 4px;
+}
+.hand > .pcard {
+  --cw: inherit;
+}
+.hand > .pcard + .pcard {
+  margin-left: min(6px, calc((100% - var(--n) * var(--cw)) / (var(--n) - 1)));
+}
+@media (min-width: 640px) {
+  .hand {
+    --cw: 60px;
+  }
+}
+/* 對手座位 */
+.seats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.seat {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 14px;
+  border: 2px solid var(--line);
+  background: var(--card);
+}
+.seat.on {
+  border-color: var(--accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.seat-info {
+  display: grid;
+  min-width: 0;
+}
+.seat-info b {
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.seat-info small {
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.seat-note {
+  position: absolute;
+  top: -9px;
+  right: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.seat-think {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  width: 22px;
+  height: 8px;
+  translate: -50% 0;
+  border-radius: 99px;
+  background:
+    radial-gradient(circle, var(--accent) 2px, transparent 2.5px) 0 50% / 7px 8px repeat-x,
+    var(--card);
+  animation: seat-think 1s steps(3) infinite;
+}
+@keyframes seat-think {
+  from {
+    clip-path: inset(0 66% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@media (max-width: 460px) {
+  .seat {
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 4px;
+    text-align: center;
+  }
+  .seat-info {
+    justify-items: center;
+  }
+}
+/* 牌桌（綠色絨布） */
+.sv-board,
+.bt-table {
+  padding: 10px;
+  border-radius: 16px;
+  background: radial-gradient(circle at 50% 30%, #2f8a5a, #1b5236);
+  box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+.sv-board {
+  display: grid;
+  gap: 5px;
+}
+.sv-row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 4px;
+}
+.sv-suit {
+  color: #fff;
+  font-size: 1.1rem;
+  text-align: center;
+}
+.sv-row.red .sv-suit {
+  color: #ffb0b0;
+}
+.sv-slots {
+  display: grid;
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+  gap: 2px;
+}
+.sv-slot {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 5 / 7;
+  border-radius: 4px;
+  border: 1px dashed rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+.sv-slot.seven:not(.on) {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.sv-slot.next {
+  border: 1px solid #ffd34d;
+  color: #ffe680;
+}
+.sv-slot.on {
+  border: 1px solid #c3cadb;
+  background: #fff;
+  color: #1d2340;
+}
+.sv-row.red .sv-slot.on {
+  color: #d63a3a;
+}
+@media (min-width: 640px) {
+  .sv-slot {
+    font-size: 0.78rem;
+  }
+}
+.bt-table {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 8px;
+  min-height: 118px;
+}
+.bt-played {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+.bt-played .pcard {
+  --cw: 46px;
+}
+.bt-who {
+  color: #e8fff0;
+  font-weight: 800;
+}
+.bt-preview {
+  min-height: 1.4em;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+.bt-preview .bad {
+  color: var(--bad, #ff6b6b);
+}
+.bt-preview .good {
+  color: var(--ok, #3fb27f);
+}
+.cards-body {
+  display: grid;
+  /* 欄寬填滿（父層的置中會讓欄位縮成內容寬度） */
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 10px;
+}
+.cards-status {
+  margin: 0;
+  min-height: 1.4em;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.cards-status.mine {
+  color: var(--text);
+  font-weight: 800;
+}
+.cards-note {
+  display: grid;
+  gap: 2px;
+}
+/* 提示訊息（答錯、蓋牌…）：固定留一行高度，出現時畫面不會跳 */
+.cards-msg {
+  margin: 0;
+  min-height: 1.3em;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent-2, #ff9f5a);
+}
+.cards-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.cards-actions > * {
+  white-space: nowrap;
+}
+.cards-intro {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+.cards-intro h1 {
+  margin: 0;
+}
+.cards-hero {
+  display: flex;
+  gap: 6px;
+  padding: 8px 0;
+}
+.cards-hero .pcard {
+  --cw: 60px;
+}
+.cards-hero .pcard:first-child {
+  transform: rotate(-10deg) translateY(6px);
+}
+.cards-hero .pcard:last-child {
+  transform: rotate(10deg) translateY(6px);
+}
+.rules {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 1.2em;
+  text-align: left;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+.level-pick {
+  width: 100%;
+}
+.seg.level-pick button {
+  gap: 2px;
+  /* 說明文字要能換行，不然三個按鈕會把卡片撐出畫面 */
+  white-space: normal;
+  min-width: 0;
+}
+.level-pick small {
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+/* ───────── 遊樂場分類 ───────── */
+.arcade-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.arcade-cat {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.arcade-cat small {
+  padding: 0 6px;
+  border-radius: 99px;
+  background: var(--card-2);
+  font-size: 0.7rem;
+}
+.arcade-cat.on {
+  color: var(--text);
+  border-color: var(--lang, var(--accent));
+  background: color-mix(in srgb, var(--lang, var(--accent)) 18%, var(--card));
+}
+.arcade-dot {
+  position: absolute;
+  top: 1px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff6b6b;
+}
+.arcade-group + .arcade-group {
+  margin-top: 16px;
+}
+.arcade-group .group-label {
+  margin: 0 0 8px;
+}
+/* 牌類遊戲：桌機上牌桌寬一點，手牌不用重疊太多 */
+.cards-game .session-body {
+  max-width: 900px;
+}
