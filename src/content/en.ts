@@ -13,6 +13,7 @@ import { DRILL_P5A } from './en-drill-p5a';
 import { DRILL_P5B } from './en-drill-p5b';
 import { DRILL_P5C } from './en-drill-p5c';
 import { EN_MORE } from './en-more';
+import { EN_BIZ_UNITS, EN_LIFE_UNITS, EN_TRAVEL_UNITS } from './en-scenes';
 import { ORANGE_BANK } from './en-orange-bank';
 import { TOWN_UNITS } from './en-town';
 
@@ -307,6 +308,9 @@ export const UNITS: Record<string, Unit[]> = {
   'en.gold': GOLD_BANK,
   'en.drill': [...DRILL_P5A, ...DRILL_P5B, ...DRILL_P5C, ...DRILL_LR],
   'en.town': TOWN_UNITS,
+  'en.travel': EN_TRAVEL_UNITS,
+  'en.biz': EN_BIZ_UNITS,
+  'en.life': EN_LIFE_UNITS,
 };
 
 // 學習路線單字的補充例句（答對時隨機挑一句顯示）

@@ -534,7 +534,7 @@ export function NoteView({ ex, lang }: { ex: NoteEx; lang: LangId }) {
   const { note } = ex;
   return (
     <div className="ex ex-note">
-      <span className="teach-tag">文法重點</span>
+      <span className="teach-tag">{ex.tag ?? '文法重點'}</span>
       <h2>
         <Ruby s={note.title} />
       </h2>

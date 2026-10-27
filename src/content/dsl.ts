@@ -299,6 +299,14 @@ export function placeUnit(id: string, icon: string, title: string, intro: Gramma
   return unit;
 }
 
+/**
+ * 情境單元（旅遊、商務、生活）：每一課是一個小情境（例如「接電話」），附一張說明卡
+ * （使用時機、文化、禮貌程度），最後一課通常是情境應答題（聽對方說的話，選出合適的回答）。
+ */
+export function sceneUnit(id: string, icon: string, title: string, subtitle: string, parts: GrammarPart[]): Unit {
+  return grammarUnit(id, icon, title, subtitle, parts, 'phrases');
+}
+
 /** 題庫單元：一串克漏字或應答題，自動每 per 題切成一課（題庫路線用） */
 export function drillUnit(id: string, icon: string, title: string, subtitle: string, items: Item[], per = 6, kind: UnitKind = 'grammar'): Unit {
   const parts = chunkEven(items, per).map((g, i) => ({ title: `第 ${i + 1} 組`, items: g }));

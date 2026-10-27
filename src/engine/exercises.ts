@@ -92,6 +92,8 @@ export interface TeachEx {
 export interface NoteEx {
   t: 'note';
   note: GrammarNote;
+  /** 卡片上方的標籤，預設「文法重點」（情境課是「情境說明」） */
+  tag?: string;
 }
 export type Exercise = ChoiceEx | TilesEx | TypeEx | TypeWordEx | MatchEx | TeachEx | NoteEx;
 
@@ -656,7 +658,8 @@ export function buildLesson(unit: Unit, lesson: Lesson, ctx: Ctx, isSeen: (id: s
   const byId = new Map(unit.items.map((i) => [i.id, i]));
   const items = lesson.itemIds.map((id) => byId.get(id)).filter((x): x is Item => !!x);
   if (lesson.boss) return bossFlow(items, unit.items, ctx);
-  const out: Exercise[] = (lesson.notes ?? []).map((n) => ({ t: 'note', note: n }));
+  const tag = unit.kind === 'phrases' ? '情境說明' : undefined;
+  const out: Exercise[] = (lesson.notes ?? []).map((n) => ({ t: 'note', note: n, tag }));
   // 重玩已學過的課：跳過教學卡，直接練習
   const skipTeach = items.every((i) => isSeen(i.id));
   // 干擾選項只用「到這一課為止教過的」項目：還沒教的字一眼就能刪掉，起不了干擾作用

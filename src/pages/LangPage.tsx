@@ -252,8 +252,8 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
     return () => clearTimeout(t);
   }, [stage.id]);
   const groups = [
-    { label: course.pathLabel, stages: course.stages.filter((x) => x.group === 'main') },
-    { label: course.trackLabel ?? '', stages: course.stages.filter((x) => x.group === 'track') },
+    { label: course.pathLabel, kind: 'main', stages: course.stages.filter((x) => x.group === 'main') },
+    { label: course.trackLabel ?? '', kind: 'track', stages: course.stages.filter((x) => x.group === 'track') },
   ].filter((g) => g.stages.length);
 
   return (
@@ -261,7 +261,7 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
       {groups.map((g) => (
         <div key={g.label} className="stage-group">
           <h3 className="group-label">{g.label}</h3>
-          <div className="stage-row">
+          <div className={cx('stage-row', g.kind)}>
             {g.stages.map((st) => (
               <StageCard key={st.id} lang={lang} stage={st} s={s} active={st.id === stage.id} />
             ))}

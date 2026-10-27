@@ -1,4 +1,4 @@
-// 日文：五十音 → N5 → N4 → N3 → N2 → N1，另有旅遊、動漫兩條主題路線
+// 日文：五十音 → N5 → N4 → N3 → N2 → N1，另有情境小鎮、旅遊、商務、生活、動漫等主題路線
 import type { Unit } from '../core/types';
 import { attachMore, moreTable } from './dsl';
 import { KANA_UNITS } from './ja-kana';
@@ -12,6 +12,7 @@ import { N4_BANK } from './ja-n4-bank';
 import { N5_UNITS } from './ja-n5';
 import { N5_BANK } from './ja-n5-bank';
 import { TOWN_UNITS } from './ja-town';
+import { JA_BIZ_UNITS, JA_LIFE_UNITS, JA_TRAVEL_MORE } from './ja-scenes';
 import { JA_ANIME_UNITS, JA_TRAVEL_UNITS } from './ja-tracks';
 
 /** 各關卡的單元（關卡名稱、說明、預定大綱在 meta.ts） */
@@ -22,7 +23,9 @@ export const UNITS: Record<string, Unit[]> = {
   'ja.n3': [...N3_UNITS, ...N3_BANK],
   'ja.n2': [...N2_UNITS, ...N2_BANK],
   'ja.town': TOWN_UNITS,
-  'ja.travel': JA_TRAVEL_UNITS,
+  'ja.travel': [...JA_TRAVEL_UNITS, ...JA_TRAVEL_MORE],
+  'ja.biz': JA_BIZ_UNITS,
+  'ja.life': JA_LIFE_UNITS,
   'ja.anime': JA_ANIME_UNITS,
 };
 

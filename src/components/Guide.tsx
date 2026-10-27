@@ -133,7 +133,7 @@ export function exHintOf(ex: Exercise): { id: string; text: string } | null {
     case 'teach':
       return { id: 'ex:teach', text: '新內容先看教學卡：按 🔊 聽發音，看懂了就按「繼續」。' };
     case 'note':
-      return { id: 'ex:note', text: '文法重點：先看說明和例句，接下來的練習都會用到。' };
+      return { id: 'ex:note', text: `${ex.tag ?? '文法重點'}：先看說明和例句，接下來的練習都會用到。` };
     case 'match':
       return { id: 'ex:match', text: '先點左邊、再點右邊，把對應的兩張配成一對。' };
     case 'type':
