@@ -20,7 +20,6 @@ export interface Settings {
   /** 粒子特效、震動、橫幅 */
   fx: boolean;
   /** 背景的季節特效（落葉、櫻花、雪花…） */
-  seasonal: boolean;
   /** 日文打字題（需要日文輸入法） */
   jaTyping: boolean;
   /** 韓文打字題（需要韓文鍵盤） */
@@ -287,7 +286,7 @@ export function defaultSave(now: number): Save {
     name: '學習者',
     avatar: FREE_AVATARS[0],
     avatars: [...FREE_AVATARS],
-    settings: { dailyGoal: 50, sfx: true, autoSpeak: true, ttsRate: 1, romaji: true, furigana: true, theme: 'dark', voices: {}, fx: true, seasonal: true, jaTyping: true, koTyping: true },
+    settings: { dailyGoal: 50, sfx: true, autoSpeak: true, ttsRate: 1, romaji: true, furigana: true, theme: 'dark', voices: {}, fx: true, jaTyping: true, koTyping: true },
     xp: { en: 0, ja: 0, ko: 0 },
     coins: 0,
     coinsEarned: 0,
@@ -361,11 +360,14 @@ export function migrate(raw: unknown, now: number): Save {
   const d = defaultSave(now);
   if (!raw || typeof raw !== 'object') return d;
   const x = raw as Partial<Save>;
+  // 舊版的「季節特效」開關已改成商店的「四季更迭」（預設不飄），舊欄位拿掉
+  const settings: Settings & { seasonal?: boolean } = { ...d.settings, ...x.settings };
+  delete settings.seasonal;
   return {
     ...d,
     ...x,
     v: 1,
-    settings: { ...d.settings, ...x.settings },
+    settings,
     xp: { ...d.xp, ...x.xp },
     streak: { ...d.streak, ...x.streak },
     stats: { ...d.stats, ...x.stats },

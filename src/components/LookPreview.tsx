@@ -3,10 +3,13 @@ import type { CSSProperties } from 'react';
 import { ItemIcon } from '../art/items';
 import { MascotArt } from '../art/mascot';
 import { CardScene } from '../art/scenes';
-import { BURSTS, SKINS, TITLE_TIER_NAME, type Burst, type Cosmetic, type CosmeticKind } from '../core/shop';
+import { nowMs } from '../core/date';
+import { seasonOf } from '../core/fx';
+import { AMBIENTS, BURSTS, SKINS, TITLE_TIER_NAME, type Burst, type Cosmetic, type CosmeticKind } from '../core/shop';
 import { useSave } from '../core/store';
 import { cx } from '../core/util';
 import { Avatar, Pet } from './Avatar';
+import { WallSwatch } from './Wall';
 
 /** 外觀的預覽圖 */
 export function CosmeticPreview({ c, size = 64 }: { c: Cosmetic; size?: number }) {
@@ -59,11 +62,15 @@ export function CosmeticPreview({ c, size = 64 }: { c: Cosmetic; size?: number }
           <b>{c.icon}</b>
         </span>
       );
+    case 'wall':
+      return <WallSwatch id={c.id} size={size} />;
   }
 }
 
 /** 飄落特效的小預覽：幾個圖案在框框裡慢慢飄 */
-export function AmbientPreview({ c, size = 64 }: { c: Cosmetic; size?: number }) {
+export function AmbientPreview({ c: item, size = 64 }: { c: Cosmetic; size?: number }) {
+  // 四季更迭：預覽現在這一季飄的東西
+  const c = item.id === 'season' ? (AMBIENTS.find((a) => a.id === seasonOf(new Date(nowMs()))) ?? item) : item;
   const icon = c.icon ?? '';
   // 用畫的（銀杏、泡泡、雨滴…）只放空的 <i>，由 CSS 畫出來；其他直接放文字或 emoji
   const drawn = /^[a-z]+$/.test(icon);
@@ -133,6 +140,7 @@ export const LOOK_KINDS: { id: LookKind; icon: string; name: string }[] = [
   { id: 'bg', icon: '🌄', name: '名片背景' },
   { id: 'pet', icon: '🐹', name: '學習夥伴' },
   { id: 'outfit', icon: '🎩', name: '喵師父裝扮' },
+  { id: 'wall', icon: '🌌', name: '網站背景' },
   { id: 'ambient', icon: '🍁', name: '飄落特效' },
   { id: 'totop', icon: '🚀', name: '回頂特效' },
   { id: 'burst', icon: '✨', name: '答對特效' },

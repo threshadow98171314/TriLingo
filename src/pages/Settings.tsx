@@ -3,9 +3,9 @@ import { useRef, useState, type ReactNode } from 'react';
 import { Modal } from '../components/ui';
 import { connect, disconnect, syncNow, useCloud } from '../core/cloud';
 import { META_LIST } from '../content';
-import { nowMs, today } from '../core/date';
+import { today } from '../core/date';
 import { tapCount, triggerEgg } from '../core/eggs';
-import { fx, seasonOf, SEASON_LABEL } from '../core/fx';
+import { fx } from '../core/fx';
 import { sfx } from '../core/sfx';
 import { exportSave, importSave, resetGuides, resetSave, updateSettings, useSave } from '../core/store';
 import { listenMutedUntil, speak, unmuteListening, useVoices, voicesFor } from '../core/tts';
@@ -145,7 +145,6 @@ export function SettingsPage() {
   const [msg, setMsg] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
   const [muteUntil, setMuteUntil] = useState(() => listenMutedUntil());
-  const season = seasonOf(new Date(nowMs()));
 
   const download = () => {
     const blob = new Blob([exportSave()], { type: 'application/json' });
@@ -308,9 +307,6 @@ export function SettingsPage() {
               if (v) setTimeout(() => fx.confetti(60), 50);
             }}
           />
-        </Row>
-        <Row title="季節特效" desc={`沒有裝備商店的「飄落特效」時，背景隨季節飄落葉、櫻花、雪花${season ? `（現在是${SEASON_LABEL[season]}）` : ''}`}>
-          <Toggle on={set.seasonal} label="季節特效" onChange={(v) => updateSettings({ seasonal: v })} />
         </Row>
         <Row title="主題">
           <div className="seg small">

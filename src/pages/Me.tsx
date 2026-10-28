@@ -9,8 +9,8 @@ import { CardScene } from '../art/scenes';
 import { Coin, LangBadge } from '../components/ui';
 import { META_LIST } from '../content';
 import { ACHIEVEMENTS } from '../core/achievements';
-import { lastDays, nowMs, today } from '../core/date';
-import { fx, seasonOf, SEASON_LABEL } from '../core/fx';
+import { lastDays, today } from '../core/date';
+import { fx } from '../core/fx';
 import { rankOf, TIERS } from '../core/ranks';
 import type { Save } from '../core/save';
 import { BURSTS, COSMETICS, cosmeticKey, KIND_NAME, TITLE_TIER_NAME, TITLES, type Cosmetic, type CosmeticKind } from '../core/shop';
@@ -115,7 +115,8 @@ const NONE_LABEL: Record<CosmeticKind, string> = {
   name: '一般名牌',
   bg: '預設背景',
   title: '不顯示',
-  ambient: '跟著季節',
+  ambient: '不飄',
+  wall: '預設背景',
   totop: '預設星光',
   burst: '預設特效',
   sound: '預設音效',
@@ -130,6 +131,7 @@ const KIND_HINT: Record<CosmeticKind, string> = {
   bg: '名片的背景',
   title: '名字下面的稱號',
   ambient: '網站背景一直飄落的東西',
+  wall: '整個網站最底層的背景',
   totop: '按「回到頂端」時的特效',
   burst: '答對時爆出來的特效',
   sound: '答對時的聲音',
@@ -153,7 +155,6 @@ function Tile({ on, onClick, label, children, className }: { on: boolean; onClic
 
 function Wardrobe() {
   const s = useSave();
-  const season = seasonOf(new Date(nowMs()));
   // 從扭蛋結果點「到個人頁換上」：直接打開那一類
   const q = useRoute().query.get('kind');
   const [kind, setKind] = useState<LookKind>(isLookKind(q) ? q : 'avatar');
@@ -200,7 +201,7 @@ function Wardrobe() {
 
   const all = COSMETICS[kind];
   const mine = all.filter((c) => s.owned.includes(cosmeticKey(kind, c.id)));
-  const none = kind === 'ambient' && season ? `跟著季節（${SEASON_LABEL[season]?.replace(/^.*的/, '')}）` : NONE_LABEL[kind];
+  const none = NONE_LABEL[kind];
   return (
     <>
       <KindPicker value={kind} onPick={pick} count={count} />
@@ -214,7 +215,7 @@ function Wardrobe() {
         <div className={cx('ward-grid', kind === 'title' && 'wide')}>
           <Tile on={!s.equip[kind]} label={none} className="none" onClick={() => equipCosmetic(kind, null)}>
             <span className="ward-none" aria-hidden>
-              {kind === 'ambient' ? '🍂' : '∅'}
+              ∅
             </span>
           </Tile>
           {mine.map((c) => (

@@ -6,10 +6,11 @@ import { GachaArt } from '../art/machines';
 import { RARITY_NAME, STICKER_BY_ID, STICKERS, StickerArt, type Sticker } from '../art/stickers';
 import { Avatar } from '../components/Avatar';
 import { CosmeticPreview, isLookKind, KindPicker, LOOK_KINDS, type LookKind } from '../components/LookPreview';
+import { previewWall } from '../components/Wall';
 import { useBoostLeft } from '../components/Layout';
 import { Bar, Coin, Modal } from '../components/ui';
 import { nowMs } from '../core/date';
-import { fx, type AmbientKind } from '../core/fx';
+import { fx, seasonOf, type AmbientKind } from '../core/fx';
 import { FREE_AVATARS } from '../core/save';
 import {
   AVATAR_COST,
@@ -24,6 +25,7 @@ import {
   cosmeticOf,
   GACHA10_COST,
   GACHA_COST,
+  inPrizePool,
   KIND_NAME,
   LOOK_GACHA_COST,
   LOOK_ODDS,
@@ -336,13 +338,29 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
   };
   const [note, setNote] = useState('');
   const tryLook = () => {
-    const done = c.kind === 'ambient' ? fx.previewAmbient(c.id as AmbientKind, 8000) : fx.toTop(card.current?.querySelector('.look-art') ?? card.current, c.id);
+    const amb = c.id === 'season' ? seasonOf(new Date(nowMs())) : (c.id as AmbientKind);
+    const done = c.kind === 'ambient' ? fx.previewAmbient(amb, 8000) : fx.toTop(card.current?.querySelector('.look-art') ?? card.current, c.id);
     setNote(done ? (c.kind === 'ambient' ? '背景正在試看 8 秒' : '') : '特效已關閉（設定或系統的減少動態效果）');
     if (!done || c.kind === 'ambient') setTimeout(() => setNote(''), 3000);
   };
-  // 試用按鈕：答對特效、回頂特效「試放」，飄落特效「試看」，音效「試聽」
+  const tryWall = () => {
+    previewWall(c.id);
+    setNote('背景正在試看 8 秒');
+    setTimeout(() => setNote(''), 3000);
+  };
+  // 試用按鈕：答對特效、回頂特效「試放」，飄落特效、網站背景「試看」，音效「試聽」
   const tryBtn: [string, () => void] | null =
-    c.kind === 'burst' ? ['✨ 試放', tryBurst] : c.kind === 'sound' ? ['🔊 試聽', () => sfx.preview(c.id)] : c.kind === 'ambient' ? ['👀 試看', tryLook] : c.kind === 'totop' ? ['🚀 試放', tryLook] : null;
+    c.kind === 'burst'
+      ? ['✨ 試放', tryBurst]
+      : c.kind === 'sound'
+        ? ['🔊 試聽', () => sfx.preview(c.id)]
+        : c.kind === 'ambient'
+          ? ['👀 試看', tryLook]
+          : c.kind === 'wall'
+            ? ['👀 試看', tryWall]
+            : c.kind === 'totop'
+              ? ['🚀 試放', tryLook]
+              : null;
   return (
     <div ref={card} className={cx('look card', owned && 'owned', on && 'on', c.rare && 'rare', c.anim && 'anim')}>
       <div className="look-badges">
@@ -406,7 +424,8 @@ export const KIND_DESC: Record<CosmeticKind, string> = {
   bg: '個人頁最上方的名片背景。',
   pet: '上課時陪在進度條旁邊：答對會跳、答錯會一起難過，連擊 5 題還會轉一圈。',
   outfit: '首頁的喵師父會穿上。',
-  ambient: '網站背景一直飄落的東西，按「試看」先看 8 秒。沒有裝備時跟著季節（秋天楓葉、冬天雪花…）。',
+  ambient: '網站背景一直飄落的東西，按「試看」先看 8 秒。預設不飄；「四季更迭」只要 1 金幣，會跟著季節換。',
+  wall: '整個網站最底層的背景，按「試看」先看 8 秒。圖案都很淡，不會干擾閱讀；深色、淺色主題各有一套配色。',
   totop: '頁面往下捲之後，右下角會出現「回到頂端」按鈕，按下去會播放這個特效。',
   burst: '答對時爆出來的特效。',
   sound: '答對時的聲音，可以先試聽。',
@@ -489,7 +508,7 @@ function LookSection({ kind }: { kind: CosmeticKind }) {
       <p className="muted small kind-desc">{KIND_DESC[kind]}</p>
       {s.equip[kind] && (
         <button type="button" className="link-btn kind-reset" onClick={() => equipCosmetic(kind, null)}>
-          {kind === 'skin' ? '換回預設的紫色' : kind === 'ambient' ? '取下，改回跟著季節' : `取下目前的${KIND_NAME[kind]}`}
+          {kind === 'skin' ? '換回預設的紫色' : `取下目前的${KIND_NAME[kind]}`}
         </button>
       )}
       <div className="looks">
@@ -519,7 +538,7 @@ function GachaTab() {
   const animTotal = STICKERS.filter((x) => x.anim).length;
   const lookLeft = Object.values(COSMETICS)
     .flat()
-    .filter((c) => !s.owned.includes(cosmeticKey(c.kind, c.id))).length;
+    .filter((c) => inPrizePool(c) && !s.owned.includes(cosmeticKey(c.kind, c.id))).length;
 
   const pick = (m: Machine) => {
     if (spinning) return;

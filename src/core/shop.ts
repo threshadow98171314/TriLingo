@@ -48,7 +48,7 @@ export const PREMIUM_AVATARS = ['🦄', '🐲', '🐳', '🐻‍❄️', '🦔']
 
 // ───────── 外觀 ─────────
 
-export type CosmeticKind = 'frame' | 'skin' | 'burst' | 'title' | 'outfit' | 'pet' | 'name' | 'bg' | 'sound' | 'ambient' | 'totop';
+export type CosmeticKind = 'frame' | 'skin' | 'burst' | 'title' | 'outfit' | 'pet' | 'name' | 'bg' | 'sound' | 'ambient' | 'totop' | 'wall';
 
 export interface Cosmetic {
   kind: CosmeticKind;
@@ -90,6 +90,7 @@ export const KIND_NAME: Record<CosmeticKind, string> = {
   sound: '答對音效',
   ambient: '飄落特效',
   totop: '回頂特效',
+  wall: '網站背景',
 };
 
 export const FRAMES: Cosmetic[] = [
@@ -283,6 +284,21 @@ export const BGS: Cosmetic[] = [
   { kind: 'bg', id: 'fireworks', name: '煙火大會', desc: '夏日祭典的煙火，只在神秘商品出現。', cost: 480, anim: true, rare: true },
 ];
 
+/** 網站背景：整個網站最底層的背景。圖案都很淡、不搶內容，深色和淺色主題各有一套配色（樣式在 shop.css） */
+export const WALLS: Cosmetic[] = [
+  { kind: 'wall', id: 'starry', name: '星空', desc: '深藍夜空裡的小星星，幾顆亮星慢慢閃；淺色主題是黎明前的天空。', cost: 240, anim: true },
+  { kind: 'wall', id: 'dawn', name: '晨光', desc: '只有柔和的漸層，最不打擾的背景。', cost: 100 },
+  { kind: 'wall', id: 'notebook', name: '筆記本', desc: '橫線筆記本，左邊還有一條紅色邊線。', cost: 150 },
+  { kind: 'wall', id: 'grid', name: '方格紙', desc: '理科筆記的方格紙；深色主題時是工程藍圖。', cost: 150 },
+  { kind: 'wall', id: 'chalk', name: '教室黑板', desc: '擦過的黑板，還留著淡淡的あ、가、A 粉筆字。', cost: 180 },
+  { kind: 'wall', id: 'genkou', name: '原稿紙', desc: '日本的作文稿紙，一格寫一個字，旁邊留空標振假名。', cost: 160 },
+  { kind: 'wall', id: 'shippou', name: '七寶紋', desc: '日本傳統花紋，圓圈一個接一個，代表圓滿與緣分。', cost: 180 },
+  { kind: 'wall', id: 'hanok', name: '韓屋窗格', desc: '韓屋木窗的細格子，後面糊著韓紙。', cost: 180 },
+  { kind: 'wall', id: 'tartan', name: '英倫格紋', desc: '蘇格蘭格紋，淡淡的像一條英國毛毯。', cost: 180 },
+  { kind: 'wall', id: 'galaxy', name: '銀河', desc: '一條淡淡的銀河橫過星空，只在神秘商品出現。', cost: 420, anim: true, rare: true },
+  { kind: 'wall', id: 'aurora', name: '極光夜', desc: '天邊的極光非常緩慢地流動，只在神秘商品出現。', cost: 440, anim: true, rare: true },
+];
+
 /** 答對音效：答對時的聲音（用 Web Audio 即時合成） */
 export const SOUNDS: Cosmetic[] = [
   { kind: 'sound', id: 'bell', name: '風鈴', desc: '叮鈴～清脆的風鈴聲。', cost: 120 },
@@ -309,8 +325,9 @@ export const SOUNDS: Cosmetic[] = [
   { kind: 'sound', id: 'coin', name: '金幣', desc: '每答對一題都像撿到錢，只在神秘商品出現。', cost: 260, rare: true },
 ];
 
-/** 飄落特效：網站背景一直飄的東西（沒有裝備時跟著季節：秋天楓葉、冬天雪花、春天櫻花、夏天螢火蟲） */
+/** 飄落特效：網站背景一直飄的東西（預設不飄；「四季更迭」只要 1 金幣，會跟著季節換） */
 export const AMBIENTS: Cosmetic[] = [
+  { kind: 'ambient', id: 'season', name: '四季更迭', desc: '跟著季節自動換：春櫻、幸運草、梅雨、螢火蟲、秋夜星空、楓葉、萬聖節、銀杏、冬雪。', cost: 1, icon: 'season' },
   { kind: 'ambient', id: 'leaf', name: '楓葉', desc: '紅色、橘色的楓葉一年四季都飄。', cost: 100, icon: '🍁🍂🍁' },
   { kind: 'ambient', id: 'sakura', name: '櫻花', desc: '粉紅色的花瓣翻轉著飄下來。', cost: 120, icon: '🌸🌸🌸' },
   { kind: 'ambient', id: 'snow', name: '雪花', desc: '靜靜飄落的白雪。', cost: 100, icon: '❄❅❆' },
@@ -358,7 +375,11 @@ export const COSMETICS: Record<CosmeticKind, Cosmetic[]> = {
   sound: SOUNDS,
   ambient: AMBIENTS,
   totop: TOTOPS,
+  wall: WALLS,
 };
+
+/** 扭蛋與神秘商品的獎池：不含達成制的稱號，也不含象徵性的 1 金幣商品 */
+export const inPrizePool = (c: Cosmetic) => !c.earn && c.cost >= 10;
 
 export function cosmeticOf(key: string): Cosmetic | undefined {
   const [kind, id] = key.split(':') as [CosmeticKind, string];
@@ -422,7 +443,7 @@ export type LookRoll = { kind: 'cosmetic'; key: string } | { kind: 'sticker'; id
 export function rollLook(rng: Rng, owned: (key: string) => boolean): LookRoll {
   const left = Object.values(COSMETICS)
     .flat()
-    .filter((c) => !c.earn && !owned(cosmeticKey(c.kind, c.id)));
+    .filter((c) => inPrizePool(c) && !owned(cosmeticKey(c.kind, c.id)));
   const rares = left.filter((c) => c.rare);
   const normal = left.filter((c) => !c.rare);
   const r = rng();
@@ -484,7 +505,7 @@ function mysterySlot(day: string, slot: number, owned: (key: string) => boolean)
   const rng = mulberry32(hashStr(`mystery:${day}:${slot}`));
   const unowned = Object.values(COSMETICS)
     .flat()
-    .filter((c) => !c.earn && !owned(cosmeticKey(c.kind, c.id)));
+    .filter((c) => inPrizePool(c) && !owned(cosmeticKey(c.kind, c.id)));
   const avatars = PREMIUM_AVATARS.filter((id) => !owned(`avatar:${id}`));
   if (slot === 0) {
     const rares = unowned.filter((c) => c.rare);

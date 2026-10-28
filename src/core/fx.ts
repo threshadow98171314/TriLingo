@@ -1063,22 +1063,28 @@ export const fx = {
   bump,
 };
 
-/** 依日期決定背景的季節特效 */
-export function seasonOf(d: Date): AmbientKind | null {
+/** 商店的「四季更迭」：依日期換成當季飄落的東西 */
+export function seasonOf(d: Date): AmbientKind {
   const m = d.getMonth() + 1;
   const day = d.getDate();
-  if (m === 10 && day >= 25) return 'halloween';
-  if (m === 10 || m === 11) return 'leaf';
-  if (m === 12 || m === 1 || m === 2) return 'snow';
-  if ((m === 3 && day >= 15) || (m === 4 && day <= 15)) return 'sakura';
-  if (m === 7 || m === 8) return 'firefly';
-  return null;
+  if (m === 10) return day >= 25 ? 'halloween' : 'leaf';
+  if (m === 11) return 'ginkgo';
+  if (m === 12 || m <= 2) return 'snow';
+  if (m === 3 || (m === 4 && day <= 15)) return 'sakura';
+  if (m <= 5) return 'clover';
+  if (m === 6) return 'rain';
+  if (m <= 8) return 'firefly';
+  return 'star';
 }
 
 export const SEASON_LABEL: Partial<Record<AmbientKind, string>> = {
-  leaf: '秋天的落葉',
-  halloween: '萬聖節',
-  snow: '冬天的雪花',
   sakura: '春天的櫻花',
+  clover: '春末的幸運草',
+  rain: '六月的梅雨',
   firefly: '夏夜的螢火蟲',
+  star: '九月的秋夜星空',
+  leaf: '十月的楓葉',
+  halloween: '萬聖節',
+  ginkgo: '十一月的銀杏',
+  snow: '冬天的雪花',
 };

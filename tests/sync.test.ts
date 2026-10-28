@@ -112,6 +112,15 @@ describe('存檔合併', () => {
     expect(s.stats.duels).toBe(0);
   });
 
+  it('舊版的「季節特效」開關拿掉了：讀進來後設定裡沒有這個欄位，也不會自動飄', () => {
+    const old = JSON.parse(JSON.stringify(defaultSave(1000)));
+    old.settings.seasonal = true;
+    const s = migrate(old, 2000);
+    expect('seasonal' in s.settings).toBe(false);
+    expect(s.equip.ambient).toBeUndefined();
+    expect('seasonal' in defaultSave(0).settings).toBe(false);
+  });
+
   it('自己貼的歌詞：每首歌取最後修改的那份；自己加的歌兩邊都保留', () => {
     const line = (ja: string, t?: number) => ({ ja, t });
     const a = base({

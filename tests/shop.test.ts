@@ -4,7 +4,7 @@ import { STICKER_BY_ID, STICKERS } from '../src/art/stickers';
 import { mergeSaves } from '../src/core/merge';
 import { mulberry32 } from '../src/core/rng';
 import { defaultSave, migrate, type Save } from '../src/core/save';
-import { AMBIENT_KINDS, TOTOP_KINDS } from '../src/core/fx';
+import { AMBIENT_KINDS, seasonOf, TOTOP_KINDS } from '../src/core/fx';
 import { AMBIENTS, ANIM_GACHA10_COST, COSMETICS, cosmeticKey, KIND_NAME, LOOK_GACHA_COST, MYSTERY_SLOTS, mysteryOffers, rollLook, rollSticker, TOTOPS } from '../src/core/shop';
 import {
   buyConsumable,
@@ -54,8 +54,17 @@ describe('商品資料', () => {
   it('每一類外觀都有中文名稱；飄落特效與回頂特效都是特效引擎畫得出來的種類', () => {
     for (const kind of Object.keys(COSMETICS)) expect(KIND_NAME[kind as keyof typeof KIND_NAME], kind).toBeTruthy();
     for (const c of AMBIENTS) {
-      expect(AMBIENT_KINDS, c.id).toContain(c.id);
+      // 四季更迭不是單一種特效，每個月換成當季的那一種
+      if (c.id !== 'season') expect(AMBIENT_KINDS, c.id).toContain(c.id);
       expect(c.icon, c.id).toBeTruthy();
+    }
+    // 四季更迭：一年十二個月都有東西飄，而且都是商店裡單獨買得到的那幾種
+    for (let m = 0; m < 12; m++) {
+      for (const day of [1, 15, 28]) {
+        const k = seasonOf(new Date(2027, m, day));
+        expect(AMBIENT_KINDS, `${m + 1}/${day}`).toContain(k);
+        expect(AMBIENTS.some((c) => c.id === k && !c.rare), k).toBe(true);
+      }
     }
     for (const c of TOTOPS) {
       expect(TOTOP_KINDS as readonly string[], c.id).toContain(c.id);
@@ -205,6 +214,8 @@ describe('動態貼紙、外觀扭蛋與貼紙板', () => {
     for (let i = 0; i < 200; i++) {
       const r = rollLook(mulberry32(i), () => false);
       if (r.kind === 'cosmetic') expect(COSMETICS.title.find((c) => `title:${c.id}` === r.key)?.earn, r.key).toBeFalsy();
+      // 160 金幣的外觀扭蛋不會開出 1 金幣的「四季更迭」
+      if (r.kind === 'cosmetic') expect(r.key).not.toBe('ambient:season');
     }
   });
 

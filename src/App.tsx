@@ -5,6 +5,7 @@ import { WelcomeTour } from './components/Guide';
 import { BottomNav, TopBar } from './components/Layout';
 import { ToTop } from './components/ToTop';
 import { Empty } from './components/ui';
+import { WallLayer } from './components/Wall';
 import { nowMs } from './core/date';
 import { setEggKeysEnabled } from './core/eggs';
 import { fx, seasonOf, type AmbientKind } from './core/fx';
@@ -119,7 +120,7 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
 export function App() {
   const route = useRoute();
   const s = useSave();
-  const { theme, furigana, seasonal, fx: fxSetting } = s.settings;
+  const { theme, furigana, fx: fxSetting } = s.settings;
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -153,15 +154,17 @@ export function App() {
 
   const { page, focus } = resolve(route);
 
-  // 背景飄落特效：裝備了商店買的就一直飄，沒有的話跟著季節（設定裡可以關掉季節特效）
+  // 背景飄落特效：預設不飄，裝備了商店買的才飄（「四季更迭」跟著季節換）
   // 上課、玩遊戲時：不飄背景粒子，也暫停鍵盤秘技偵測（避免和作答按鍵衝突）
-  const ambient = s.equip.ambient as AmbientKind | undefined;
+  const ambient = s.equip.ambient;
   useEffect(() => {
     setEggKeysEnabled(!focus);
-    fx.setAmbient(!focus && fxSetting ? (ambient ?? (seasonal ? seasonOf(new Date(nowMs())) : null)) : null);
-  }, [focus, seasonal, fxSetting, ambient]);
+    const kind = ambient === 'season' ? seasonOf(new Date(nowMs())) : ((ambient as AmbientKind | undefined) ?? null);
+    fx.setAmbient(!focus && fxSetting ? kind : null);
+  }, [focus, fxSetting, ambient]);
   return (
     <>
+      <WallLayer />
       {!focus && <TopBar route={route} />}
       {page}
       {!focus && <BottomNav route={route} />}
