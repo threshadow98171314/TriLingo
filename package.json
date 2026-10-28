@@ -1,7 +1,7 @@
 {
   "name": "trilingo",
   "private": true,
-  "version": "0.9.0",
+  "version": "0.9.1",
   "type": "module",
   "description": "TriLingo 三語道場：英文（多益）、日文（JLPT）、韓文的遊戲化自學網頁",
   "scripts": {
@@ -9,7 +9,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "icons": "node scripts/icons.mjs"
   },
   "dependencies": {
     "react": "^19.3.0",
