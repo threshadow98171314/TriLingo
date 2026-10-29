@@ -30,12 +30,13 @@ describe('課程結構', () => {
     expect(byLang('en').stages.filter((s) => s.group === 'main').map((s) => s.short)).toEqual(['橘色', '棕色', '綠色', '藍色', '金色']);
   });
 
-  it('日文有五十音、N5–N1 與兩條主題路線；N4–N2 已開放，N1 先建好頁面', () => {
+  it('日文有五十音、N5–N1 與主題路線；N4–N2 已開放，N1 已有文法與單字庫', () => {
     const ja = byLang('ja');
     expect(ja.stages.filter((s) => s.group === 'main').map((s) => s.short)).toEqual(['五十音', 'N5', 'N4', 'N3', 'N2', 'N1']);
     for (const short of ['N4', 'N3', 'N2']) expect(ja.stages.find((s) => s.short === short)!.units.length, short).toBeGreaterThanOrEqual(10);
     const n1 = ja.stages.find((s) => s.short === 'N1')!;
-    expect(n1.units).toHaveLength(0);
+    expect(n1.units.filter((u) => !u.bank).length).toBeGreaterThanOrEqual(4);
+    expect(n1.units.filter((u) => u.bank).length).toBeGreaterThanOrEqual(5);
     expect(n1.planned.length).toBeGreaterThan(0);
   });
 

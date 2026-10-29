@@ -3,6 +3,7 @@ import type { Unit } from '../core/types';
 import { attachMore, moreTable } from './dsl';
 import { KANA_UNITS } from './ja-kana';
 import { JA_MORE } from './ja-more';
+import { N1_BANK, N1_UNITS } from './ja-n1';
 import { N2_UNITS } from './ja-n2';
 import { N2_BANK } from './ja-n2-bank';
 import { N3_UNITS } from './ja-n3';
@@ -13,6 +14,7 @@ import { N5_UNITS } from './ja-n5';
 import { N5_BANK } from './ja-n5-bank';
 import { TOWN_UNITS } from './ja-town';
 import { JA_BIZ_UNITS, JA_LIFE_UNITS, JA_TRAVEL_MORE } from './ja-scenes';
+import { JA_ANIME_MORE } from './ja-anime';
 import { JA_ANIME_UNITS, JA_TRAVEL_UNITS } from './ja-tracks';
 
 /** 各關卡的單元（關卡名稱、說明、預定大綱在 meta.ts） */
@@ -22,11 +24,12 @@ export const UNITS: Record<string, Unit[]> = {
   'ja.n4': [...N4_UNITS, ...N4_BANK],
   'ja.n3': [...N3_UNITS, ...N3_BANK],
   'ja.n2': [...N2_UNITS, ...N2_BANK],
+  'ja.n1': [...N1_UNITS, ...N1_BANK],
   'ja.town': TOWN_UNITS,
   'ja.travel': [...JA_TRAVEL_UNITS, ...JA_TRAVEL_MORE],
   'ja.biz': JA_BIZ_UNITS,
   'ja.life': JA_LIFE_UNITS,
-  'ja.anime': JA_ANIME_UNITS,
+  'ja.anime': [...JA_ANIME_UNITS, ...JA_ANIME_MORE],
 };
 
 // 學習路線單字的補充例句（答對時隨機挑一句顯示）
