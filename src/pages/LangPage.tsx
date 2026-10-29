@@ -11,6 +11,7 @@ import { pictureOf } from '../engine/pictures';
 import { kanaPairs } from './Memory';
 import { MockTab } from './Mock';
 import { courseIndex, META, META_LIST, requireCourse } from '../content';
+import { APP_MINOR, stageIsNew, stageSeenKey } from '../content/news';
 import { addDays, dayNum, today } from '../core/date';
 import { mastery, MASTERY_LABEL } from '../core/logic';
 import {
@@ -33,7 +34,7 @@ import {
   UNLOCK,
 } from '../core/progress';
 import type { Save } from '../core/save';
-import { setStage, useSave } from '../core/store';
+import { markGuide, setStage, useSave } from '../core/store';
 import { canSpeak, speak, useVoices } from '../core/tts';
 import type { Item, LangId, Stage, Unit, VocabItem } from '../core/types';
 import { cx, fmtTime } from '../core/util';
@@ -58,7 +59,10 @@ function StageCard({ lang, stage, s, active }: { lang: LangId; stage: Stage; s: 
       {(stage.style === 'track' || stage.style === 'town') && <span className="stage-icon">{stage.icon}</span>}
       <b lang={stage.style === 'level' ? lang : undefined}>{stage.short}</b>
       <small>{stage.subtitle}</small>
-      <span className="stage-status">{!ss.ready ? '準備中' : ss.complete ? '完成 ✓' : `${Math.round(ss.pct * 100)}%`}</span>
+      <span className="stage-status">
+        {!ss.ready ? '準備中' : ss.complete ? '完成 ✓' : `${Math.round(ss.pct * 100)}%`}
+        {stageIsNew(stage, s.guide) && <i className="new-tag">NEW</i>}
+      </span>
     </a>
   );
 }
@@ -240,6 +244,10 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
   const course = requireCourse(lang);
   const stage = course.stages.find((x) => x.id === stageId) ?? currentStage(s, course);
   useEffect(() => setStage(lang, stage.id), [lang, stage.id]);
+  // 打開過這個關卡，NEW 標籤就拿掉
+  useEffect(() => {
+    if (stage.fresh === APP_MINOR) markGuide(stageSeenKey(stage));
+  }, [stage]);
 
   const ss = stageState(s, stage);
   const up = nextInStage(s, stage);

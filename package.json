@@ -1,7 +1,7 @@
 {
   "name": "trilingo",
   "private": true,
-  "version": "0.10.0",
+  "version": "0.10.1",
   "type": "module",
   "description": "TriLingo 三語道場：英文（多益）、日文（JLPT）、韓文的遊戲化自學網頁",
   "scripts": {

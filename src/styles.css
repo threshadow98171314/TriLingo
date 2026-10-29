@@ -3914,13 +3914,75 @@ button.dex-tile:hover {
   flex: none;
   align-self: center;
 }
+/* 手機：說明文字佔滿一行，「知道了」換到下一行靠右（不然文字會被擠成很窄的一條） */
 @media (max-width: 520px) {
   .guide-tip {
     flex-wrap: wrap;
   }
+  .guide-tip > .grow {
+    flex-basis: calc(100% - 40px);
+  }
   .guide-tip > .btn {
     margin-left: auto;
   }
+}
+
+/* 首頁「這次更新了什麼」：每一項是語言徽章（或圖示）＋說明＋前往，整列都可以點 */
+.guide-body ul.news-list {
+  margin-top: 4px;
+  padding: 0;
+  list-style: none;
+  gap: 2px;
+}
+.news-list li > a,
+.news-list li > div {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin: 0 -8px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  color: var(--text);
+  line-height: 1.5;
+}
+.news-list li > a:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.news-go {
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+/* 手機：前往的字只留 › */
+@media (max-width: 520px) {
+  .news-go > span {
+    display: none;
+  }
+}
+.news-icon {
+  flex: none;
+  width: 30px;
+  text-align: center;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* 這個版本新增了內容、還沒打開過的關卡 */
+.new-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--bad);
+  color: #fff;
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  vertical-align: 1px;
 }
 
 .modal.welcome {

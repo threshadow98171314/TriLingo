@@ -5,6 +5,7 @@ import { Mascot } from '../components/Mascot';
 import { RankEmblem } from '../components/RankEmblem';
 import { Bar, Coin, flameTier, flyCoins, LangBadge, Modal, Ruby, SpeakBtn, Tx } from '../components/ui';
 import { META, META_LIST, useCourse } from '../content';
+import { APP_MINOR, NEWS } from '../content/news';
 import { PROVERBS } from '../content/proverbs';
 import { randomTip, TIPS } from '../content/tips';
 import { fx } from '../core/fx';
@@ -294,6 +295,32 @@ function TipCard() {
 }
 
 /** 首頁最上方的「接續學習」：最近在學的語言，直接進下一課 */
+/** 這次更新了什麼：已經在用的人才顯示，按「知道了」就收起來（跟著雲端同步） */
+function NewsCard({ s }: { s: Save }) {
+  if (NEWS.version !== APP_MINOR || !s.stats.answers) return null;
+  return (
+    <GuideTip id={`news-${NEWS.version}`} icon="🆕" title={`這次更新了什麼（v${__APP_VERSION__}）`}>
+      <ul className="news-list">
+        {NEWS.items.map((n) => {
+          // 有連結的整列都可以點（手機上只留 ›，說明文字才不會被擠成好幾行）
+          const row = (
+            <>
+              {n.lang ? <LangBadge course={META[n.lang]} size="sm" /> : <span className="news-icon">{n.icon}</span>}
+              <span>{n.text}</span>
+              {n.to && (
+                <span className="news-go">
+                  <span>{n.cta}</span> ›
+                </span>
+              )}
+            </>
+          );
+          return <li key={n.text}>{n.to ? <a href={href(n.to)}>{row}</a> : <div>{row}</div>}</li>;
+        })}
+      </ul>
+    </GuideTip>
+  );
+}
+
 function ContinueBar({ s }: { s: Save }) {
   const lang: LangId | null = lastStudiedLang(s);
   const course = useCourse(lang ?? 'en');
@@ -459,6 +486,8 @@ export function Home() {
         </div>
         <GoalRing value={todayXp} goal={s.settings.dailyGoal} />
       </section>
+
+      <NewsCard s={s} />
 
       <GuideTip id="home" title="首頁怎麼用？">
         <ul>

@@ -57,6 +57,7 @@ const EN: CourseMeta = {
     }),
     stage({
       id: 'en.gold',
+      fresh: '0.10',
       short: '金色',
       title: '金色證書',
       subtitle: '860 – 990 分',
@@ -195,6 +196,7 @@ const JA: CourseMeta = {
     }),
     stage({
       id: 'ja.n1',
+      fresh: '0.10',
       short: 'N1',
       title: 'JLPT N1',
       subtitle: '高級',
@@ -254,6 +256,7 @@ const JA: CourseMeta = {
     }),
     stage({
       id: 'ja.anime',
+      fresh: '0.10',
       short: '動漫',
       title: '動漫・日劇',
       subtitle: '聽懂台詞不靠字幕',
@@ -321,6 +324,7 @@ const KO: CourseMeta = {
     }),
     stage({
       id: 'ko.k4',
+      fresh: '0.10',
       short: '中級 2',
       title: '中級 2',
       subtitle: 'TOPIK 4 級',
@@ -402,6 +406,7 @@ const KO: CourseMeta = {
     }),
     stage({
       id: 'ko.drama',
+      fresh: '0.10',
       short: '韓劇',
       title: '韓劇・綜藝',
       subtitle: '聽懂台詞不靠字幕',

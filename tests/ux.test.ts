@@ -1,6 +1,8 @@
 // 首頁與練習的使用體驗：知識補充、「現在不方便聽」、接續學習。
 import { describe, expect, it } from 'vitest';
 import { COURSES } from '../src/content/all';
+import { APP_MINOR, NEWS, stageIsNew, stageSeenKey } from '../src/content/news';
+import { META_LIST } from '../src/content/meta';
 import { randomTip, TIPS } from '../src/content/tips';
 import { lastStudiedLang, quickStats } from '../src/core/progress';
 import { defaultSave } from '../src/core/save';
@@ -191,5 +193,25 @@ describe('新遊戲', () => {
     expect(old.best.tf).toEqual({ en: 0, ja: 0, ko: 0 });
     expect(old.best.memory).toEqual({});
     expect(old.guide).toEqual({});
+  });
+});
+
+describe('這次更新了什麼', () => {
+  it('連到的關卡都存在；標了 fresh 的關卡格式正確', () => {
+    const ids = new Set(META_LIST.flatMap((c) => c.stages.map((st) => st.id)));
+    for (const n of NEWS.items) {
+      expect(n.lang || n.icon, n.text).toBeTruthy();
+      const m = n.to?.match(/^\/l\/(en|ja|ko)\/s\/(.+)$/);
+      if (m) expect(ids.has(m[2]), n.to).toBe(true);
+    }
+    for (const c of META_LIST) for (const st of c.stages) if (st.fresh) expect(st.fresh, st.id).toMatch(/^\d+\.\d+$/);
+  });
+
+  it('NEW 標籤：這個版本新增、還沒打開過才顯示', () => {
+    const st = { id: 'ja.n1', fresh: APP_MINOR };
+    expect(stageIsNew(st, {})).toBe(true);
+    expect(stageIsNew(st, { [stageSeenKey(st)]: 1 })).toBe(false);
+    expect(stageIsNew({ id: 'ja.n1', fresh: '0.1' }, {})).toBe(false);
+    expect(stageIsNew({ id: 'ja.n1' }, {})).toBe(false);
   });
 });

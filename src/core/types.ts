@@ -131,6 +131,8 @@ export interface Stage {
   planned: string[];
   /** 單元不用依序解鎖（情境小鎮、題庫），想從哪個開始都可以 */
   open?: boolean;
+  /** 在哪個版本新增了內容（例如 '0.10'）：這個版本裡打開之前會顯示 NEW */
+  fresh?: string;
 }
 
 // ───────── 觀念講堂 ─────────
