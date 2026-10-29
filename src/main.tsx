@@ -4,6 +4,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { preloadCourses } from './content';
 import { initCloud } from './core/cloud';
 import { initEggs } from './core/eggs';
+import { initPerf } from './core/perf';
 import { initStore } from './core/store';
 import './styles.css';
 import './fx.css';
@@ -11,6 +12,7 @@ import './games.css';
 import './shop.css';
 
 initStore();
+initPerf();
 initCloud();
 initEggs();
 

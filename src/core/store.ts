@@ -70,13 +70,38 @@ function syncPrefs() {
 }
 syncPrefs();
 
-function commit(next: Save) {
-  save = next;
+// 寫進 localStorage：存檔用久了會到好幾百 KB，轉成文字要幾十毫秒（手機更久），
+// 每答一題就寫會讓答對特效卡一下。所以等畫面閒下來再寫，切到背景或關掉頁面時一定寫完。
+let dirty = false;
+let persistQueued = false;
+
+function persist() {
+  if (!dirty) return;
+  dirty = false;
   try {
-    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.setItem(KEY, JSON.stringify(save));
   } catch {
     /* 容量已滿或無痕模式：進度只保留在這次開啟期間 */
   }
+}
+
+function schedulePersist() {
+  dirty = true;
+  if (persistQueued) return;
+  persistQueued = true;
+  setTimeout(() => {
+    const run = () => {
+      persistQueued = false;
+      persist();
+    };
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(run, { timeout: 1500 });
+    else run();
+  }, 700);
+}
+
+function commit(next: Save) {
+  save = next;
+  schedulePersist();
   subs.forEach((f) => f());
   commitListeners.forEach((f) => f());
   const events = pending;
@@ -123,10 +148,15 @@ function findEgg(d: Save, id: string): boolean {
 }
 
 function unlockAchievements(d: Save) {
+  // 好幾個成就共用同一個計算（例如學會的字數要數過所有 items），同一次只算一遍
+  const memo = new Map<(s: Save) => number, number>();
+  const value = (f: (s: Save) => number) => memo.get(f) ?? memo.set(f, f(d)).get(f)!;
   for (const a of ACHIEVEMENTS) {
-    if (d.ach[a.id] || a.value(d) < a.goal) continue;
+    if (d.ach[a.id] || value(a.value) < a.goal) continue;
     d.ach[a.id] = nowMs();
     addCoins(d, a.coins);
+    // 解鎖會加金幣、成就數，後面的成就要重新算
+    memo.clear();
     pending.push({ type: 'toast', icon: a.icon, title: `成就解鎖：${a.title}`, text: `${a.desc}　＋${a.coins} 金幣` });
   }
   // 達成條件的稱號：條件一到就自動收進外觀
@@ -138,8 +168,18 @@ function unlockAchievements(d: Save) {
   }
 }
 
+/**
+ * 改存檔前先複製一份（畫面靠「存檔換了一個物件」知道要重畫）。
+ * items（學過的每個字，用久了會上萬筆）不複製，直接在同一份上換掉被改到的那一筆：
+ * 整份 structuredClone 在長期使用的存檔上要幾十毫秒，正好卡在答對特效開始的那一刻。
+ */
+function draft(): Save {
+  const { items, ...rest } = save;
+  return { ...structuredClone(rest), items };
+}
+
 function mutate(fn: (d: Save) => void) {
-  const d = structuredClone(save);
+  const d = draft();
   rollDay(d);
   fn(d);
   unlockAchievements(d);
@@ -173,8 +213,10 @@ export function useSave(): Save {
 export function initStore() {
   mutate(() => {});
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && save.day !== today()) mutate(() => {});
+    if (document.hidden) persist();
+    else if (save.day !== today()) mutate(() => {});
   });
+  window.addEventListener('pagehide', persist);
   // 同時開了兩個分頁：另一個分頁存檔時跟著更新，避免互相蓋掉進度
   window.addEventListener('storage', (e) => {
     if (e.key !== KEY || !e.newValue) return;
@@ -1020,6 +1062,8 @@ export function replaceSave(next: Save) {
   commit({ ...migrate(next, nowMs()), day: '' });
   syncPrefs();
   mutate(() => {});
+  // 從雲端合併來的進度馬上寫進這台裝置
+  persist();
 }
 
 export function exportSave(): string {
@@ -1033,6 +1077,7 @@ export function importSave(json: string): boolean {
     commit(migrate(x, nowMs()));
     syncPrefs();
     mutate(() => {});
+    persist();
     return true;
   } catch {
     return false;
@@ -1043,4 +1088,5 @@ export function resetSave() {
   commit(defaultSave(nowMs()));
   syncPrefs();
   mutate(() => {});
+  persist();
 }

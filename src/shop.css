@@ -733,6 +733,8 @@
 .amb-prev,
 .totop-prev {
   position: relative;
+  /* 粒子用 cqh／cqw（預覽框的高、寬）移動：動 translate 交給 GPU，不用每一格重新排版 */
+  container-type: size;
   display: block;
   overflow: hidden;
   border-radius: 14px;
@@ -741,7 +743,7 @@
 }
 .amb-prev i {
   position: absolute;
-  top: -22%;
+  top: 0;
   left: calc(4% + var(--i) * 19%);
   font-style: normal;
   font-size: 15px;
@@ -754,7 +756,7 @@
 }
 @keyframes amb-fall {
   0% {
-    top: -22%;
+    translate: 0 -22cqh;
     transform: rotate(0deg) translateX(0);
     opacity: 0;
   }
@@ -766,14 +768,14 @@
     transform: rotate(80deg) translateX(4px);
   }
   100% {
-    top: 100%;
+    translate: 0 100cqh;
     transform: rotate(160deg) translateX(0);
     opacity: 0;
   }
 }
 @keyframes amb-rise {
   0% {
-    top: 100%;
+    translate: 0 100cqh;
     transform: translateX(0);
     opacity: 0;
   }
@@ -785,7 +787,7 @@
     transform: translateX(5px);
   }
   100% {
-    top: -22%;
+    translate: 0 -22cqh;
     transform: translateX(0);
     opacity: 0;
   }
@@ -883,11 +885,11 @@
 }
 @keyframes amb-drop {
   0% {
-    top: -22%;
+    translate: 0 -22cqh;
     transform: rotate(12deg);
   }
   100% {
-    top: 100%;
+    translate: 0 100cqh;
     transform: rotate(12deg);
   }
 }
@@ -907,15 +909,16 @@
 }
 @keyframes amb-coinfall {
   0% {
-    top: -22%;
+    translate: 0 -22cqh;
     transform: rotateY(0deg);
   }
   100% {
-    top: 100%;
+    translate: 0 100cqh;
     transform: rotateY(720deg);
   }
 }
 .amb-meteor i {
+  left: 0;
   width: 26px;
   height: 2px;
   border-radius: 2px;
@@ -925,8 +928,7 @@
 }
 @keyframes amb-meteor {
   0% {
-    top: 0%;
-    left: 100%;
+    translate: 100cqw 0;
     opacity: 0;
     transform: rotate(-28deg);
   }
@@ -935,8 +937,7 @@
   }
   60%,
   100% {
-    top: 75%;
-    left: -40%;
+    translate: -40cqw 75cqh;
     opacity: 0;
     transform: rotate(-28deg);
   }
@@ -2242,4 +2243,49 @@ svg [class*='sa-'] {
   .wall-art > i::after {
     animation: none;
   }
+}
+
+/* ───────── 精簡特效（core/perf.ts 決定，套在 html.perf-lite） ───────── */
+/* 毛玻璃每一格都要重新模糊後面的畫面（背景在動時更吃力）：改成幾乎不透明的底色 */
+.perf-lite .topbar,
+.perf-lite .bottomnav,
+.perf-lite .session-top,
+.perf-lite .mock-grid-wrap,
+.perf-lite .jump-bar,
+.perf-lite .looks-nav,
+.perf-lite .to-top,
+.perf-lite .modal-back,
+.perf-lite .dquiz-wrap {
+  backdrop-filter: none !important;
+}
+.perf-lite .topbar,
+.perf-lite .bottomnav,
+.perf-lite .session-top,
+.perf-lite .mock-grid-wrap,
+.perf-lite .jump-bar,
+.perf-lite .looks-nav {
+  background: color-mix(in srgb, var(--bg) 97%, transparent);
+}
+.perf-lite .to-top {
+  background: var(--card);
+}
+/* 每一格都要重畫的循環動畫（漸層流動、濾鏡、發光、筆畫）停下來，圖案本身保留 */
+.perf-lite .wall-art > i,
+.perf-lite .wall-art > i::after,
+.perf-lite .title-fx-gold,
+.perf-lite .title-fx-rainbow,
+.perf-lite .title-fx-fire,
+.perf-lite .title-fx-neon,
+.perf-lite .tb-bg,
+.perf-lite .tb-bg::before,
+.perf-lite .tbadge.tfx-neon,
+.perf-lite .fa-hue,
+.perf-lite .fa-neon-a,
+.perf-lite .fa-neon-b,
+.perf-lite .sticker-big.r-SSR svg,
+.perf-lite .flame.lit.f4,
+.perf-lite .stat.streak.lit.f4,
+.perf-lite .combo.inferno,
+.perf-lite .dcard.r-rare::after {
+  animation: none !important;
 }

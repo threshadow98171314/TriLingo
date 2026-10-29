@@ -1,6 +1,9 @@
 // 特效引擎：一張全螢幕 canvas 畫所有粒子（彩帶、星星、花瓣、落葉、雪花、金幣…），
 // 另外提供幾個 DOM 特效（浮動文字、大橫幅、畫面震動、閃光、彩虹模式）。
 // 沒有粒子時動畫迴圈會完全停止；設定關閉特效或系統要求「減少動態效果」時一律不播。
+//
+// 效能：漸層、曲線、文字這些每一格重畫很貴的形狀，同一種顏色和大小只畫一次（sprite），之後直接貼圖；
+// 精簡模式（core/perf.ts 決定）粒子減半、解析度降到 1 倍、只剩背景飄落時每秒畫 30 格。
 
 type Shape = 'rect' | 'circle' | 'star' | 'spark' | 'glyph' | 'petal' | 'coin' | 'snow' | 'glow' | 'fan' | 'bubble' | 'text' | 'lantern' | 'plane';
 
@@ -44,6 +47,8 @@ interface Particle {
   target?: { x: number; y: number };
   onArrive?: () => void;
   onDeath?: (p: Particle) => void;
+  /** 背景飄落的粒子（數量有上限、飄出畫面就移除） */
+  amb?: boolean;
 }
 
 export type AmbientKind =
@@ -67,9 +72,10 @@ export type AmbientKind =
 
 const PALETTE = ['#8f7cff', '#22d3ee', '#34d399', '#fbbf24', '#fb7185', '#ff8a1f', '#ffffff'];
 const GOLD = ['#ffe066', '#fbbf24', '#f59e0b', '#fff3b0'];
-const MAX_PARTICLES = 700;
 
 let enabled = true;
+/** 精簡模式：粒子減半、解析度 1 倍 */
+let lite = false;
 let canvas: HTMLCanvasElement | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
 let W = 0;
@@ -78,7 +84,16 @@ let dpr = 1;
 let raf = 0;
 let last = 0;
 const parts: Particle[] = [];
+/** 背景飄落、一般特效各有幾個粒子（只剩背景飄落時可以畫慢一點） */
+let ambCount = 0;
+let fxCount = 0;
+/** spawnAmbientOne 執行中：這段期間加的粒子都是背景粒子 */
+let spawningAmb = false;
 let ambient: { kind: AmbientKind; acc: number } | null = null;
+
+const maxParticles = () => (lite ? 320 : 700);
+/** 精簡模式下粒子數量打對折 */
+const budget = (n: number) => (lite ? Math.max(1, Math.round(n / 2)) : n);
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 const pick = <T,>(a: readonly T[]): T => a[Math.floor(Math.random() * a.length)];
@@ -92,23 +107,42 @@ export function fxOn(): boolean {
   return enabled && typeof document !== 'undefined' && !reducedMotion();
 }
 
+function clearParts() {
+  parts.length = 0;
+  ambCount = fxCount = 0;
+}
+
 export function setFxEnabled(on: boolean) {
   enabled = on;
   if (!fxOn()) {
-    parts.length = 0;
+    clearParts();
     ambient = null;
-    ctx?.clearRect(0, 0, W, H);
+    wipe();
   }
+}
+
+/** 精簡模式（core/perf.ts 依裝置與實測的流暢度決定） */
+export function setFxLite(on: boolean) {
+  if (lite === on) return;
+  lite = on;
+  resize();
+}
+
+let jankHandler: (() => void) | null = null;
+/** 播特效時一直掉幀就通知（「自動」特效品質用來改成精簡） */
+export function onJank(f: () => void) {
+  jankHandler = f;
 }
 
 function resize() {
   if (!canvas) return;
-  dpr = Math.min(2, window.devicePixelRatio || 1);
-  W = window.innerWidth;
-  H = window.innerHeight;
+  // 用 canvas 實際的顯示大小（不含捲軸）；用 innerWidth 會多算捲軸寬，粒子位置會偏一點
+  W = canvas.clientWidth || window.innerWidth;
+  H = canvas.clientHeight || window.innerHeight;
+  // 高解析度的大螢幕：整張 canvas 最多約 350 萬像素，每一格清空、合成才不會太重
+  dpr = lite ? 1 : Math.max(1, Math.min(2, window.devicePixelRatio || 1, Math.sqrt(3_500_000 / (W * H))));
   canvas.width = Math.round(W * dpr);
   canvas.height = Math.round(H * dpr);
-  ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
 function ensureCanvas(): boolean {
@@ -120,7 +154,9 @@ function ensureCanvas(): boolean {
   document.body.appendChild(canvas);
   ctx = canvas.getContext('2d');
   resize();
-  window.addEventListener('resize', resize);
+  // 捲軸出現、消失也會改變大小（不會觸發 window 的 resize）
+  if (typeof ResizeObserver === 'function') new ResizeObserver(resize).observe(canvas);
+  else window.addEventListener('resize', resize);
   return !!ctx;
 }
 
@@ -131,7 +167,7 @@ function start() {
 }
 
 function add(p: Partial<Particle> & Pick<Particle, 'x' | 'y' | 'shape'>) {
-  if (parts.length >= MAX_PARTICLES) return;
+  if (parts.length >= maxParticles()) return;
   parts.push({
     vx: 0,
     vy: 0,
@@ -144,24 +180,28 @@ function add(p: Partial<Particle> & Pick<Particle, 'x' | 'y' | 'shape'>) {
     age: 0,
     color: '#fff',
     ...p,
+    amb: spawningAmb,
   });
+  if (spawningAmb) ambCount++;
+  else fxCount++;
 }
 
-// emoji 每一格都 fillText 很耗效能：先畫到小 canvas 上快取
-const glyphCache = new Map<string, HTMLCanvasElement>();
-function glyphImage(g: string): HTMLCanvasElement {
-  let c = glyphCache.get(g);
-  if (c) return c;
-  c = document.createElement('canvas');
-  c.width = c.height = 64;
-  const x = c.getContext('2d')!;
-  x.font = '48px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
-  x.textAlign = 'center';
-  x.textBaseline = 'middle';
-  x.fillText(g, 32, 36);
-  glyphCache.set(g, c);
-  return c;
+/** 移除第 i 個粒子：拿最後一個補位（不用 splice 把後面全部往前搬） */
+function removeAt(i: number): Particle {
+  const p = parts[i];
+  const tail = parts.pop()!;
+  if (i < parts.length) parts[i] = tail;
+  if (p.amb) ambCount--;
+  else fxCount--;
+  return p;
 }
+
+// ───────── 預先畫好的圖 ─────────
+// 漸層、曲線、文字、emoji 每一格重畫很耗效能：同一種形狀＋顏色＋大小只畫一次，之後用 drawImage 貼上去。
+
+/** 每種形狀的圖要涵蓋多大（粒子的 size 當 1）：光暈、天燈的光比本體大 */
+const BOX: Partial<Record<Shape, number>> = { circle: 1, snow: 1, star: 1, petal: 1, coin: 1, glyph: 1, bubble: 1.1, plane: 1.1, fan: 1.3, text: 1.5, glow: 2, lantern: 3 };
+const sprites = new Map<string, HTMLCanvasElement>();
 
 function starPath(c: CanvasRenderingContext2D, r: number) {
   c.beginPath();
@@ -171,6 +211,190 @@ function starPath(c: CanvasRenderingContext2D, r: number) {
     c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
   }
   c.closePath();
+}
+
+/** 在 (0,0) 畫一個 size 為 1 的形狀（畫進預先畫好的圖用） */
+function paintUnit(c: CanvasRenderingContext2D, shape: Shape, color: string) {
+  switch (shape) {
+    case 'circle':
+    case 'snow':
+      c.fillStyle = shape === 'snow' ? 'rgba(255,255,255,0.92)' : color;
+      c.beginPath();
+      c.arc(0, 0, 0.5, 0, Math.PI * 2);
+      c.fill();
+      break;
+    case 'glow': {
+      const gr = c.createRadialGradient(0, 0, 0, 0, 0, 1);
+      gr.addColorStop(0, color);
+      gr.addColorStop(1, 'rgba(0,0,0,0)');
+      c.fillStyle = gr;
+      c.beginPath();
+      c.arc(0, 0, 1, 0, Math.PI * 2);
+      c.fill();
+      break;
+    }
+    case 'star':
+      c.fillStyle = color;
+      starPath(c, 0.5);
+      c.fill();
+      break;
+    case 'petal':
+      // 櫻花瓣（上下翻轉的立體感在貼圖時用縮放做）
+      c.fillStyle = color;
+      c.beginPath();
+      c.moveTo(0, -0.5);
+      c.bezierCurveTo(0.5, -0.5, 0.5, 1 / 3, 0, 0.5);
+      c.bezierCurveTo(-0.5, 1 / 3, -0.5, -0.5, 0, -0.5);
+      c.fill();
+      c.fillStyle = 'rgba(255,255,255,0.35)';
+      c.beginPath();
+      c.ellipse(-0.1, -0.12, 0.12, 0.22, 0, 0, Math.PI * 2);
+      c.fill();
+      break;
+    case 'coin': {
+      const gr = c.createRadialGradient(-0.15, -0.2, 0.05, 0, 0, 0.5);
+      gr.addColorStop(0, '#fff6c2');
+      gr.addColorStop(0.55, '#f7c531');
+      gr.addColorStop(1, '#c98a00');
+      c.fillStyle = gr;
+      c.beginPath();
+      c.arc(0, 0, 0.5, 0, Math.PI * 2);
+      c.fill();
+      c.strokeStyle = 'rgba(160,100,0,0.7)';
+      c.lineWidth = 0.1;
+      c.beginPath();
+      c.arc(0, 0, 0.33, 0, Math.PI * 2);
+      c.stroke();
+      break;
+    }
+    case 'fan':
+      // 銀杏葉：兩片扇形，中間有缺口，下面一根葉柄
+      c.fillStyle = color;
+      for (const [a, b] of [
+        [-Math.PI * 0.88, -Math.PI * 0.53],
+        [-Math.PI * 0.47, -Math.PI * 0.12],
+      ]) {
+        c.beginPath();
+        c.moveTo(0, 0.18);
+        c.arc(0, 0.18, 0.62, a, b);
+        c.closePath();
+        c.fill();
+      }
+      c.strokeStyle = color;
+      c.lineWidth = 1 / 12;
+      c.beginPath();
+      c.moveTo(0, 0.18);
+      c.lineTo(0.04, 0.55);
+      c.stroke();
+      break;
+    case 'bubble':
+      c.fillStyle = 'rgba(255,255,255,0.12)';
+      c.strokeStyle = color;
+      c.lineWidth = 1 / 14;
+      c.beginPath();
+      c.arc(0, 0, 0.5, 0, Math.PI * 2);
+      c.fill();
+      c.stroke();
+      c.strokeStyle = 'rgba(255,255,255,0.85)';
+      c.lineWidth = 0.1;
+      c.beginPath();
+      c.arc(0, 0, 0.32, Math.PI * 1.1, Math.PI * 1.45);
+      c.stroke();
+      break;
+    case 'lantern': {
+      // 天燈：暖色光暈 + 上寬下窄的燈身
+      const halo = c.createRadialGradient(0, 0, 0, 0, 0, 1.5);
+      halo.addColorStop(0, 'rgba(255,190,90,0.45)');
+      halo.addColorStop(1, 'rgba(255,190,90,0)');
+      c.fillStyle = halo;
+      c.beginPath();
+      c.arc(0, 0, 1.5, 0, Math.PI * 2);
+      c.fill();
+      const body = c.createLinearGradient(0, -0.55, 0, 0.55);
+      body.addColorStop(0, '#ffe08a');
+      body.addColorStop(1, '#ff8a3d');
+      c.fillStyle = body;
+      c.beginPath();
+      c.moveTo(-0.42, -0.55);
+      c.lineTo(0.42, -0.55);
+      c.lineTo(0.3, 0.5);
+      c.lineTo(-0.3, 0.5);
+      c.closePath();
+      c.fill();
+      c.fillStyle = '#fff3b0';
+      c.beginPath();
+      c.ellipse(0, 0.5, 0.22, 0.07, 0, 0, Math.PI * 2);
+      c.fill();
+      break;
+    }
+    case 'plane':
+      // 紙飛機（機頭朝上）
+      c.fillStyle = '#ffffff';
+      c.strokeStyle = '#7c8db5';
+      c.lineWidth = 1 / 18;
+      c.beginPath();
+      c.moveTo(0, -0.5);
+      c.lineTo(0.42, 0.45);
+      c.lineTo(0, 0.22);
+      c.lineTo(-0.42, 0.45);
+      c.closePath();
+      c.fill();
+      c.stroke();
+      c.beginPath();
+      c.moveTo(0, -0.5);
+      c.lineTo(0, 0.22);
+      c.stroke();
+      break;
+  }
+}
+
+/** 和顏色無關的形狀（同一張圖就好） */
+const COLORLESS = new Set<Shape>(['snow', 'coin', 'lantern', 'plane', 'glyph']);
+
+/** 取得（或第一次畫出）某個形狀的圖；devicePx 是粒子在螢幕上的實際像素大小 */
+function spriteFor(shape: Shape, color: string, glyph: string | undefined, devicePx: number): HTMLCanvasElement {
+  const box = BOX[shape] ?? 1;
+  // 大小以 2 的次方分級：貼上去時縮放維持在 0.5～1 倍，小粒子不會糊掉或出現鋸齒
+  const px = Math.min(256, Math.max(8, 2 ** Math.ceil(Math.log2(devicePx * box))));
+  const key = `${shape}|${COLORLESS.has(shape) ? '' : color}|${glyph ?? ''}|${px}`;
+  let c = sprites.get(key);
+  if (c) return c;
+  if (sprites.size > 600) sprites.clear();
+  c = document.createElement('canvas');
+  c.width = c.height = px;
+  const x = c.getContext('2d')!;
+  if (shape === 'glyph' || shape === 'text') {
+    // 文字直接用像素大小畫（不透過縮放），筆畫才清楚
+    x.textAlign = 'center';
+    x.textBaseline = 'middle';
+    if (shape === 'glyph') {
+      x.font = `${Math.round(px * 0.75)}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`;
+      x.fillText(glyph ?? '⭐', px / 2, px * 0.5625);
+    } else {
+      // 有顏色的文字（音符、假名、韓文字母）
+      x.font = `800 ${Math.round(px / box)}px "Noto Sans JP","Noto Sans KR","Segoe UI",system-ui,sans-serif`;
+      x.fillStyle = color;
+      x.fillText(glyph ?? '♪', px / 2, px / 2);
+    }
+  } else {
+    x.translate(px / 2, px / 2);
+    x.scale(px / box, px / box);
+    paintUnit(x, shape, color);
+  }
+  sprites.set(key, c);
+  return c;
+}
+
+/** 這一格目前的混合模式（光暈用 lighter，其他用一般），一樣就不重設 */
+let blend: GlobalCompositeOperation = 'source-over';
+
+/** 清空整張 canvas（畫粒子時改過變換，要先還原） */
+function wipe() {
+  if (!ctx || !canvas) return;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = blend = 'source-over';
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function draw(c: CanvasRenderingContext2D, p: Particle) {
@@ -183,12 +407,14 @@ function draw(c: CanvasRenderingContext2D, p: Particle) {
   if (alpha <= 0) return;
   const x = p.x + (p.sway ? Math.sin((p.phase ?? 0) + t * (p.swayFreq ?? 0.002)) * p.sway : 0);
   const s = p.size;
-  c.save();
+  const want: GlobalCompositeOperation = p.shape === 'glow' ? 'lighter' : 'source-over';
+  if (want !== blend) c.globalCompositeOperation = blend = want;
   c.globalAlpha = alpha;
   if (p.shape === 'spark') {
     const k = p.tail ?? 28;
     const tx = x - p.vx * k;
     const ty = p.y - p.vy * k;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (k >= 60) {
       // 長拖尾（流星）：頭亮尾淡
       const gr = c.createLinearGradient(x, p.y, tx, ty);
@@ -202,173 +428,25 @@ function draw(c: CanvasRenderingContext2D, p: Particle) {
     c.moveTo(x, p.y);
     c.lineTo(tx, ty);
     c.stroke();
-    c.restore();
     return;
   }
-  c.translate(x, p.y);
-  c.rotate(p.rot);
-  switch (p.shape) {
-    case 'rect':
-      c.fillStyle = p.color;
-      c.fillRect(-s / 2, -s * 0.32, s, s * 0.64);
-      break;
-    case 'circle':
-      c.fillStyle = p.color;
-      c.beginPath();
-      c.arc(0, 0, s / 2, 0, Math.PI * 2);
-      c.fill();
-      break;
-    case 'glow': {
-      c.globalCompositeOperation = 'lighter';
-      const gr = c.createRadialGradient(0, 0, 0, 0, 0, s);
-      gr.addColorStop(0, p.color);
-      gr.addColorStop(1, 'rgba(0,0,0,0)');
-      c.fillStyle = gr;
-      c.beginPath();
-      c.arc(0, 0, s, 0, Math.PI * 2);
-      c.fill();
-      break;
-    }
-    case 'star':
-      c.fillStyle = p.color;
-      starPath(c, s / 2);
-      c.fill();
-      break;
-    case 'snow':
-      c.fillStyle = 'rgba(255,255,255,0.92)';
-      c.beginPath();
-      c.arc(0, 0, s / 2, 0, Math.PI * 2);
-      c.fill();
-      break;
-    case 'petal': {
-      // 櫻花瓣：上下翻轉營造飄落的立體感
-      c.scale(1, 0.35 + Math.abs(Math.sin(t * (p.flip ?? 0.004))) * 0.65);
-      c.fillStyle = p.color;
-      c.beginPath();
-      c.moveTo(0, -s / 2);
-      c.bezierCurveTo(s / 2, -s / 2, s / 2, s / 3, 0, s / 2);
-      c.bezierCurveTo(-s / 2, s / 3, -s / 2, -s / 2, 0, -s / 2);
-      c.fill();
-      c.fillStyle = 'rgba(255,255,255,0.35)';
-      c.beginPath();
-      c.ellipse(-s * 0.1, -s * 0.12, s * 0.12, s * 0.22, 0, 0, Math.PI * 2);
-      c.fill();
-      break;
-    }
-    case 'coin': {
-      // 金幣：左右壓扁模擬旋轉
-      c.scale(Math.max(0.15, Math.abs(Math.cos(t * (p.flip ?? 0.012)))), 1);
-      const gr = c.createRadialGradient(-s * 0.15, -s * 0.2, s * 0.05, 0, 0, s / 2);
-      gr.addColorStop(0, '#fff6c2');
-      gr.addColorStop(0.55, '#f7c531');
-      gr.addColorStop(1, '#c98a00');
-      c.fillStyle = gr;
-      c.beginPath();
-      c.arc(0, 0, s / 2, 0, Math.PI * 2);
-      c.fill();
-      c.strokeStyle = 'rgba(160,100,0,0.7)';
-      c.lineWidth = Math.max(1, s / 10);
-      c.beginPath();
-      c.arc(0, 0, s * 0.33, 0, Math.PI * 2);
-      c.stroke();
-      break;
-    }
-    case 'glyph':
-      c.drawImage(glyphImage(p.glyph ?? '⭐'), -s / 2, -s / 2, s, s);
-      break;
-    case 'text':
-      // 有顏色的文字（音符、假名、韓文字母）
-      c.fillStyle = p.color;
-      c.font = `800 ${Math.round(s)}px "Noto Sans JP","Noto Sans KR","Segoe UI",system-ui,sans-serif`;
-      c.textAlign = 'center';
-      c.textBaseline = 'middle';
-      c.fillText(p.glyph ?? '♪', 0, 0);
-      break;
-    case 'fan': {
-      // 銀杏葉：兩片扇形，中間有缺口，下面一根葉柄
-      c.scale(1, 0.4 + Math.abs(Math.sin(t * (p.flip ?? 0.003))) * 0.6);
-      c.fillStyle = p.color;
-      const r = s * 0.62;
-      for (const [a, b] of [
-        [-Math.PI * 0.88, -Math.PI * 0.53],
-        [-Math.PI * 0.47, -Math.PI * 0.12],
-      ]) {
-        c.beginPath();
-        c.moveTo(0, s * 0.18);
-        c.arc(0, s * 0.18, r, a, b);
-        c.closePath();
-        c.fill();
-      }
-      c.strokeStyle = p.color;
-      c.lineWidth = Math.max(1, s / 12);
-      c.beginPath();
-      c.moveTo(0, s * 0.18);
-      c.lineTo(s * 0.04, s * 0.55);
-      c.stroke();
-      break;
-    }
-    case 'bubble': {
-      c.fillStyle = 'rgba(255,255,255,0.12)';
-      c.strokeStyle = p.color;
-      c.lineWidth = Math.max(1, s / 14);
-      c.beginPath();
-      c.arc(0, 0, s / 2, 0, Math.PI * 2);
-      c.fill();
-      c.stroke();
-      c.strokeStyle = 'rgba(255,255,255,0.85)';
-      c.lineWidth = Math.max(1, s / 10);
-      c.beginPath();
-      c.arc(0, 0, s * 0.32, Math.PI * 1.1, Math.PI * 1.45);
-      c.stroke();
-      break;
-    }
-    case 'lantern': {
-      // 天燈：暖色光暈 + 上寬下窄的燈身
-      const halo = c.createRadialGradient(0, 0, 0, 0, 0, s * 1.5);
-      halo.addColorStop(0, 'rgba(255,190,90,0.45)');
-      halo.addColorStop(1, 'rgba(255,190,90,0)');
-      c.fillStyle = halo;
-      c.beginPath();
-      c.arc(0, 0, s * 1.5, 0, Math.PI * 2);
-      c.fill();
-      const body = c.createLinearGradient(0, -s * 0.55, 0, s * 0.55);
-      body.addColorStop(0, '#ffe08a');
-      body.addColorStop(1, '#ff8a3d');
-      c.fillStyle = body;
-      c.beginPath();
-      c.moveTo(-s * 0.42, -s * 0.55);
-      c.lineTo(s * 0.42, -s * 0.55);
-      c.lineTo(s * 0.3, s * 0.5);
-      c.lineTo(-s * 0.3, s * 0.5);
-      c.closePath();
-      c.fill();
-      c.fillStyle = '#fff3b0';
-      c.beginPath();
-      c.ellipse(0, s * 0.5, s * 0.22, s * 0.07, 0, 0, Math.PI * 2);
-      c.fill();
-      break;
-    }
-    case 'plane': {
-      // 紙飛機（機頭朝上）
-      c.fillStyle = '#ffffff';
-      c.strokeStyle = '#7c8db5';
-      c.lineWidth = Math.max(1, s / 18);
-      c.beginPath();
-      c.moveTo(0, -s / 2);
-      c.lineTo(s * 0.42, s * 0.45);
-      c.lineTo(0, s * 0.22);
-      c.lineTo(-s * 0.42, s * 0.45);
-      c.closePath();
-      c.fill();
-      c.stroke();
-      c.beginPath();
-      c.moveTo(0, -s / 2);
-      c.lineTo(0, s * 0.22);
-      c.stroke();
-      break;
-    }
+  // 翻轉的立體感：花瓣、銀杏上下壓扁，金幣左右壓扁（模擬旋轉）
+  let sx = 1;
+  let sy = 1;
+  if (p.shape === 'petal') sy = 0.35 + Math.abs(Math.sin(t * (p.flip ?? 0.004))) * 0.65;
+  else if (p.shape === 'fan') sy = 0.4 + Math.abs(Math.sin(t * (p.flip ?? 0.003))) * 0.6;
+  else if (p.shape === 'coin') sx = Math.max(0.15, Math.abs(Math.cos(t * (p.flip ?? 0.012))));
+  const cos = p.rot ? Math.cos(p.rot) : 1;
+  const sin = p.rot ? Math.sin(p.rot) : 0;
+  // 等於 translate(x, y) → rotate(rot) → scale(sx, sy)，一次設定，不用 save／restore
+  c.setTransform(dpr * cos * sx, dpr * sin * sx, -dpr * sin * sy, dpr * cos * sy, dpr * x, dpr * p.y);
+  if (p.shape === 'rect') {
+    c.fillStyle = p.color;
+    c.fillRect(-s / 2, -s * 0.32, s, s * 0.64);
+    return;
   }
-  c.restore();
+  const d = s * (BOX[p.shape] ?? 1);
+  c.drawImage(spriteFor(p.shape, p.color, p.glyph, s * dpr), -d / 2, -d / 2, d, d);
 }
 
 /** 背景粒子每秒產生幾個 */
@@ -396,7 +474,15 @@ export const AMBIENT_KINDS = Object.keys(AMBIENT_RATE) as AmbientKind[];
 
 /** 產生一個背景粒子；warm 表示直接撒在畫面中（剛換特效時馬上看得到） */
 function spawnAmbientOne(k: AmbientKind, warm = false) {
-  // 背景粒子一律 life > 9000：用來和一般特效區分、飄出畫面就移除
+  spawningAmb = true;
+  try {
+    spawnAmbientKind(k, warm);
+  } finally {
+    spawningAmb = false;
+  }
+}
+
+function spawnAmbientKind(k: AmbientKind, warm: boolean) {
   const fall = { x: rand(-20, W + 20), y: warm ? rand(0, H * 0.8) : -30, life: 16000, fadeIn: 600, phase: rand(0, 6), vr: rand(-0.002, 0.002), rot: rand(0, 6) };
   const rise = { ...fall, y: warm ? rand(H * 0.25, H) : H + 30, vr: 0, rot: rand(-0.25, 0.25) };
   const glyphFall = (glyphs: string[], size: [number, number] = [16, 24]) =>
@@ -486,26 +572,46 @@ function spawnAmbientOne(k: AmbientKind, warm = false) {
 
 function spawnAmbient(dt: number) {
   if (!ambient) return;
-  // 背景粒子數量設上限，避免長時間開著越積越多（雨滴落得快，上限放寬）
-  const live = parts.filter((p) => p.life > 9000).length;
-  const cap = ambient.kind === 'rain' ? 70 : 28;
-  ambient.acc += (dt / 1000) * AMBIENT_RATE[ambient.kind];
+  // 背景粒子數量設上限，避免長時間開著越積越多（雨滴落得快，上限放寬；精簡模式少一點）
+  const cap = ambient.kind === 'rain' ? budget(70) : lite ? 16 : 28;
+  ambient.acc += (dt / 1000) * AMBIENT_RATE[ambient.kind] * (lite ? 0.6 : 1);
   while (ambient.acc >= 1) {
     ambient.acc -= 1;
-    if (live <= cap) spawnAmbientOne(ambient.kind);
+    if (ambCount <= cap) spawnAmbientOne(ambient.kind);
   }
+}
+
+// 掉幀偵測：每 90 格統計一次，超過 40 毫秒（不到 25 fps）的格數夠多就通報。
+// 門檻抓寬一點：瀏覽器省電模式固定 30 fps 不算卡；切到背景再回來的那一格不算。
+let monFrames = 0;
+let monSlow = 0;
+
+function watchFrame(gap: number) {
+  if (gap > 250) return;
+  monFrames++;
+  if (gap > 40) monSlow++;
+  if (monFrames < 90) return;
+  if (monSlow >= 20) jankHandler?.();
+  monFrames = monSlow = 0;
 }
 
 function loop(now: number) {
   raf = 0;
   if (!ctx || !fxOn()) {
-    parts.length = 0;
+    clearParts();
     return;
   }
-  const dt = Math.min(50, now - last);
+  const gap = now - last;
+  // 只剩背景飄落時不用畫滿：最多每秒 60 格（精簡模式 30 格），120Hz 螢幕也不會多畫一倍
+  if (!fxCount && gap < (lite ? 31 : 15)) {
+    raf = requestAnimationFrame(loop);
+    return;
+  }
+  watchFrame(gap);
+  const dt = Math.min(50, gap);
   last = now;
   spawnAmbient(dt);
-  ctx.clearRect(0, 0, W, H);
+  wipe();
   for (let i = parts.length - 1; i >= 0; i--) {
     const p = parts[i];
     p.age += dt;
@@ -517,7 +623,7 @@ function loop(now: number) {
       if (q.rot !== undefined) p.rot = q.rot;
       p.onTick?.(p, dt);
       if (p.age > p.life) {
-        parts.splice(i, 1);
+        removeAt(i);
         p.onDeath?.(p);
         continue;
       }
@@ -533,7 +639,7 @@ function loop(now: number) {
       p.vx = (p.vx + dx * k) * Math.pow(0.88, dt / 16);
       p.vy = (p.vy + dy * k) * Math.pow(0.88, dt / 16);
       if (Math.hypot(dx, dy) < 18 || p.age > p.life) {
-        parts.splice(i, 1);
+        removeAt(i);
         p.onArrive?.();
         continue;
       }
@@ -548,16 +654,16 @@ function loop(now: number) {
     p.x += p.vx * dt;
     p.y += p.vy * dt;
     p.rot += p.vr * dt;
-    const gone = p.age > p.life || (p.life > 9000 && (p.y > H + 60 || p.y < -80));
+    const gone = p.age > p.life || (p.amb && (p.y > H + 60 || p.y < -80));
     if (gone) {
-      parts.splice(i, 1);
+      removeAt(i);
       p.onDeath?.(p);
       continue;
     }
     draw(ctx, p);
   }
   if (parts.length || ambient) raf = requestAnimationFrame(loop);
-  else ctx.clearRect(0, 0, W, H);
+  else wipe();
 }
 
 // ───────── 粒子特效 ─────────
@@ -576,7 +682,7 @@ export interface BurstOptions {
 /** 從一個點爆開 */
 function burst(x: number, y: number, o: BurstOptions = {}) {
   if (!ensureCanvas()) return;
-  const n = o.count ?? 18;
+  const n = budget(o.count ?? 18);
   const shapes = o.shapes ?? (o.glyphs ? ['glyph'] : ['star', 'circle', 'spark']);
   for (let i = 0; i < n; i++) {
     const a = rand(0, Math.PI * 2);
@@ -611,7 +717,8 @@ function centerOf(el: Element | null | undefined): { x: number; y: number } | nu
 /** 兩側噴出彩帶 */
 function confetti(count = 120) {
   if (!ensureCanvas()) return;
-  for (let i = 0; i < count; i++) {
+  const n = budget(count);
+  for (let i = 0; i < n; i++) {
     const left = i % 2 === 0;
     const a = (left ? -Math.PI / 3 : (-2 * Math.PI) / 3) + rand(-0.45, 0.45);
     const sp = rand(0.55, 1.15);
@@ -664,7 +771,7 @@ export type RainKind = 'sakura' | 'leaf' | 'snow' | 'heart' | 'coin' | 'star' | 
 /** 從畫面上方（愛心從下方）下一場雨 */
 function rain(kind: RainKind, o: { count?: number; glyphs?: string[]; duration?: number } = {}) {
   if (!ensureCanvas()) return;
-  const n = o.count ?? 70;
+  const n = budget(o.count ?? 70);
   const spread = o.duration ?? 2200;
   for (let i = 0; i < n; i++) {
     const age = -rand(0, spread);
@@ -723,14 +830,14 @@ function applyAmbient() {
   const changed = kind !== ambientKind;
   ambientKind = kind;
   // 關閉或換成別的：讓已經在畫面上的背景粒子自然消失（縮短壽命）
-  if (changed) for (const p of parts) if (p.life > 9000) p.life = Math.min(p.life, p.age + 1500);
+  if (changed) for (const p of parts) if (p.amb) p.life = Math.min(p.life, p.age + 1500);
   if (!kind) {
     ambient = null;
     return;
   }
   if (!ensureCanvas()) return;
   ambient = { kind, acc: 0.6 };
-  const warm = kind === 'rain' ? 30 : kind === 'meteor' ? 4 : 6;
+  const warm = budget(kind === 'rain' ? 30 : kind === 'meteor' ? 4 : 6);
   for (let i = 0; i < warm; i++) spawnAmbientOne(kind, true);
   start();
 }

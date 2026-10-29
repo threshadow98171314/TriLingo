@@ -6,6 +6,7 @@ import { META_LIST } from '../content';
 import { today } from '../core/date';
 import { tapCount, triggerEgg } from '../core/eggs';
 import { fx } from '../core/fx';
+import { setFxQuality, usePerf } from '../core/perf';
 import { sfx } from '../core/sfx';
 import { exportSave, importSave, resetGuides, resetSave, updateSettings, useSave } from '../core/store';
 import { listenMutedUntil, speak, unmuteListening, useVoices, voicesFor } from '../core/tts';
@@ -140,6 +141,7 @@ function CloudPanel() {
 export function SettingsPage() {
   const s = useSave();
   const set = s.settings;
+  const perf = usePerf();
   useVoices();
   const file = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState('');
@@ -307,6 +309,18 @@ export function SettingsPage() {
               if (v) setTimeout(() => fx.confetti(60), 50);
             }}
           />
+        </Row>
+        <Row
+          title="特效品質"
+          desc={`精簡：粒子減半、背景與名牌的動畫停下來、導覽列不做毛玻璃，舊手機或卡頓時用。只套用在這台裝置。${perf.mode === 'auto' ? `（自動判斷：目前是${perf.lite ? '精簡' : '完整'}）` : ''}`}
+        >
+          <div className="seg small">
+            {(['auto', 'high', 'lite'] as const).map((m) => (
+              <button key={m} type="button" className={cx(perf.mode === m && 'on')} onClick={() => setFxQuality(m)}>
+                {m === 'auto' ? '自動' : m === 'high' ? '完整' : '精簡'}
+              </button>
+            ))}
+          </div>
         </Row>
         <Row title="主題">
           <div className="seg small">
