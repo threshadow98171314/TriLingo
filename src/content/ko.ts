@@ -10,6 +10,11 @@ import { K3_UNITS } from './ko-k3';
 import { K3_BANK } from './ko-k3-bank';
 import { K4_UNITS } from './ko-k4';
 import { K4_BANK } from './ko-k4-bank';
+import { K5_UNITS } from './ko-k5';
+import { K5_RL } from './ko-k5-rl';
+import { K5_BANK } from './ko-k5-bank';
+import { K6_UNITS } from './ko-k6';
+import { K6_BANK } from './ko-k6-bank';
 import { KO_MORE } from './ko-more';
 import { TOWN_UNITS } from './ko-town';
 import { KO_BIZ_UNITS, KO_LIFE_UNITS, KO_TRAVEL_MORE } from './ko-scenes';
@@ -23,6 +28,8 @@ export const UNITS: Record<string, Unit[]> = {
   'ko.k2': [...K2_UNITS, ...K2_BANK],
   'ko.k3': [...K3_UNITS, ...K3_BANK],
   'ko.k4': [...K4_UNITS, ...K4_BANK],
+  'ko.k5': [...K5_UNITS, ...K5_RL, ...K5_BANK],
+  'ko.k6': [...K6_UNITS, ...K6_BANK],
   'ko.town': TOWN_UNITS,
   'ko.travel': [...KO_TRAVEL_UNITS, ...KO_TRAVEL_MORE],
   'ko.biz': KO_BIZ_UNITS,

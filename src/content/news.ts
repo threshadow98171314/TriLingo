@@ -18,6 +18,10 @@ export interface NewsItem {
 export const NEWS: { version: string; items: NewsItem[] } = {
   version: '0.11',
   items: [
+    { lang: 'ja', text: 'N1 新增讀解（長文、A・B 比較、找資料）、聽解與文法⑤⑥', to: '/l/ja/s/ja.n1', cta: '去上課' },
+    { lang: 'en', text: '多益金色證書新增長篇閱讀速讀、推論題攻略、滿分衝刺', to: '/l/en/s/en.gold', cta: '去上課' },
+    { lang: 'ko', text: '韓文開放高級 1、2：高級文法、慣用語與俗語、評論閱讀、演講聽力、四字成語、寫作', to: '/l/ko/s/ko.k5', cta: '去上課' },
+    { lang: 'ko', text: '新的 TOPIK II 모의고사（5–6 級）', to: '/l/ko/mock', cta: '去考考看' },
     { icon: '🥋', text: '遊樂場新增「專屬」分類：每種語言都有只屬於自己的特訓' },
     { lang: 'ja', text: '日文：活用道場（動詞變化）、助數詞大挑戰', to: '/l/ja/arcade', cta: '去玩' },
     { lang: 'ko', text: '韓文：數字大考驗（固有語／漢字語）、-아요／어요 活用', to: '/l/ko/arcade', cta: '去玩' },

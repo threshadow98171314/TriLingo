@@ -681,7 +681,7 @@ function tileLabel(it: Item): string {
   if (isVocab(it)) return it.w;
   if (it.kind === 'sentence') return it.s;
   if (it.kind === 'cloze') return furiPlain(clozeSentence(it));
-  return it.ask ?? it.q;
+  return furiPlain(it.ask ?? it.q);
 }
 
 function DexUnit({ lang, u, s, onOpen }: { lang: LangId; u: Unit; s: Save; onOpen: (it: Item) => void }) {

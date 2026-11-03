@@ -1,6 +1,7 @@
 // 語音朗讀：使用瀏覽器內建的 Web Speech API。
 // 有哪些語言的語音取決於瀏覽器與作業系統（Chrome、Edge 內建線上的日語、韓語語音）。
 import { useSyncExternalStore } from 'react';
+import { furiKana } from '../engine/furigana';
 import type { LangId } from './types';
 
 const BCP: Record<LangId, string> = { en: 'en-US', ja: 'ja-JP', ko: 'ko-KR' };
@@ -65,7 +66,11 @@ export function scriptLines(text: string): { who: 'M' | 'F' | null; text: string
   });
 }
 
-export function speak(text: string, lang: LangId, o: { rate?: number } = {}): boolean {
+/** 日文用「漢字[よみ]」標註的文字：唸讀音（交給語音的只有假名，不會唸錯，也不會把括號唸出來） */
+const spoken = (text: string, lang: LangId) => (lang === 'ja' ? furiKana(text) : text);
+
+export function speak(raw: string, lang: LangId, o: { rate?: number } = {}): boolean {
+  const text = spoken(raw, lang);
   const lines = scriptLines(text);
   if (lines) return speakScript(lines, lang, undefined, o.rate);
   const s = synth();
@@ -102,7 +107,7 @@ export function speakScript(lines: { who: 'M' | 'F' | null; text: string }[], la
   try {
     s.cancel();
     lines.forEach((l, i) => {
-      const u = new SpeechSynthesisUtterance(l.text);
+      const u = new SpeechSynthesisUtterance(spoken(l.text, lang));
       const male = l.who === 'M';
       u.voice = male ? other : main;
       u.lang = u.voice.lang;

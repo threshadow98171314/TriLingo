@@ -4,6 +4,7 @@ import { attachMore, moreTable } from './dsl';
 import { KANA_UNITS } from './ja-kana';
 import { JA_MORE } from './ja-more';
 import { N1_BANK, N1_UNITS } from './ja-n1';
+import { N1_RL } from './ja-n1-read';
 import { N2_UNITS } from './ja-n2';
 import { N2_BANK } from './ja-n2-bank';
 import { N3_UNITS } from './ja-n3';
@@ -24,7 +25,7 @@ export const UNITS: Record<string, Unit[]> = {
   'ja.n4': [...N4_UNITS, ...N4_BANK],
   'ja.n3': [...N3_UNITS, ...N3_BANK],
   'ja.n2': [...N2_UNITS, ...N2_BANK],
-  'ja.n1': [...N1_UNITS, ...N1_BANK],
+  'ja.n1': [...N1_UNITS, ...N1_RL, ...N1_BANK],
   'ja.town': TOWN_UNITS,
   'ja.travel': [...JA_TRAVEL_UNITS, ...JA_TRAVEL_MORE],
   'ja.biz': JA_BIZ_UNITS,

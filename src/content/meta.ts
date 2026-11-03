@@ -57,7 +57,7 @@ const EN: CourseMeta = {
     }),
     stage({
       id: 'en.gold',
-      fresh: '0.10',
+      fresh: '0.11',
       short: '金色',
       title: '金色證書',
       subtitle: '860 – 990 分',
@@ -65,7 +65,7 @@ const EN: CourseMeta = {
       color: '#e6b422',
       group: 'main',
       style: 'cert',
-      planned: ['長篇閱讀速讀', '推論題攻略', '全真模擬測驗', '滿分衝刺'],
+      planned: ['全真模擬測驗'],
     }),
     stage({
       id: 'en.drill',
@@ -196,7 +196,7 @@ const JA: CourseMeta = {
     }),
     stage({
       id: 'ja.n1',
-      fresh: '0.10',
+      fresh: '0.11',
       short: 'N1',
       title: 'JLPT N1',
       subtitle: '高級',
@@ -204,7 +204,7 @@ const JA: CourseMeta = {
       color: '#fb7185',
       group: 'main',
       style: 'level',
-      planned: ['讀解：長文與評論', '聽解：講座與新聞', '更多機能語', '模擬測驗'],
+      planned: ['模擬測驗'],
     }),
     stage({
       id: 'ja.town',
@@ -336,6 +336,7 @@ const KO: CourseMeta = {
     }),
     stage({
       id: 'ko.k5',
+      fresh: '0.11',
       short: '高級 1',
       title: '高級 1',
       subtitle: 'TOPIK 5 級',
@@ -343,10 +344,10 @@ const KO: CourseMeta = {
       color: '#f472b6',
       group: 'main',
       style: 'level',
-      planned: ['高級文法', '慣用語與俗語', 'TOPIK 5 級單字', '閱讀：評論與論說', '聽力：演講'],
     }),
     stage({
       id: 'ko.k6',
+      fresh: '0.11',
       short: '高級 2',
       title: '高級 2',
       subtitle: 'TOPIK 6 級',
@@ -354,7 +355,6 @@ const KO: CourseMeta = {
       color: '#fb7185',
       group: 'main',
       style: 'level',
-      planned: ['書面語與公文體', '四字成語', 'TOPIK 6 級單字', '寫作：長篇作文', '模擬測驗'],
     }),
     stage({
       id: 'ko.town',

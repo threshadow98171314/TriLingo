@@ -184,8 +184,11 @@ describe('項目內容', () => {
         check(it.q.replace('___', ''), it.id);
         for (const o of it.opts) check(o, `${it.id} 選項`);
       } else if (it.kind === 'qa') {
-        // 聽力應答題的題目直接交給語音朗讀，只能用假名
-        expect(it.q, it.id).not.toMatch(/[[\]㐀-鿿々]/);
+        // 聽讀題的文章、對話稿可以用「漢字[よみ]」標讀音（朗讀時只唸讀音），但每個漢字都要標
+        for (const t of [it.q, it.ask ?? '']) {
+          expect(furiPlain(t), it.id).not.toMatch(/[[\]]/);
+          expect(furiKana(t), it.id).not.toMatch(/[㐀-鿿々]/);
+        }
         for (const o of it.opts) check(o.replace(/…/g, ''), `${it.id} 選項`);
       }
     }
