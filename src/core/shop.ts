@@ -48,7 +48,7 @@ export const PREMIUM_AVATARS = ['🦄', '🐲', '🐳', '🐻‍❄️', '🦔']
 
 // ───────── 外觀 ─────────
 
-export type CosmeticKind = 'frame' | 'skin' | 'burst' | 'title' | 'outfit' | 'pet' | 'name' | 'bg' | 'sound' | 'ambient' | 'totop' | 'wall';
+export type CosmeticKind = 'frame' | 'skin' | 'burst' | 'title' | 'outfit' | 'pet' | 'name' | 'bg' | 'sound' | 'ambient' | 'totop' | 'wall' | 'tap' | 'runner' | 'perfect';
 
 export interface Cosmetic {
   kind: CosmeticKind;
@@ -91,6 +91,9 @@ export const KIND_NAME: Record<CosmeticKind, string> = {
   ambient: '飄落特效',
   totop: '回頂特效',
   wall: '網站背景',
+  tap: '點擊特效',
+  runner: '進度條跑者',
+  perfect: '全對慶祝',
 };
 
 export const FRAMES: Cosmetic[] = [
@@ -295,6 +298,11 @@ export const WALLS: Cosmetic[] = [
   { kind: 'wall', id: 'shippou', name: '七寶紋', desc: '日本傳統花紋，圓圈一個接一個，代表圓滿與緣分。', cost: 180 },
   { kind: 'wall', id: 'hanok', name: '韓屋窗格', desc: '韓屋木窗的細格子，後面糊著韓紙。', cost: 180 },
   { kind: 'wall', id: 'tartan', name: '英倫格紋', desc: '蘇格蘭格紋，淡淡的像一條英國毛毯。', cost: 180 },
+  { kind: 'wall', id: 'ocean', name: '海底世界', desc: '光束從水面照下來，泡泡慢慢往上冒；淺色主題是清澈的淺海。', cost: 280, anim: true },
+  { kind: 'wall', id: 'rain', name: '雨夜窗邊', desc: '窗外下著細雨，遠方的燈光暈開，適合安靜念書。', cost: 260, anim: true },
+  { kind: 'wall', id: 'clouds', name: '雲海', desc: '雲朵非常緩慢地飄過；深色是有月亮的夜空，淺色是晴朗的白天。', cost: 260, anim: true },
+  { kind: 'wall', id: 'forest', name: '螢光森林', desc: '夜晚的森林裡，螢火蟲一閃一閃、慢慢晃。', cost: 280, anim: true },
+  { kind: 'wall', id: 'lava', name: '熔岩燈', desc: '彩色的光團慢慢漂浮、融合，只在神秘商品出現。', cost: 460, anim: true, rare: true },
   { kind: 'wall', id: 'galaxy', name: '銀河', desc: '一條淡淡的銀河橫過星空，只在神秘商品出現。', cost: 420, anim: true, rare: true },
   { kind: 'wall', id: 'aurora', name: '極光夜', desc: '天邊的極光非常緩慢地流動，只在神秘商品出現。', cost: 440, anim: true, rare: true },
 ];
@@ -363,6 +371,61 @@ export const TOTOPS: Cosmetic[] = [
   { kind: 'totop', id: 'dragon', name: '金龍升天', desc: '金龍盤旋而上，撒下一場金幣雨，只在神秘商品出現。', cost: 480, rare: true, icon: '🐉' },
 ];
 
+/** 點擊特效：在首頁、商店、個人頁點一下，點的地方冒出小特效（上課、玩遊戲時不會出現，免得干擾作答） */
+export const TAPS: Cosmetic[] = [
+  { kind: 'tap', id: 'ripple', name: '水波漣漪', desc: '點一下，泛起一圈圈的水波。', cost: 100, icon: '💧', anim: true },
+  { kind: 'tap', id: 'star', name: '星光一點', desc: '點到哪裡，星星就從哪裡跳出來。', cost: 100, icon: '⭐', anim: true },
+  { kind: 'tap', id: 'sakura', name: '指尖櫻花', desc: '幾片櫻花瓣從指尖翻轉著飄落。', cost: 120, icon: '🌸', anim: true },
+  { kind: 'tap', id: 'heart', name: '愛心泡泡', desc: '小愛心一顆一顆往上飄。', cost: 120, icon: '💗', anim: true },
+  { kind: 'tap', id: 'paw', name: '喵掌印', desc: '每點一下，就蓋上一個肉球印章。', cost: 120, icon: '🐾', anim: true },
+  { kind: 'tap', id: 'bubble', name: '肥皂泡', desc: '點一下吹出幾顆彩色泡泡。', cost: 100, icon: 'bubble', anim: true },
+  { kind: 'tap', id: 'letters', name: '字母蹦蹦', desc: 'あ、가、A 從點的地方蹦出來。', cost: 140, icon: 'あ', anim: true },
+  { kind: 'tap', id: 'confetti', name: '迷你彩紙', desc: '每點一下都是小小的派對。', cost: 120, icon: '🎊', anim: true },
+  { kind: 'tap', id: 'firework', name: '掌心煙火', desc: '點一下就炸開一朵小煙火。', cost: 160, icon: '🎆', anim: true },
+  { kind: 'tap', id: 'snow', name: '指尖飄雪', desc: '細雪從點的地方輕輕落下。', cost: 100, icon: '❄️', anim: true },
+  { kind: 'tap', id: 'thunder', name: '雷光一閃', desc: '劈啪！點的地方閃出電光。', cost: 160, icon: '⚡', anim: true },
+  { kind: 'tap', id: 'coin', name: '叮噹金幣', desc: '點一下彈出幾枚金幣，只在神秘商品出現。', cost: 300, icon: '💰', rare: true, anim: true },
+  { kind: 'tap', id: 'magic', name: '魔法陣', desc: '點的地方展開一個發光的魔法陣，只在神秘商品出現。', cost: 340, icon: '🔮', rare: true, anim: true },
+  { kind: 'tap', id: 'rainbow', name: '彩虹光圈', desc: '七種顏色的光點圍成一圈散開，只在神秘商品出現。', cost: 320, icon: '🌈', rare: true, anim: true },
+];
+
+/** 進度條跑者：上課時沿著進度條往前跑，答對會跳一下、答錯會晃一下（都是正面朝前的造型，不會倒著跑） */
+export interface Runner extends Cosmetic {
+  /** 前進的樣子：hop 跳、leap 大跳、roll 滾、waddle 搖擺、float 飄、dash 衝刺、spin 旋轉 */
+  move: 'hop' | 'leap' | 'roll' | 'waddle' | 'float' | 'dash' | 'spin';
+}
+
+export const RUNNERS: Runner[] = [
+  { kind: 'runner', id: 'cat', name: '喵師父跳跳', desc: '跟著進度一路蹦蹦跳跳。', cost: 120, icon: '🐱', move: 'hop', anim: true },
+  { kind: 'runner', id: 'chick', name: '小雞衝衝衝', desc: '小短腿跑得飛快。', cost: 100, icon: '🐣', move: 'hop', anim: true },
+  { kind: 'runner', id: 'penguin', name: '企鵝搖搖', desc: '左搖右擺，一步一步走到終點。', cost: 120, icon: '🐧', move: 'waddle', anim: true },
+  { kind: 'runner', id: 'panda', name: '熊貓團團', desc: '慢吞吞地晃，但一定會到。', cost: 140, icon: '🐼', move: 'waddle', anim: true },
+  { kind: 'runner', id: 'frog', name: '青蛙大跳', desc: '一跳就是好大一步。', cost: 120, icon: '🐸', move: 'leap', anim: true },
+  { kind: 'runner', id: 'onigiri', name: '飯糰滾滾', desc: '從山坡上一路滾下來的飯糰。', cost: 120, icon: '🍙', move: 'roll', anim: true },
+  { kind: 'runner', id: 'ball', name: '足球盤球', desc: '一路盤球衝向終點。', cost: 100, icon: '⚽', move: 'roll', anim: true },
+  { kind: 'runner', id: 'balloon', name: '氣球飄飄', desc: '輕飄飄地浮在進度條上。', cost: 120, icon: '🎈', move: 'float', anim: true },
+  { kind: 'runner', id: 'ghost', name: '小幽靈', desc: '若隱若現地飄在進度條上。', cost: 140, icon: '👻', move: 'float', anim: true },
+  { kind: 'runner', id: 'ufo', name: '幽浮巡航', desc: '閃著光的飛碟在上面巡航。', cost: 180, icon: '🛸', move: 'float', anim: true },
+  { kind: 'runner', id: 'rocket', name: '火箭推進', desc: '尾巴噴著火，答對一題衝一段。', cost: 180, icon: '🚀', move: 'dash', anim: true },
+  { kind: 'runner', id: 'star', name: '流星', desc: '拖著光尾巴的星星，一邊轉一邊前進。', cost: 200, icon: '🌟', move: 'spin', anim: true },
+  { kind: 'runner', id: 'dragon', name: '龍寶寶', desc: '蹦蹦跳跳的龍寶寶，只在神秘商品出現。', cost: 380, icon: '🐲', move: 'leap', rare: true, anim: true },
+  { kind: 'runner', id: 'crown', name: '黃金王冠', desc: '金光閃閃地轉著前進，只在神秘商品出現。', cost: 400, icon: '👑', move: 'spin', rare: true, anim: true },
+];
+
+/** 全對慶祝：一堂課全部答對時，結算畫面放的大特效 */
+export const PERFECTS: Cosmetic[] = [
+  { kind: 'perfect', id: 'fireworks', name: '煙火秀', desc: '六發大煙火在夜空依序綻放。', cost: 160, icon: '🎆', anim: true },
+  { kind: 'perfect', id: 'confetti', name: '彩紙瀑布', desc: '兩邊同時噴出滿滿的彩帶。', cost: 140, icon: '🎊', anim: true },
+  { kind: 'perfect', id: 'sakura', name: '櫻吹雪', desc: '整片櫻花瓣從天而降。', cost: 160, icon: '🌸', anim: true },
+  { kind: 'perfect', id: 'coins', name: '金幣大噴發', desc: '金幣像下大雨一樣掉下來。', cost: 180, icon: '💰', anim: true },
+  { kind: 'perfect', id: 'balloon', name: '氣球升空', desc: '一大把氣球從畫面下方飛上來。', cost: 160, icon: '🎈', anim: true },
+  { kind: 'perfect', id: 'meteor', name: '流星雨', desc: '一陣流星劃過整個畫面，快許願！', cost: 200, icon: '🌠', anim: true },
+  { kind: 'perfect', id: 'cats', name: '喵喵大遊行', desc: '貓咪從天上掉下來幫你慶祝。', cost: 160, icon: '😺', anim: true },
+  { kind: 'perfect', id: 'letters', name: '三語字母雨', desc: 'あ、가、A 各種字母傾盆而下。', cost: 160, icon: '🔤', anim: true },
+  { kind: 'perfect', id: 'lanterns', name: '天燈祭', desc: '幾十盞天燈緩緩升空，只在神秘商品出現。', cost: 400, icon: '🏮', rare: true, anim: true },
+  { kind: 'perfect', id: 'dragon', name: '金龍賀喜', desc: '金龍盤旋而上，撒下金幣與星光，只在神秘商品出現。', cost: 480, icon: '🐉', rare: true, anim: true },
+];
+
 export const COSMETICS: Record<CosmeticKind, Cosmetic[]> = {
   frame: FRAMES,
   skin: SKINS,
@@ -376,6 +439,9 @@ export const COSMETICS: Record<CosmeticKind, Cosmetic[]> = {
   ambient: AMBIENTS,
   totop: TOTOPS,
   wall: WALLS,
+  tap: TAPS,
+  runner: RUNNERS,
+  perfect: PERFECTS,
 };
 
 /** 扭蛋與神秘商品的獎池：不含達成制的稱號，也不含象徵性的 1 金幣商品 */

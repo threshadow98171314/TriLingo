@@ -9,6 +9,7 @@ import { AMBIENTS, BURSTS, SKINS, TITLE_TIER_NAME, type Burst, type Cosmetic, ty
 import { useSave } from '../core/store';
 import { cx } from '../core/util';
 import { Avatar, Pet } from './Avatar';
+import { Runner } from './Runner';
 import { WallSwatch } from './Wall';
 
 /** 外觀的預覽圖 */
@@ -64,6 +65,36 @@ export function CosmeticPreview({ c, size = 64 }: { c: Cosmetic; size?: number }
       );
     case 'wall':
       return <WallSwatch id={c.id} size={size} />;
+    case 'tap':
+      // 圖示＋一圈一圈擴散的水波
+      return (
+        <span className={cx('tap-prev', `tap-${c.id}`)} style={{ width: size, height: size }}>
+          <i />
+          <i />
+          <b>{c.icon === 'bubble' ? '' : c.icon}</b>
+        </span>
+      );
+    case 'runner':
+      // 一小段進度條，跑者在上面來回跑
+      return (
+        <span className="runner-prev" style={{ width: size * 1.4 }}>
+          <span className="runner-track">
+            <span className="bar">
+              <i />
+            </span>
+            <Runner id={c.id} at={0} demo />
+          </span>
+        </span>
+      );
+    case 'perfect':
+      return (
+        <span className={cx('perfect-prev', `perfect-${c.id}`)} style={{ width: size, height: size }}>
+          <b>{c.icon}</b>
+          <i />
+          <i />
+          <i />
+        </span>
+      );
   }
 }
 
@@ -143,6 +174,9 @@ export const LOOK_KINDS: { id: LookKind; icon: string; name: string }[] = [
   { id: 'wall', icon: '🌌', name: '網站背景' },
   { id: 'ambient', icon: '🍁', name: '飄落特效' },
   { id: 'totop', icon: '🚀', name: '回頂特效' },
+  { id: 'tap', icon: '👆', name: '點擊特效' },
+  { id: 'runner', icon: '🏃', name: '進度條跑者' },
+  { id: 'perfect', icon: '🎉', name: '全對慶祝' },
   { id: 'burst', icon: '✨', name: '答對特效' },
   { id: 'sound', icon: '🔔', name: '答對音效' },
   { id: 'skin', icon: '🎨', name: '主題色' },

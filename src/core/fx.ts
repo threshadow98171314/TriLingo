@@ -5,7 +5,7 @@
 // 效能：漸層、曲線、文字這些每一格重畫很貴的形狀，同一種顏色和大小只畫一次（sprite），之後直接貼圖；
 // 精簡模式（core/perf.ts 決定）粒子減半、解析度降到 1 倍、只剩背景飄落時每秒畫 30 格。
 
-type Shape = 'rect' | 'circle' | 'star' | 'spark' | 'glyph' | 'petal' | 'coin' | 'snow' | 'glow' | 'fan' | 'bubble' | 'text' | 'lantern' | 'plane';
+type Shape = 'rect' | 'circle' | 'star' | 'spark' | 'glyph' | 'petal' | 'coin' | 'snow' | 'glow' | 'fan' | 'bubble' | 'text' | 'lantern' | 'plane' | 'ring';
 
 interface Particle {
   x: number;
@@ -49,6 +49,8 @@ interface Particle {
   onDeath?: (p: Particle) => void;
   /** 背景飄落的粒子（數量有上限、飄出畫面就移除） */
   amb?: boolean;
+  /** 每毫秒變大多少（點擊特效的水波） */
+  grow?: number;
 }
 
 export type AmbientKind =
@@ -200,7 +202,7 @@ function removeAt(i: number): Particle {
 // 漸層、曲線、文字、emoji 每一格重畫很耗效能：同一種形狀＋顏色＋大小只畫一次，之後用 drawImage 貼上去。
 
 /** 每種形狀的圖要涵蓋多大（粒子的 size 當 1）：光暈、天燈的光比本體大 */
-const BOX: Partial<Record<Shape, number>> = { circle: 1, snow: 1, star: 1, petal: 1, coin: 1, glyph: 1, bubble: 1.1, plane: 1.1, fan: 1.3, text: 1.5, glow: 2, lantern: 3 };
+const BOX: Partial<Record<Shape, number>> = { circle: 1, snow: 1, star: 1, petal: 1, coin: 1, glyph: 1, bubble: 1.1, plane: 1.1, ring: 1.1, fan: 1.3, text: 1.5, glow: 2, lantern: 3 };
 const sprites = new Map<string, HTMLCanvasElement>();
 
 function starPath(c: CanvasRenderingContext2D, r: number) {
@@ -327,6 +329,14 @@ function paintUnit(c: CanvasRenderingContext2D, shape: Shape, color: string) {
       c.fill();
       break;
     }
+    case 'ring':
+      // 水波、魔法陣的圓環：只有外框
+      c.strokeStyle = color;
+      c.lineWidth = 0.08;
+      c.beginPath();
+      c.arc(0, 0, 0.46, 0, Math.PI * 2);
+      c.stroke();
+      break;
     case 'plane':
       // 紙飛機（機頭朝上）
       c.fillStyle = '#ffffff';
@@ -654,6 +664,7 @@ function loop(now: number) {
     p.x += p.vx * dt;
     p.y += p.vy * dt;
     p.rot += p.vr * dt;
+    if (p.grow) p.size += p.grow * dt;
     const gone = p.age > p.life || (p.amb && (p.y > H + 60 || p.y < -80));
     if (gone) {
       removeAt(i);
@@ -766,7 +777,7 @@ function fireworks(shells = 4, colors: string[] = PALETTE) {
   start();
 }
 
-export type RainKind = 'sakura' | 'leaf' | 'snow' | 'heart' | 'coin' | 'star' | 'cat' | 'emoji';
+export type RainKind = 'sakura' | 'leaf' | 'snow' | 'heart' | 'coin' | 'star' | 'cat' | 'emoji' | 'text';
 
 /** 從畫面上方（愛心從下方）下一場雨 */
 function rain(kind: RainKind, o: { count?: number; glyphs?: string[]; duration?: number } = {}) {
@@ -784,6 +795,8 @@ function rain(kind: RainKind, o: { count?: number; glyphs?: string[]; duration?:
     else if (kind === 'snow') add({ ...base, shape: 'snow', vy: rand(0.06, 0.12), size: rand(3, 7), sway: rand(10, 30), swayFreq: rand(0.001, 0.002) });
     else if (kind === 'coin') add({ ...base, shape: 'coin', vy: rand(0.15, 0.3), g: 0.0004, size: rand(16, 24), flip: rand(0.008, 0.016), life: 3500 });
     else if (kind === 'star') add({ ...base, shape: 'star', vy: rand(0.12, 0.25), g: 0.0002, size: rand(8, 16), color: pick(GOLD), life: 4000 });
+    else if (kind === 'text')
+      add({ ...base, shape: 'text', glyph: pick(o.glyphs ?? ['あ', '가', 'A']), color: pick(PALETTE.slice(0, 6)), vy: rand(0.1, 0.2), size: rand(20, 32), sway: rand(15, 35), swayFreq: rand(0.0015, 0.003), life: 5000 });
     else {
       const glyphs = o.glyphs ?? (kind === 'leaf' ? ['🍁', '🍂'] : kind === 'cat' ? ['🐱', '😺', '😸', '😻'] : ['⭐']);
       add({ ...base, shape: 'glyph', glyph: pick(glyphs), vy: rand(0.1, 0.2), size: rand(22, 34), sway: rand(20, 45), swayFreq: rand(0.0015, 0.003), life: 5000 });
@@ -1064,6 +1077,131 @@ function toTop(from: Element | { x: number; y: number } | null, id?: string) {
   return true;
 }
 
+// ───────── 點擊特效 ─────────
+
+/** 點的地方冒出的小特效（商店「點擊特效」）；粒子都很少，連點也不會卡 */
+const TAPS: Record<string, (x: number, y: number) => void> = {
+  ripple: (x, y) => {
+    for (const [d, c] of [
+      [0, '#7ad8ff'],
+      [110, '#b9ecff'],
+      [220, '#7ad8ff'],
+    ] as const)
+      add({ x, y, shape: 'ring', size: 6, grow: 0.085, life: 560, age: -d, color: c, fadeOut: 0.7 });
+  },
+  star: (x, y) => burst(x, y, { count: 8, shapes: ['star'], speed: 0.22, size: [5, 9], life: [380, 620], colors: GOLD }),
+  sakura: (x, y) => {
+    for (let i = 0; i < budget(5); i++)
+      add({ x: x + rand(-8, 8), y: y + rand(-6, 6), shape: 'petal', vx: rand(-0.05, 0.05), vy: rand(0.02, 0.07), size: rand(8, 12), life: 1200, color: pick(['#ffc6d9', '#ffb3cc', '#ff9fbf']), sway: rand(6, 14), swayFreq: rand(0.004, 0.008), flip: rand(0.004, 0.008), rot: rand(0, 6), vr: rand(-0.004, 0.004), phase: rand(0, 6) });
+  },
+  heart: (x, y) => {
+    for (let i = 0; i < budget(4); i++)
+      add({ x: x + rand(-10, 10), y, shape: 'glyph', glyph: pick(['💗', '💖', '💕']), vy: -rand(0.06, 0.12), size: rand(13, 19), life: 950, age: -i * 70, sway: rand(6, 14), swayFreq: rand(0.004, 0.007), phase: rand(0, 6) });
+  },
+  paw: (x, y) => {
+    add({ x, y, shape: 'glyph', glyph: '🐾', size: 26, life: 900, rot: rand(-0.4, 0.4), fadeOut: 0.5 });
+    add({ x, y, shape: 'ring', size: 10, grow: 0.06, life: 420, color: '#ff9fbf', fadeOut: 0.7 });
+  },
+  bubble: (x, y) => {
+    for (let i = 0; i < budget(4); i++)
+      add({ x: x + rand(-12, 12), y: y + rand(-4, 4), shape: 'bubble', vy: -rand(0.04, 0.09), vx: rand(-0.02, 0.02), size: rand(8, 16), life: 1100, age: -i * 60, color: pick(['#8fd0ff', '#b9a6ff', '#8fe8d6', '#ffb8d8']), sway: rand(4, 10), swayFreq: rand(0.004, 0.008), phase: rand(0, 6) });
+  },
+  letters: (x, y) => {
+    for (let i = 0; i < budget(3); i++)
+      add({ x, y, shape: 'text', glyph: pick(['あ', 'ア', '가', '한', 'A', 'B']), color: pick(PALETTE.slice(0, 6)), vx: rand(-0.09, 0.09), vy: -rand(0.14, 0.22), g: 0.0005, size: rand(15, 21), life: 800, rot: rand(-0.4, 0.4), vr: rand(-0.004, 0.004) });
+  },
+  confetti: (x, y) => burst(x, y, { count: 10, shapes: ['rect'], speed: 0.3, size: [5, 8] }),
+  firework: (x, y) => {
+    const c = pick(PALETTE.slice(0, 6));
+    burst(x, y, { count: 14, shapes: ['circle', 'glow'], speed: 0.26, size: [2, 4], life: [500, 800], gravity: 0.0002, colors: [c, c, '#ffffff'] });
+    add({ x, y, shape: 'ring', size: 4, grow: 0.12, life: 360, color: c, fadeOut: 0.8 });
+  },
+  snow: (x, y) => {
+    for (let i = 0; i < budget(6); i++)
+      add({ x: x + rand(-10, 10), y: y + rand(-6, 6), shape: 'snow', vx: rand(-0.03, 0.03), vy: rand(0.02, 0.05), size: rand(2, 4), life: 1300, sway: rand(4, 10), swayFreq: rand(0.003, 0.006), phase: rand(0, 6), fadeIn: 80 });
+  },
+  thunder: (x, y) => {
+    for (let i = 0; i < budget(6); i++) {
+      const a = (Math.PI * 2 * i) / 6 + rand(-0.3, 0.3);
+      add({ x, y, shape: 'spark', vx: Math.cos(a) * 0.5, vy: Math.sin(a) * 0.5, size: 3, life: 220, color: '#fff3b0', tail: 26, drag: 0.9 });
+    }
+    add({ x, y, shape: 'ring', size: 6, grow: 0.16, life: 260, color: '#ffe066', fadeOut: 0.8 });
+  },
+  coin: (x, y) => {
+    for (let i = 0; i < budget(3); i++)
+      add({ x, y, shape: 'coin', vx: rand(-0.09, 0.09), vy: -rand(0.25, 0.36), g: 0.0013, size: rand(14, 18), life: 900, flip: rand(0.01, 0.02), age: -i * 50 });
+  },
+  magic: (x, y) => {
+    add({ x, y, shape: 'ring', size: 8, grow: 0.055, life: 900, color: '#c4a8ff', fadeOut: 0.6 });
+    add({ x, y, shape: 'ring', size: 4, grow: 0.045, life: 900, age: -140, color: '#7ad8ff', fadeOut: 0.6 });
+    for (let i = 0; i < budget(6); i++) {
+      const a = (Math.PI * 2 * i) / 6;
+      add({ x: x + Math.cos(a) * 14, y: y + Math.sin(a) * 14, shape: 'star', vx: Math.cos(a) * 0.05, vy: Math.sin(a) * 0.05, size: 7, life: 800, color: pick(['#fff3b0', '#c4a8ff', '#ffffff']), vr: 0.01, twinkle: 0.02 });
+    }
+  },
+  rainbow: (x, y) => {
+    for (let i = 0; i < 7; i++) {
+      const a = (Math.PI * 2 * i) / 7;
+      add({ x, y, shape: 'circle', vx: Math.cos(a) * 0.13, vy: Math.sin(a) * 0.13, drag: 0.95, size: 7, life: 650, color: RAINBOW[i % RAINBOW.length] });
+    }
+  },
+};
+
+export const TAP_IDS = Object.keys(TAPS);
+
+/** 點擊特效：在 (x, y) 冒出一個小特效 */
+function tap(x: number, y: number, id: string) {
+  const f = TAPS[id];
+  if (!f || !ensureCanvas()) return false;
+  f(x, y);
+  start();
+  return true;
+}
+
+// ───────── 全對慶祝 ─────────
+
+/** 流星雨：一批長尾巴的流星從右上劃向左下 */
+function meteorShower(n: number) {
+  for (let i = 0; i < budget(n); i++)
+    add({ shape: 'spark', x: rand(W * 0.3, W + 160), y: rand(-60, H * 0.35), vx: -rand(0.5, 0.8), vy: rand(0.22, 0.36), size: rand(2.5, 4), color: pick(['#fff6c2', '#ffffff', '#c4b5ff']), tail: 150, life: 1700, age: -rand(0, 2000), fadeOut: 0.15 });
+}
+
+/** 天燈升空 */
+function lanternRise(n: number) {
+  for (let i = 0; i < budget(n); i++)
+    add({ shape: 'lantern', x: rand(0, W), y: H + 30, vy: -rand(0.05, 0.1), vx: rand(-0.01, 0.02), size: rand(12, 22), life: 7000, age: -rand(0, 2600), sway: rand(6, 16), swayFreq: rand(0.0008, 0.0016), twinkle: rand(0.001, 0.002), phase: rand(0, 6), fadeIn: 400 });
+}
+
+const PERFECTS: Record<string, () => void> = {
+  fireworks: () => {
+    fireworks(6);
+    setTimeout(() => flash('rgba(255,255,255,0.2)'), 700);
+  },
+  confetti: () => confetti(180),
+  sakura: () => rain('sakura', { count: 130, duration: 3200 }),
+  coins: () => rain('coin', { count: 90, duration: 1800 }),
+  balloon: () => rain('heart', { count: 40, glyphs: ['🎈', '🎈', '🎈', '🎉'] }),
+  meteor: () => meteorShower(24),
+  cats: () => rain('cat', { count: 50 }),
+  letters: () => rain('text', { count: 70, glyphs: ['あ', 'ア', 'い', '가', '한', '나', 'A', 'B', 'Z', 'Q'] }),
+  lanterns: () => lanternRise(36),
+  dragon: () => {
+    toTop({ x: W / 2, y: H + 40 }, 'dragon');
+    burst(W / 2, H * 0.4, { count: 30, shapes: ['star', 'glow'], colors: GOLD, speed: 0.45 });
+  },
+};
+
+export const PERFECT_IDS = Object.keys(PERFECTS);
+
+/** 全對時的大特效（商店「全對慶祝」）；沒有買或特效關閉時回傳 false，由呼叫的人放預設的 */
+function perfectShow(id: string) {
+  const f = PERFECTS[id];
+  if (!f || !ensureCanvas()) return false;
+  f();
+  start();
+  return true;
+}
+
 // ───────── DOM 特效 ─────────
 
 function layer(): HTMLElement | null {
@@ -1168,6 +1306,8 @@ export const fx = {
   flash,
   rainbow,
   bump,
+  tap,
+  perfectShow,
 };
 
 /** 商店的「四季更迭」：依日期換成當季飄落的東西 */

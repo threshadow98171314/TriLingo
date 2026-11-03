@@ -122,6 +122,9 @@ const NONE_LABEL: Record<CosmeticKind, string> = {
   sound: '預設音效',
   skin: '預設紫色',
   outfit: '不穿',
+  tap: '點了沒特效',
+  runner: '不帶跑者',
+  perfect: '預設煙火',
 };
 
 const KIND_HINT: Record<CosmeticKind, string> = {
@@ -137,6 +140,9 @@ const KIND_HINT: Record<CosmeticKind, string> = {
   sound: '答對時的聲音',
   skin: '整個網站的強調色',
   outfit: '首頁喵師父的裝扮',
+  tap: '在首頁、商店、個人頁點一下時的特效',
+  runner: '上課時沿著進度條往前跑',
+  perfect: '一堂課全對時的慶祝特效',
 };
 
 function Tile({ on, onClick, label, children, className }: { on: boolean; onClick: (el: HTMLElement) => void; label: string; children: ReactNode; className?: string }) {
@@ -174,6 +180,11 @@ function Wardrobe() {
       if (b) fx.burstAt(el, { count: 22, speed: 0.35, colors: b.colors, shapes: b.shapes, glyphs: b.glyphs });
     } else if (c.kind === 'sound') sfx.preview(c.id);
     else if (c.kind === 'totop') fx.toTop(el, c.id);
+    else if (c.kind === 'perfect') fx.perfectShow(c.id);
+    else if (c.kind === 'tap') {
+      const r = el.getBoundingClientRect();
+      fx.tap(r.left + r.width / 2, r.top + r.height / 2, c.id);
+    }
   };
 
   if (kind === 'avatar') {

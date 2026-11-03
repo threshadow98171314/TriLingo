@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { META } from '../content';
 import { randomTip, TIPS } from '../content/tips';
 import { fx } from '../core/fx';
+import { getSave } from '../core/store';
 import { rankOf, TIERS } from '../core/ranks';
 import { sfx } from '../core/sfx';
 import type { Outcome } from '../core/store';
@@ -47,9 +48,12 @@ export function ResultScreen({ data, lang }: { data: ResultData; lang: LangId })
     } else {
       sfx.complete();
       if (o.perfect) {
-        // 全對：煙火＋星星雨＋蓋上 PERFECT 印章
-        fx.fireworks(3);
-        later(350, () => fx.rain('star', { count: 45, duration: 1600 }));
+        // 全對：商店買的「全對慶祝」，沒有的話放煙火＋星星雨；都會蓋上 PERFECT 印章
+        const show = getSave().equip.perfect;
+        if (!show || !fx.perfectShow(show)) {
+          fx.fireworks(3);
+          later(350, () => fx.rain('star', { count: 45, duration: 1600 }));
+        }
       } else {
         fx.confetti();
       }

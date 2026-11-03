@@ -165,6 +165,18 @@ export function App() {
     const kind = ambient === 'season' ? seasonOf(new Date(nowMs())) : ((ambient as AmbientKind | undefined) ?? null);
     fx.setAmbient(!focus && fxSetting ? kind : null);
   }, [focus, fxSetting, ambient]);
+
+  // 點擊特效：首頁、商店、個人頁點一下，點的地方冒出小特效（上課、玩遊戲時不放，免得干擾作答）
+  const tap = s.equip.tap;
+  useEffect(() => {
+    if (!tap || focus) return;
+    const h = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      fx.tap(e.clientX, e.clientY, tap);
+    };
+    window.addEventListener('pointerdown', h, { passive: true });
+    return () => window.removeEventListener('pointerdown', h);
+  }, [tap, focus]);
   return (
     <>
       <WallLayer />

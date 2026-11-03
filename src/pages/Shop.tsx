@@ -343,6 +343,19 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
     setNote(done ? (c.kind === 'ambient' ? '背景正在試看 8 秒' : '') : '特效已關閉（設定或系統的減少動態效果）');
     if (!done || c.kind === 'ambient') setTimeout(() => setNote(''), 3000);
   };
+  const off = () => {
+    setNote('特效已關閉（設定或系統的減少動態效果）');
+    setTimeout(() => setNote(''), 3000);
+  };
+  const tryTap = () => {
+    const r = card.current?.querySelector('.look-art')?.getBoundingClientRect();
+    if (!r) return;
+    // 連點三下，看得出效果
+    for (let i = 0; i < 3; i++) setTimeout(() => fx.tap(r.left + r.width * (0.3 + i * 0.2), r.top + r.height * (0.4 + (i % 2) * 0.2), c.id) || (i === 0 && off()), i * 180);
+  };
+  const tryPerfect = () => {
+    if (!fx.perfectShow(c.id)) off();
+  };
   const tryWall = () => {
     previewWall(c.id);
     setNote('背景正在試看 8 秒');
@@ -360,7 +373,11 @@ function CosmeticCard({ c }: { c: Cosmetic }) {
             ? ['👀 試看', tryWall]
             : c.kind === 'totop'
               ? ['🚀 試放', tryLook]
-              : null;
+              : c.kind === 'tap'
+                ? ['👆 試點', tryTap]
+                : c.kind === 'perfect'
+                  ? ['🎉 試放', tryPerfect]
+                  : null;
   return (
     <div ref={card} className={cx('look card', owned && 'owned', on && 'on', c.rare && 'rare', c.anim && 'anim')}>
       <div className="look-badges">
@@ -430,6 +447,9 @@ export const KIND_DESC: Record<CosmeticKind, string> = {
   burst: '答對時爆出來的特效。',
   sound: '答對時的聲音，可以先試聽。',
   skin: '換掉整個網站的強調色（按鈕、進度條、連結）。',
+  tap: '在首頁、商店、個人頁點一下，點的地方就會冒出特效，按「試點」先玩玩看。上課、玩遊戲時不會出現，免得干擾作答。',
+  runner: '上課時沿著進度條往前跑：答對一題衝一段、答對會跳一下、答錯會晃一下。',
+  perfect: '一堂課全部答對時，結算畫面放的大特效，按「試放」先看看。',
 };
 
 const ALL_AVATARS = [...FREE_AVATARS, ...SHOP_AVATARS, ...PREMIUM_AVATARS];

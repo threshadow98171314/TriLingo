@@ -2,6 +2,7 @@
 // 出題在 engine/drills；這裡負責流程：選範圍 → 一題一題作答（選擇題或打字題）→ 結算。
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { ResultScreen, type ResultData } from '../components/Result';
+import { Runner } from '../components/Runner';
 import { SpeakBtn, Tx } from '../components/ui';
 import { META } from '../content';
 import { fx } from '../core/fx';
@@ -183,8 +184,11 @@ function Round({ def, mode, lang, onAgain }: { def: DrillDef; mode: string; lang
           <small>
             {def.title}・第 {idx + 1} / {qs.length} 題
           </small>
-          <div className="bar">
-            <i style={{ width: `${((idx + (done ? 1 : 0)) / qs.length) * 100}%`, background: 'var(--lang)' }} />
+          <div className="runner-track">
+            <div className="bar">
+              <i style={{ width: `${((idx + (done ? 1 : 0)) / qs.length) * 100}%`, background: 'var(--lang)' }} />
+            </div>
+            {save.equip.runner && <Runner id={save.equip.runner} at={(idx + (done ? 1 : 0)) / qs.length} mood={done ? (fb!.ok ? 'ok' : 'bad') : null} />}
           </div>
         </div>
         <div className={cx('combo on', combo >= 3 && 'hot')}>

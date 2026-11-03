@@ -14,6 +14,7 @@ import { furiPlain } from '../engine/furigana';
 import { inexactNote } from '../engine/typing';
 import { nav } from '../router';
 import { ChoiceView, KeyGuideView, MatchView, NoteView, TeachView, TilesView, TypeView, TypeWordView, type TypedResult } from './ExerciseViews';
+import { Runner } from './Runner';
 import { ExHint, exHintOf } from './Guide';
 import { ResultScreen, type ResultData } from './Result';
 import { Pet } from './Avatar';
@@ -276,7 +277,10 @@ export function Session({
         </button>
         <div className="session-progress">
           <small>{title}</small>
-          <Bar v={progress} color="var(--lang)" />
+          <div className="runner-track">
+            <Bar v={progress} color="var(--lang)" />
+            {save.equip.runner && <Runner id={save.equip.runner} at={progress} mood={fb ? (fb.correct ? 'ok' : 'bad') : null} />}
+          </div>
         </div>
         {save.equip.pet && <Pet key={`${idx}-${fb ? (fb.correct ? 'y' : 'n') : ''}`} id={save.equip.pet} mood={fb ? (fb.correct ? (combo > 0 && combo % 5 === 0 ? 'cheer' : 'hop') : 'sad') : null} />}
         <div className={cx('combo', combo >= 2 && 'on', combo >= 5 && 'hot', combo >= 10 && 'blaze', combo >= 20 && 'inferno')} key={combo} title="連擊">

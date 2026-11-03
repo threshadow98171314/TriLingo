@@ -18,14 +18,18 @@ import {
   mysteryOffers,
   NAMES,
   OUTFITS,
+  PERFECTS,
   PETS,
   PREMIUM_AVATARS,
+  RUNNERS,
   SHOP_AVATARS,
   SKINS,
   SOUNDS,
+  TAPS,
   TITLES,
   WALLS,
 } from '../src/core/shop';
+import { PERFECT_IDS, TAP_IDS } from '../src/core/fx';
 
 const css = ['src/shop.css', 'src/styles.css', 'src/fx.css'].map((f) => readFileSync(f, 'utf8')).join('\n');
 
@@ -50,6 +54,15 @@ describe('商品目錄盤查', () => {
     }
     const plain = renderToStaticMarkup(createElement(MascotArt));
     for (const o of OUTFITS) expect(renderToStaticMarkup(createElement(MascotArt, { outfit: o.id })), o.id).not.toBe(plain);
+  });
+
+  it('點擊特效、全對慶祝都有對應的特效；進度條跑者都有圖示和動作樣式', () => {
+    for (const t of TAPS) expect(TAP_IDS, t.id).toContain(t.id);
+    for (const p of PERFECTS) expect(PERFECT_IDS, p.id).toContain(p.id);
+    for (const r of RUNNERS) {
+      expect(r.icon, r.id).toBeTruthy();
+      expect(css, r.id).toContain(`.run-${r.move}`);
+    }
   });
 
   it('稱號：每個都有等級，等級越高越難；特效都有樣式', () => {

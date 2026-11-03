@@ -22,6 +22,8 @@ export const NEWS: { version: string; items: NewsItem[] } = {
     { lang: 'ja', text: '日文：活用道場（動詞變化）、助數詞大挑戰', to: '/l/ja/arcade', cta: '去玩' },
     { lang: 'ko', text: '韓文：數字大考驗（固有語／漢字語）、-아요／어요 活用', to: '/l/ko/arcade', cta: '去玩' },
     { lang: 'en', text: '英文：不規則動詞、拼字蜜蜂', to: '/l/en/arcade', cta: '去玩' },
+    { icon: '👆', text: '商店新增會動的外觀：點擊特效、進度條跑者、全對慶祝', to: '/shop?tab=looks&kind=tap', cta: '去逛逛' },
+    { icon: '🌊', text: '網站背景新增海底世界、雨夜窗邊、雲海、螢光森林（會動）', to: '/shop?tab=looks&kind=wall', cta: '去看看' },
   ],
 };
 
