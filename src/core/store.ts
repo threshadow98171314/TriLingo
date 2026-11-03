@@ -40,6 +40,7 @@ import {
   type MysteryOffer,
 } from './shop';
 import { setSfxEnabled, setSoundSource } from './sfx';
+import { DRILL_IDS, type DrillId } from '../engine/drills';
 import { setTtsPrefs } from './tts';
 import { LANGS, type LangId, type Lesson, type Unit } from './types';
 import { sum } from './util';
@@ -458,7 +459,7 @@ export function finishLesson(a: { lang: LangId; unit: Unit; lesson: Lesson; stat
   return out;
 }
 
-export type GameId = 'review' | 'crossword' | 'match' | 'blitz' | 'listen' | 'typing' | 'truefalse' | 'memory' | 'pics' | 'sort' | 'duel' | 'wordle' | 'chain' | 'sevens' | 'bigtwo';
+export type GameId = 'review' | 'crossword' | 'match' | 'blitz' | 'listen' | 'typing' | 'truefalse' | 'memory' | 'pics' | 'sort' | 'duel' | 'wordle' | 'chain' | 'sevens' | 'bigtwo' | DrillId;
 
 export function finishGame(a: {
   lang: LangId;
@@ -548,6 +549,15 @@ export function finishGame(a: {
       if (a.daily && !log.dailyWordle?.[a.lang]) {
         log.dailyWordle = { ...log.dailyWordle, [a.lang]: true };
         if (a.win) parts.push(['每日猜詞獎勵', 15]);
+      }
+    } else if ((DRILL_IDS as string[]).includes(a.game)) {
+      // 語言專屬特訓：最高分分語言、分特訓記
+      d.stats.drills++;
+      const key = `${a.game}.${a.lang}`;
+      const score = a.score ?? 0;
+      if (score > (d.best.drill[key] ?? 0)) {
+        record = (d.best.drill[key] ?? 0) > 0;
+        d.best.drill[key] = score;
       }
     } else if (a.game === 'memory') {
       d.stats.memories++;

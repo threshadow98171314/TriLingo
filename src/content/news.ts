@@ -16,16 +16,17 @@ export interface NewsItem {
 }
 
 export const NEWS: { version: string; items: NewsItem[] } = {
-  version: '0.10',
+  version: '0.11',
   items: [
-    { lang: 'ja', text: '日文 N1 開放：書面語文法 4 個單元＋N1 單字庫 123 字', to: '/l/ja/s/ja.n1', cta: '去 N1' },
-    { lang: 'ko', text: '韓文中級 2：-더라고요、-(으)ㄹ 텐데等 4 個文法單元', to: '/l/ko/s/ko.k4', cta: '去中級 2' },
-    { lang: 'en', text: '多益金色路線：同義詞替換、高頻陷阱題', to: '/l/en/s/en.gold', cta: '去金色' },
-    { lang: 'ja', text: '動漫新增：角色的語尾語氣、關西腔入門', to: '/l/ja/s/ja.anime', cta: '去動漫' },
-    { lang: 'ko', text: '韓劇新增：綜藝流行語、釜山腔入門', to: '/l/ko/s/ko.drama', cta: '去韓劇' },
-    { icon: '⚡', text: '答題不再卡頓；設定新增「特效品質」（自動／完整／精簡）', to: '/settings', cta: '設定' },
+    { icon: '🥋', text: '遊樂場新增「專屬」分類：每種語言都有只屬於自己的特訓' },
+    { lang: 'ja', text: '日文：活用道場（動詞變化）、助數詞大挑戰', to: '/l/ja/arcade', cta: '去玩' },
+    { lang: 'ko', text: '韓文：數字大考驗（固有語／漢字語）、-아요／어요 活用', to: '/l/ko/arcade', cta: '去玩' },
+    { lang: 'en', text: '英文：不規則動詞、拼字蜜蜂', to: '/l/en/arcade', cta: '去玩' },
   ],
 };
+
+/** 首頁卡片「知道了」記的 id：同一版又加了新項目時，卡片會再出現一次 */
+export const newsSeenKey = () => `news-${NEWS.version}-${NEWS.items.length}`;
 
 /** 關卡在這個版本新增了內容，而且還沒打開過：顯示 NEW */
 export function stageIsNew(stage: { id: string; fresh?: string }, guide: Record<string, number>): boolean {

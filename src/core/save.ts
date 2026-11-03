@@ -118,6 +118,8 @@ export interface Stats {
   sevensWins: number;
   bigtwo: number;
   bigtwoWins: number;
+  /** 遊樂場的語言專屬特訓（活用道場、數字大考驗、不規則動詞…）完成的場數 */
+  drills: number;
 }
 
 /** 道具庫存（連勝保護在 streak.freezes、雙倍 XP 在 boostUntil） */
@@ -241,6 +243,8 @@ export interface Save {
     duel: Record<LangId, number>;
     /** 接龍對戰：最高分 */
     chain: Record<LangId, number>;
+    /** 語言專屬特訓的最高分，key 是「特訓 id.語言」（例如 conj.ja） */
+    drill: Record<string, number>;
   };
   /** 各語言上次停留的關卡 */
   stage: Partial<Record<LangId, string>>;
@@ -339,8 +343,9 @@ export function defaultSave(now: number): Save {
       sevensWins: 0,
       bigtwo: 0,
       bigtwoWins: 0,
+      drills: 0,
     },
-    best: { blitz: { en: 0, ja: 0, ko: 0 }, match: {}, memory: {}, tf: { en: 0, ja: 0, ko: 0 }, duel: { en: 0, ja: 0, ko: 0 }, chain: { en: 0, ja: 0, ko: 0 } },
+    best: { blitz: { en: 0, ja: 0, ko: 0 }, match: {}, memory: {}, tf: { en: 0, ja: 0, ko: 0 }, duel: { en: 0, ja: 0, ko: 0 }, chain: { en: 0, ja: 0, ko: 0 }, drill: {} },
     stage: {},
     prefsAt: 0,
     coinsAt: 0,
@@ -378,6 +383,7 @@ export function migrate(raw: unknown, now: number): Save {
       tf: { ...d.best.tf, ...x.best?.tf },
       duel: { ...d.best.duel, ...x.best?.duel },
       chain: { ...d.best.chain, ...x.best?.chain },
+      drill: { ...x.best?.drill },
     },
     days: x.days ?? {},
     lessons: x.lessons ?? {},

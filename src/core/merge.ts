@@ -135,6 +135,7 @@ export function mergeSaves(a: Save, b: Save): Save {
       tf: maxKeys(a.best.tf, b.best.tf),
       duel: maxKeys(a.best.duel, b.best.duel),
       chain: maxKeys(a.best.chain, b.best.chain),
+      drill: maxKeys(a.best.drill, b.best.drill),
     },
     // 外觀只增不減；穿戴取最後修改設定的那份；道具和金幣一起取最後變動的那份；貼紙張數取較大值
     owned: union(a.owned, b.owned),

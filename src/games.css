@@ -1391,3 +1391,86 @@ button.pcard {
 .cards-game .session-body {
   max-width: 900px;
 }
+
+/* ───────── 語言專屬特訓（pages/Drill.tsx） ───────── */
+.drill-q {
+  display: grid;
+  gap: 16px;
+}
+.drill-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 92px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--lang) 10%, var(--card));
+  border: 2px solid color-mix(in srgb, var(--lang) 35%, var(--line));
+}
+.drill-icon {
+  flex: none;
+  font-size: 2.2rem;
+  line-height: 1;
+}
+.drill-prompt .prompt-text.big {
+  font-size: clamp(1.7rem, 7vw, 2.4rem);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+.drill-listen {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.drill-sub {
+  margin: -6px 0 0;
+  text-align: center;
+}
+.drill-type {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+.drill-type .type-input.right {
+  border-color: var(--ok);
+}
+.drill-type .type-input.wrong {
+  border-color: var(--bad);
+}
+.drill-retry {
+  margin: 0;
+  color: var(--warn);
+  font-weight: 700;
+  text-align: center;
+}
+.drill-answer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.drill-modes {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+  gap: 8px;
+}
+.drill-mode {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 2px solid var(--line);
+  background: var(--card-2);
+  color: inherit;
+  text-align: left;
+}
+.drill-mode small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+.drill-mode.on {
+  border-color: var(--lang);
+  background: color-mix(in srgb, var(--lang) 16%, var(--card-2));
+}

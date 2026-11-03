@@ -5,7 +5,7 @@ import { Mascot } from '../components/Mascot';
 import { RankEmblem } from '../components/RankEmblem';
 import { Bar, Coin, flameTier, flyCoins, LangBadge, Modal, Ruby, SpeakBtn, Tx } from '../components/ui';
 import { META, META_LIST, useCourse } from '../content';
-import { APP_MINOR, NEWS } from '../content/news';
+import { APP_MINOR, NEWS, newsSeenKey } from '../content/news';
 import { PROVERBS } from '../content/proverbs';
 import { randomTip, TIPS } from '../content/tips';
 import { fx } from '../core/fx';
@@ -299,7 +299,7 @@ function TipCard() {
 function NewsCard({ s }: { s: Save }) {
   if (NEWS.version !== APP_MINOR || !s.stats.answers) return null;
   return (
-    <GuideTip id={`news-${NEWS.version}`} icon="🆕" title={`這次更新了什麼（v${__APP_VERSION__}）`}>
+    <GuideTip id={newsSeenKey()} icon="🆕" title={`這次更新了什麼（v${__APP_VERSION__}）`}>
       <ul className="news-list">
         {NEWS.items.map((n) => {
           // 有連結的整列都可以點（手機上只留 ›，說明文字才不會被擠成好幾行）

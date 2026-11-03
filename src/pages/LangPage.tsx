@@ -11,6 +11,7 @@ import { pictureOf } from '../engine/pictures';
 import { kanaPairs } from './Memory';
 import { MockTab } from './Mock';
 import { courseIndex, META, META_LIST, requireCourse } from '../content';
+import { drillsFor } from '../engine/drills';
 import { APP_MINOR, stageIsNew, stageSeenKey } from '../content/news';
 import { addDays, dayNum, today } from '../core/date';
 import { mastery, MASTERY_LABEL } from '../core/logic';
@@ -332,13 +333,15 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
 
 // ───────── 遊樂場 ─────────
 
-type ArcadeCat = 'daily' | 'table' | 'words' | 'skills';
+type ArcadeCat = 'daily' | 'special' | 'table' | 'words' | 'skills';
 
 const ARCADE_CATS: [ArcadeCat, string, string][] = [
   ['daily', '⭐', '每日'],
+  // 名稱跟著語言變：日文專屬、韓文專屬、英文專屬
+  ['special', '🥋', '專屬'],
   ['table', '🃏', '對戰與牌桌'],
   ['words', '🧩', '單字遊戲'],
-  ['skills', '🎧', '聽力與打字'],
+  ['skills', '🎧', '聽力'],
 ];
 
 interface Game {
@@ -551,7 +554,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
   if (lang === 'ja') {
     games.push({
       icon: 'あ',
-      cat: 'words',
+      cat: 'special',
       title: '假名對對碰',
       desc: '翻牌找出平假名和對應的片假名（あ↔ア），兩種假名一起記熟。',
       to: `/l/${lang}/play/memory?kana=1`,
@@ -563,7 +566,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
     games.push(
       {
         icon: '⌨️',
-        cat: 'skills',
+        cat: 'special',
         title: '打字特訓',
         desc:
           lang === 'ja'
@@ -577,7 +580,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
       },
       {
         icon: '🎹',
-        cat: 'skills',
+        cat: 'special',
         title: '打字教室',
         desc: lang === 'ja' ? '促音、長音、ん、拗音、外來語怎麼打？看說明，當場試打。' : '韓文鍵盤配置、雙子音、複合母音、收尾音怎麼打？看說明，當場試打。',
         to: `/l/${lang}/typing-guide`,
@@ -586,6 +589,24 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
       },
     );
   }
+
+  // 語言專屬特訓：活用道場、助數詞（日）、數字大考驗、活用（韓）、不規則動詞、拼字蜜蜂（英）
+  for (const d of drillsFor(lang)) {
+    const best = s.best.drill?.[`${d.id}.${lang}`] ?? 0;
+    games.push({
+      icon: d.icon,
+      cat: 'special',
+      title: d.title,
+      desc: d.desc,
+      to: `/l/${lang}/play/${d.id}`,
+      need: d.need,
+      have: words,
+      badge: best > 0 ? `最高 ${best} 分` : '新遊戲',
+      hot: best === 0 && words >= d.need,
+      blocked: d.needsVoice && !canSpeak(lang) ? `這個瀏覽器沒有${LANG_NAME[lang]}語音，請改用 Chrome 或 Edge。` : undefined,
+    });
+  }
+  const catName = (id: ArcadeCat | 'all', name: string) => (id === 'special' ? `${LANG_NAME[lang]}專屬` : name);
 
   const shown = cat === 'all' ? ARCADE_CATS.map((c) => c[0]) : [cat];
   return (
@@ -598,7 +619,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
           return (
             <button key={id} type="button" role="tab" aria-selected={cat === id} className={cx('arcade-cat', cat === id && 'on')} onClick={() => setCat(id)}>
               <span aria-hidden>{icon}</span>
-              {name}
+              {catName(id, name)}
               <small>{list.length}</small>
               {hot && <i className="arcade-dot" aria-label="有新挑戰" />}
             </button>
@@ -613,7 +634,7 @@ function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
           <section key={c} className="arcade-group">
             {cat === 'all' && (
               <h3 className="group-label">
-                {icon} {name}
+                {icon} {catName(c, name)}
               </h3>
             )}
             <div className="arcade">
@@ -904,7 +925,8 @@ function TabGuide({ tab, lang }: { tab: LangTab; lang: LangId }) {
       return (
         <GuideTip id="tab:arcade" title="遊樂場怎麼玩？" icon="🎮">
           <ul>
-            <li>所有遊戲都用你學過的字出題；🔒 的遊戲多學幾個字就會解鎖。</li>
+            <li>每種語言各有自己的遊樂場：題目只用你學過的這個語言的字，最高分也分語言記。🔒 的遊戲多學幾個字就會解鎖。</li>
+            <li>「🥋 專屬」是只有這個語言才有的特訓，例如日文的動詞變化、韓文的兩套數字、英文的不規則動詞。</li>
             <li>「今日複習」最重要：把快忘記的字複習一次，記憶會更牢。</li>
           </ul>
         </GuideTip>

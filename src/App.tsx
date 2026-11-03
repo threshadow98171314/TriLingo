@@ -17,6 +17,8 @@ import { BigTwoPage } from './pages/BigTwo';
 import { BlitzPage } from './pages/Blitz';
 import { CardDuelPage } from './pages/CardDuel';
 import { CrosswordPage } from './pages/Crossword';
+import { DrillPage } from './pages/Drill';
+import { drillOf } from './engine/drills';
 import { ConceptPage, ConceptQuizPage } from './pages/Concepts';
 import { PicturesPage, SortPage } from './pages/FunGames';
 import { SongPage } from './pages/Songs';
@@ -89,6 +91,7 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
       case 'review':
         return gated(<ReviewPage lang={lang} />);
       case 'play':
+        if (p[3] && drillOf(lang, p[3])) return gated(<DrillPage lang={lang} id={p[3]} />);
         if (p[3] === 'crossword') return gated(<CrosswordPage lang={lang} daily={route.query.get('daily') === '1'} />);
         if (p[3] === 'match') return gated(<MatchPage lang={lang} />);
         if (p[3] === 'duel') return gated(<CardDuelPage lang={lang} />);
