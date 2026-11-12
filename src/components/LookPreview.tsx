@@ -1,4 +1,4 @@
-// 外觀商品的預覽圖與分類選擇器：商店與個人頁共用
+// 外觀商品的預覽圖與分類選擇器：商店與「我的」頁共用
 import type { CSSProperties } from 'react';
 import { ItemIcon } from '../art/items';
 import { MascotArt } from '../art/mascot';

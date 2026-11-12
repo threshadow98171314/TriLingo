@@ -1,10 +1,13 @@
-// 個人頁：名片（頭像、暱稱、稱號、夥伴、背景）、外觀切換（商店買的東西都在這裡換）、貼紙板、學習紀錄
+// 「我的」頁：名片（頭像、暱稱、稱號、夥伴、背景）、成就／商店／設定／說明的入口，
+// 以及外觀切換（商店買的東西都在這裡換）、貼紙板、學習紀錄、充電站（小知識、諺語）四個分頁
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { AVATAR_NAME } from '../art/avatars';
 import { STICKERS } from '../art/stickers';
 import { Avatar, Pet } from '../components/Avatar';
 import { RankEmblem, RankLine } from '../components/RankEmblem';
+import { ProverbCard, TipCard } from '../components/Recharge';
 import { StickerBoard } from '../components/StickerBoard';
+import { WeekChart } from '../components/WeekChart';
 import { CardScene } from '../art/scenes';
 import { Coin, LangBadge } from '../components/ui';
 import { META_LIST } from '../content';
@@ -20,12 +23,38 @@ import { cx, sum } from '../core/util';
 import { href, useRoute } from '../router';
 import { CosmeticPreview, isLookKind, KindPicker, TitleBadge, type LookKind } from '../components/LookPreview';
 
-type Tab = 'looks' | 'board' | 'stats';
-const TABS: [Tab, string][] = [
-  ['looks', '👕 外觀'],
-  ['board', '🖼️ 貼紙板'],
-  ['stats', '📊 紀錄'],
+type Tab = 'looks' | 'board' | 'stats' | 'recharge';
+const TABS: [Tab, string, string][] = [
+  ['looks', '👕', '外觀'],
+  ['board', '🖼️', '貼紙板'],
+  ['stats', '📊', '紀錄'],
+  ['recharge', '💡', '充電站'],
 ];
+
+/** 成就、商店、設定、說明的入口（導覽列的「我的」把這些放在一起） */
+function MeHub() {
+  const s = useSave();
+  const achGot = ACHIEVEMENTS.filter((a) => s.ach[a.id]).length;
+  const tiles: { to: string; icon: string; label: string; sub: ReactNode }[] = [
+    { to: '/profile', icon: '🏆', label: '成就', sub: `${achGot} / ${ACHIEVEMENTS.length}` },
+    { to: '/shop', icon: '🛒', label: '商店', sub: <Coin n={s.coins} /> },
+    { to: '/settings', icon: '⚙️', label: '設定', sub: '目標、語音、雲端同步' },
+    { to: '/help', icon: '❓', label: '使用說明', sub: '所有功能的說明' },
+  ];
+  return (
+    <nav className="me-hub" aria-label="我的">
+      {tiles.map((t) => (
+        <a key={t.to} className="me-hub-tile card" href={href(t.to)}>
+          <span className="me-hub-icon" aria-hidden>
+            {t.icon}
+          </span>
+          <b>{t.label}</b>
+          <small className="muted">{t.sub}</small>
+        </a>
+      ))}
+    </nav>
+  );
+}
 
 export function MePage() {
   const route = useRoute();
@@ -33,9 +62,11 @@ export function MePage() {
   return (
     <div className="page me-page">
       <ProfileCard />
+      <MeHub />
       <div className="seg shop-tabs me-tabs" role="tablist">
-        {TABS.map(([id, label]) => (
+        {TABS.map(([id, icon, label]) => (
           <a key={id} role="tab" aria-selected={tab === id} className={cx(tab === id && 'on')} href={href(`/me?tab=${id}`)}>
+            <span aria-hidden>{icon}</span>
             {label}
           </a>
         ))}
@@ -43,6 +74,12 @@ export function MePage() {
       {tab === 'looks' && <Wardrobe />}
       {tab === 'board' && <StickerBoard />}
       {tab === 'stats' && <StatsTab />}
+      {tab === 'recharge' && (
+        <>
+          <TipCard />
+          <ProverbCard />
+        </>
+      )}
     </div>
   );
 }
@@ -54,7 +91,6 @@ function ProfileCard() {
   const [name, setName] = useState(s.name);
   const [editing, setEditing] = useState(false);
   const title = TITLES.find((t) => t.id === s.equip.title);
-  const achGot = ACHIEVEMENTS.filter((a) => s.ach[a.id]).length;
   const stickerCount = STICKERS.filter((x) => s.stickers[x.id]).length;
   return (
     <section className={cx('card profile-head', s.equip.bg && 'has-scene')}>
@@ -90,16 +126,11 @@ function ProfileCard() {
             <Pet id={s.equip.pet} size={30} /> <small className="muted">學習夥伴陪你一起上課</small>
           </p>
         )}
+        {/* 成就、金幣在下方的入口；這裡只放貼紙收集進度 */}
         <div className="me-chips">
-          <a className="chip" href={href('/profile')}>
-            🏆 成就 {achGot} / {ACHIEVEMENTS.length}
-          </a>
           <a className="chip" href={href('/me?tab=board')}>
             🎴 貼紙 {stickerCount} / {STICKERS.length}
           </a>
-          <span className="chip">
-            <Coin n={s.coins} />
-          </span>
         </div>
       </div>
     </section>
@@ -139,8 +170,8 @@ const KIND_HINT: Record<CosmeticKind, string> = {
   burst: '答對時爆出來的特效',
   sound: '答對時的聲音',
   skin: '整個網站的強調色',
-  outfit: '首頁喵師父的裝扮',
-  tap: '在首頁、商店、個人頁點一下時的特效',
+  outfit: '「今天」頁喵師父的裝扮',
+  tap: '在「今天」、商店、「我的」頁點一下時的特效',
   runner: '上課時沿著進度條往前跑',
   perfect: '一堂課全對時的慶祝特效',
 };
@@ -161,7 +192,7 @@ function Tile({ on, onClick, label, children, className }: { on: boolean; onClic
 
 function Wardrobe() {
   const s = useSave();
-  // 從扭蛋結果點「到個人頁換上」：直接打開那一類
+  // 從扭蛋結果按「到「我的」換上」過來：直接打開那一類
   const q = useRoute().query.get('kind');
   const [kind, setKind] = useState<LookKind>(isLookKind(q) ? q : 'avatar');
   useEffect(() => {
@@ -355,6 +386,7 @@ function StatsTab() {
   ];
   return (
     <>
+      <WeekChart s={s} />
       <section className="rank-trio">
         {META_LIST.map((c) => (
           <div key={c.id} className="card rank-card" style={{ '--lang': c.color } as CSSProperties}>

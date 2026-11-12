@@ -2,6 +2,7 @@
 // 看過的會記在存檔（save.guide），跟著雲端同步，換裝置不會重複跳出。
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { META_LIST } from '../content';
+import { SECTIONS } from '../core/nav';
 import { markGuide, useSave } from '../core/store';
 import { cx } from '../core/util';
 import type { Exercise } from '../engine/exercises';
@@ -37,24 +38,24 @@ const SLIDES = [
     text: '英文、日文、韓文，三種語言一起學。每種語言各自累積 XP、各自升段，從「鐵」一路升到最高的「聖哲」。',
   },
   {
+    icon: '☀️',
+    title: '每天從「今天」開始',
+    text: '按「▶ 開始今天的學習」：先複習快要忘記的字，再上下一堂新課，幾分鐘就完成。每天拿到「每日目標」的 XP 就能延續連勝 🔥。',
+  },
+  {
     icon: '📚',
     title: '跟著學習路線上課',
     text: '每堂課 3～5 分鐘：先看教學卡，再做練習。一個單元的課上完、通過「單元測驗」，就會解鎖下一個單元。已經會的內容可以直接考單元測驗跳級。',
   },
   {
-    icon: '🔥',
-    title: '每天學一點',
-    text: '每天拿到「每日目標」的 XP 就能延續連勝。完成每日任務領金幣，三個任務都領完還能開寶箱；金幣可以在商店換道具、可愛的外觀，或轉扭蛋收集貼紙。',
+    icon: '🧭',
+    title: '下方的導覽列',
+    text: '「學習」是路線和單字庫，「練功」有複習、小遊戲和模擬考，「查詢」是圖鑑和觀念講堂，「我的」放外觀、成就、商店和設定。上方的語言按鈕可以切換語言。',
   },
   {
-    icon: '🧠',
-    title: '複習比學新的更重要',
-    text: '學過的字會在快要忘記的時候排進「待複習」。每天先把待複習清空再上新課，記得最牢。',
-  },
-  {
-    icon: '🎮',
-    title: '遊樂場與模擬考',
-    text: '遊樂場用你學過的字出小遊戲；模擬考是仿照多益、日檢、TOPIK 的計時測驗，用來檢查自己的程度。看不懂的地方，隨時可以按右上角的 ❓ 看使用說明。',
+    icon: '🎁',
+    title: '任務、金幣與外觀',
+    text: '完成每日任務領金幣，三個任務都領完還能開寶箱；金幣可以在商店換道具、可愛的外觀，或轉扭蛋收集貼紙。看不懂的地方，隨時可以按右上角的 ❓ 看使用說明。',
   },
 ];
 
@@ -65,6 +66,8 @@ export function WelcomeTour() {
   const last = i === SLIDES.length;
   const done = (to?: string) => {
     markGuide('welcome');
+    // 新手導覽已經介紹過導覽列，不用再跳出「導覽列換新了」
+    markGuide(NAV_INTRO);
     if (to) nav(to);
   };
 
@@ -120,6 +123,43 @@ export function WelcomeTour() {
             {fresh ? '先逛逛' : '開始'}
           </button>
         )}
+      </div>
+    </Modal>
+  );
+}
+
+// ───────── 導覽列換新的說明（看過舊版的人才會看到一次） ─────────
+
+/** 看過「導覽列換新了」的記號（存在 save.guide） */
+export const NAV_INTRO = 'nav-v2';
+
+export function NavIntro() {
+  const done = () => markGuide(NAV_INTRO);
+  return (
+    <Modal className="welcome nav-intro" onClose={done}>
+      <div className="welcome-slide">
+        <div className="welcome-icon">🧭</div>
+        <h2>導覽列換新了</h2>
+        <p>常用的東西放得更近了。每天打開，先按「今天」頁的「▶ 開始今天的學習」：先複習、再上新課。</p>
+      </div>
+      <ul className="nav-intro-list">
+        {SECTIONS.map((sec) => (
+          <li key={sec.id}>
+            <span className="nav-intro-icon" aria-hidden>
+              {sec.icon || '👤'}
+            </span>
+            <span className="grow">
+              <b>{sec.label}</b>
+              <small>{sec.desc}</small>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="muted nav-intro-lang">上方的語言按鈕可以切換語言，「學習」「練功」「查詢」都會跟著換。</p>
+      <div className="modal-actions">
+        <button type="button" className="btn primary" onClick={done} autoFocus>
+          知道了
+        </button>
       </div>
     </Modal>
   );

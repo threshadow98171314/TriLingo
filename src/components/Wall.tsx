@@ -47,7 +47,7 @@ export function WallLayer() {
   );
 }
 
-/** 商店、個人頁的小預覽：把整頁背景縮小來看 */
+/** 商店、「我的」頁的小預覽：把整頁背景縮小來看 */
 export function WallSwatch({ id, size }: { id: string; size: number }) {
   return (
     <span className="wall-swatch" style={{ width: size, height: size }}>

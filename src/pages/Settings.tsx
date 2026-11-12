@@ -180,7 +180,7 @@ export function SettingsPage() {
           className="btn small"
           onClick={() => {
             resetGuides();
-            setMsg('已重新開啟所有說明，回到首頁就會看到導覽。');
+            setMsg('已重新開啟所有說明，回到「今天」就會看到導覽。');
           }}
         >
           🔁 重看導覽

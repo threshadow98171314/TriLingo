@@ -1,24 +1,22 @@
-// 首頁：連勝、每日目標、接續學習、三種語言的段位、每日任務、每日填字、知識補充、一週紀錄
-import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
+// 「今天」頁：連勝與每日目標、一鍵開始今天的學習（先複習、再上新課）、三種語言的進度、每日任務。
+// 只看存檔和大綱，不用下載題目。小知識、諺語、一週紀錄在「我的」頁。
+import { useRef, useState, type CSSProperties } from 'react';
 import { GuideTip } from '../components/Guide';
 import { Mascot } from '../components/Mascot';
 import { RankEmblem } from '../components/RankEmblem';
-import { Bar, Coin, flameTier, flyCoins, LangBadge, Modal, Ruby, SpeakBtn, Tx } from '../components/ui';
-import { META, META_LIST, OUTLINE, useContent } from '../content';
+import { Bar, Coin, flameTier, flyCoins, LangBadge, Modal } from '../components/ui';
+import { META, META_LIST } from '../content';
 import { APP_MINOR, NEWS, newsSeenKey } from '../content/news';
-import { PROVERBS } from '../content/proverbs';
-import { randomTip, TIPS } from '../content/tips';
+import { setCurrentLang, useCurrentLang } from '../core/currentLang';
 import { fx } from '../core/fx';
-import { furiKana } from '../engine/furigana';
-import { lastDays, nowMs, today } from '../core/date';
-import { activeParts, crosswordPool, lastStudiedLang, nextUp, quickStats, UNLOCK } from '../core/progress';
+import { nowMs, today } from '../core/date';
+import { quickStats } from '../core/progress';
 import { questsFor } from '../core/quests';
 import { rankOf, TIERS } from '../core/ranks';
 import { emptyDay, type Save } from '../core/save';
 import { sfx } from '../core/sfx';
 import { claimChest, claimQuest, useSave } from '../core/store';
-import type { CourseMeta, LangId } from '../core/types';
-import { LANGS } from '../core/types';
+import { todayPlan } from '../core/today';
 import { cx, sum } from '../core/util';
 import { href, lessonPath } from '../router';
 
@@ -29,7 +27,7 @@ function GoalRing({ value, goal }: { value: number; goal: number }) {
   const done = value >= goal;
   return (
     <div className={cx('goal-ring', done && 'done')}>
-      <svg viewBox="0 0 120 120" width="132" height="132">
+      <svg viewBox="0 0 120 120">
         <circle cx="60" cy="60" r={R} className="ring-bg" />
         <circle cx="60" cy="60" r={R} className="ring-fg" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} transform="rotate(-90 60 60)" />
       </svg>
@@ -42,68 +40,113 @@ function GoalRing({ value, goal }: { value: number; goal: number }) {
   );
 }
 
-function LangCard({ meta: course, s }: { meta: CourseMeta; s: Save }) {
-  // 只看存檔和大綱，不用下載題目
-  const outline = OUTLINE[course.id];
-  const xp = s.xp[course.id];
-  const r = rankOf(xp);
-  const st = { ...quickStats(s, course.id), total: outline.total };
-  const up = nextUp(s, outline);
-  const todayXp = s.days[today()]?.xp[course.id] ?? 0;
+/** 今天的學習：目前的語言先複習到期的字、再上下一堂新課，一個按鈕開始 */
+function TodayCard({ s }: { s: Save }) {
+  const lang = useCurrentLang();
+  const meta = META[lang];
+  const plan = todayPlan(s, lang);
+  const start = plan.review > 0 ? `/l/${lang}/today` : plan.lesson ? `${lessonPath(lang, plan.lesson.id)}?today=1` : `/l/${lang}/arcade`;
+  // 今天的目標已經達成：還想多學就再來一輪
+  const goalMet = sum(s.days[today()]?.xp ?? {}) >= s.settings.dailyGoal;
+  const label = plan.fresh ? '▶ 開始第一課' : plan.review > 0 || plan.lesson ? (goalMet ? '▶ 再來一輪' : '▶ 開始今天的學習') : '🎮 去練功';
   return (
-    <article className="lang-card card" style={{ '--lang': course.color } as CSSProperties}>
-      <header>
-        <LangBadge course={course} />
-        <div className="grow">
-          <h2>
-            {course.name} <small lang={course.id}>{course.native}</small>
-          </h2>
-          <p className="muted">{course.goal}</p>
+    <section className="card today-card" style={{ '--lang': meta.color } as CSSProperties}>
+      <header className="today-head">
+        <h2>今天的{meta.name}</h2>
+        <div className="today-langs" role="radiogroup" aria-label="選擇語言">
+          {META_LIST.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              role="radio"
+              aria-checked={m.id === lang}
+              aria-label={m.name}
+              title={m.name}
+              className={cx('today-lang', m.id === lang && 'on')}
+              style={{ '--lang': m.color } as CSSProperties}
+              onClick={() => setCurrentLang(m.id)}
+            >
+              <span lang={m.id}>{m.glyph}</span>
+            </button>
+          ))}
         </div>
-        {todayXp > 0 && <span className="chip ok">今日 +{todayXp}</span>}
       </header>
+      <ol className="today-steps">
+        {plan.review > 0 && (
+          <li>
+            <span className="today-step-icon" aria-hidden>
+              🧠
+            </span>
+            <span className="grow">
+              <b>複習 {plan.review} 個字</b>
+              <small>{plan.due > plan.review ? `到期 ${plan.due} 個，先複習最該複習的 ${plan.review} 個` : '在快要忘記的時候複習，記得最牢'}</small>
+            </span>
+          </li>
+        )}
+        {plan.lesson ? (
+          <li>
+            <span className="today-step-icon" aria-hidden>
+              📘
+            </span>
+            <span className="grow">
+              <b>{plan.fresh ? '第一課' : '新課'}</b>
+              <small>{plan.lesson.label}</small>
+            </span>
+          </li>
+        ) : (
+          <li>
+            <span className="today-step-icon" aria-hidden>
+              🏁
+            </span>
+            <span className="grow">
+              <b>學習路線全部完成了</b>
+              <small>到練功玩遊戲、考模擬考，維持手感</small>
+            </span>
+          </li>
+        )}
+      </ol>
+      <a className="btn primary wide today-go" href={href(start)}>
+        {label}
+      </a>
+    </section>
+  );
+}
 
-      <div className="lang-rank">
-        <RankEmblem step={r.step} size={84} pokeable />
-        <div className="rank-info">
-          <div className="rank-name">
-            <b>{r.name}</b>
-            <span>{xp.toLocaleString()} XP</span>
-          </div>
-          <Bar v={r.progress} color={TIERS[r.tier].c[0]} />
-          <small>{r.next !== null ? `再 ${r.toNext.toLocaleString()} XP 升上「${r.nextName}」` : '已達最高段位'}</small>
-        </div>
-      </div>
-
-      <div className="lang-meta">
-        <span>
-          已學 <b>{st.learned}</b> / {st.total}
-        </span>
-        {st.due > 0 ? (
-          <a className="chip warn" href={href(`/l/${course.id}/review`)}>
-            🧠 待複習 {st.due}
+/** 三種語言的段位與今天的進度，點一下到那個語言的學習路線 */
+function LangRows({ s }: { s: Save }) {
+  const t = today();
+  return (
+    <section className="card lang-rows">
+      {META_LIST.map((c) => {
+        const xp = s.xp[c.id];
+        const r = rankOf(xp);
+        const q = quickStats(s, c.id);
+        const todayXp = s.days[t]?.xp[c.id] ?? 0;
+        return (
+          <a key={c.id} className="lang-row" href={href(`/l/${c.id}`)} style={{ '--lang': c.color } as CSSProperties}>
+            <LangBadge course={c} />
+            <span className="lang-row-main">
+              <span className="lang-row-name">
+                <b>{c.name}</b>
+                <small lang={c.id}>{c.native}</small>
+              </span>
+              <span className="lang-row-rank">
+                <RankEmblem step={r.step} size={22} />
+                {r.name}・{xp.toLocaleString()} XP
+              </span>
+              <Bar v={r.progress} color={TIERS[r.tier].c[0]} />
+            </span>
+            <span className="lang-row-side">
+              {todayXp > 0 && <span className="chip ok">今日 +{todayXp}</span>}
+              {q.due > 0 ? <span className="chip warn">🧠 {q.due}</span> : q.learned === 0 && <span className="chip">還沒開始</span>}
+            </span>
+            <span className="lang-row-go" aria-hidden>
+              ›
+            </span>
           </a>
-        ) : (
-          st.learned > 0 && <span className="chip">複習已清空</span>
-        )}
-      </div>
-
-      {/* 主要按鈕直接開始下一課；想看整條路線再點下面的連結 */}
-      <a className="btn primary wide" href={href(up ? lessonPath(course.id, up.lesson.id) : `/l/${course.id}`)}>
-        {st.learned > 0 ? '▶ 繼續學習' : '▶ 開始第一課'}
-      </a>
-      <a className="next-up" href={href(`/l/${course.id}`)}>
-        {up ? (
-          <>
-            {up.stage.short} › {up.unit.title}
-            {up.lesson.boss && '・單元測驗'}
-          </>
-        ) : (
-          '全部課程都完成了！'
-        )}
-        <b>學習路線 ›</b>
-      </a>
-    </article>
+        );
+      })}
+    </section>
   );
 }
 
@@ -224,80 +267,18 @@ function ChestModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** 一句話學三語：三種語言的諺語，每次打開都隨機換一組 */
-function ProverbCard() {
-  const [seed, setSeed] = useState(() => Math.floor(Math.random() * 997));
-  return (
-    <section className="card panel">
-      <header className="panel-head">
-        <h2>一句話學三語</h2>
-        <button type="button" className="btn small ghost" onClick={() => setSeed((n) => n + 1)}>
-          換一組
-        </button>
-      </header>
-      <div className="proverb-grid">
-        {META_LIST.map((c, i) => {
-          const list = PROVERBS[c.id];
-          const p = list[(seed + i * 7) % list.length];
-          return (
-            <div key={c.id} className="proverb" style={{ '--lang': c.color } as CSSProperties}>
-              <div className="proverb-top">
-                <LangBadge course={c} size="sm" />
-                <span className="speak-pair">
-                  <SpeakBtn text={c.id === 'ja' ? furiKana(p.text) : p.text} lang={c.id} size="sm" />
-                  <SpeakBtn text={c.id === 'ja' ? furiKana(p.text) : p.text} lang={c.id} size="sm" slow />
-                </span>
-              </div>
-              <p className="proverb-text">
-                <Tx s={p.text} lang={c.id} />
-              </p>
-              {p.rm && <small className="muted proverb-rm">{p.rm}</small>}
-              <p className="proverb-zh">{p.zh}</p>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
+/** 「這次更新了什麼」最多先列幾則，其他的按「看全部」 */
+const NEWS_SHOWN = 3;
 
-/** 知識補充站：每次打開首頁都隨機一則，盡量不重複最近看過的 */
-function TipCard() {
-  const [i, setI] = useState(() => randomTip());
-  const tip = TIPS[i];
-  const meta = tip.lang === 'all' ? null : META[tip.lang];
-  return (
-    <section className="card panel tip-card" style={meta ? ({ '--lang': meta.color } as CSSProperties) : undefined}>
-      <header className="panel-head">
-        <h2>💡 知識補充站</h2>
-        <button type="button" className="btn small ghost" onClick={() => setI(randomTip(undefined, i))}>
-          再來一則
-        </button>
-      </header>
-      <article className="tip" key={i}>
-        <div className="tip-tags">
-          {meta && <LangBadge course={meta} size="sm" />}
-          <span className="chip">{tip.cat}</span>
-        </div>
-        <h3>
-          <Ruby s={tip.title} />
-        </h3>
-        <p>
-          <Ruby s={tip.body} />
-        </p>
-      </article>
-    </section>
-  );
-}
-
-/** 首頁最上方的「接續學習」：最近在學的語言，直接進下一課 */
 /** 這次更新了什麼：已經在用的人才顯示，按「知道了」就收起來（跟著雲端同步） */
 function NewsCard({ s }: { s: Save }) {
+  const [all, setAll] = useState(false);
   if (NEWS.version !== APP_MINOR || !s.stats.answers) return null;
+  const items = all ? NEWS.items : NEWS.items.slice(0, NEWS_SHOWN);
   return (
     <GuideTip id={newsSeenKey()} icon="🆕" title={`這次更新了什麼（v${__APP_VERSION__}）`}>
       <ul className="news-list">
-        {NEWS.items.map((n) => {
+        {items.map((n) => {
           // 有連結的整列都可以點（手機上只留 ›，說明文字才不會被擠成好幾行）
           const row = (
             <>
@@ -313,164 +294,12 @@ function NewsCard({ s }: { s: Save }) {
           return <li key={n.text}>{n.to ? <a href={href(n.to)}>{row}</a> : <div>{row}</div>}</li>;
         })}
       </ul>
+      {!all && NEWS.items.length > NEWS_SHOWN && (
+        <button type="button" className="link-btn news-more" onClick={() => setAll(true)}>
+          看全部 {NEWS.items.length} 則
+        </button>
+      )}
     </GuideTip>
-  );
-}
-
-function ContinueBar({ s }: { s: Save }) {
-  const lang: LangId | null = lastStudiedLang(s);
-  if (!lang) return null;
-  const meta = META[lang];
-  const up = nextUp(s, OUTLINE[lang]);
-  const due = quickStats(s, lang).due;
-  return (
-    <div className="hero-cta" style={{ '--lang': meta.color } as CSSProperties}>
-      <a className="btn primary" href={href(up ? lessonPath(lang, up.lesson.id) : `/l/${lang}`)}>
-        ▶ 繼續{meta.name}
-        {up && <small>{up.unit.title}・{up.lesson.boss ? '單元測驗' : up.lesson.title}</small>}
-      </a>
-      {due > 0 && (
-        <a className="btn" href={href(`/l/${lang}/review`)}>
-          🧠 複習 {due} 個
-        </a>
-      )}
-    </div>
-  );
-}
-
-/** 元素捲進畫面（或快要捲進來）之後變成 true，之後一直是 true：不急的東西等這時候再下載 */
-function useInView<T extends Element>(): [RefObject<T | null>, boolean] {
-  const ref = useRef<T>(null);
-  const [seen, setSeen] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || seen) return;
-    if (typeof IntersectionObserver !== 'function') {
-      setSeen(true);
-      return;
-    }
-    const io = new IntersectionObserver((es) => es.some((e) => e.isIntersecting) && setSeen(true), { rootMargin: '200px' });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [seen]);
-  return [ref, seen];
-}
-
-function DailyRow({ c, s, visible }: { c: CourseMeta; s: Save; visible: boolean }) {
-  const done = !!s.days[today()]?.dailyCw?.[c.id];
-  // 要知道學過的字裡有幾個能放進填字，才需要題目。今天已經完成的不用查；
-  // 其他的等這一區捲進畫面，從學得最多的那一包開始一包一包下載，湊滿解鎖的字數就停
-  const parts = done ? [] : activeParts(s, c.id);
-  const [n, setN] = useState(1);
-  const content = useContent(c.id, visible && parts.length ? { units: parts.slice(0, n) } : null);
-  const have = done ? 0 : crosswordPool(s, c.id).length;
-  const locked = !done && have < UNLOCK.crossword;
-  const more = locked && n < parts.length;
-  useEffect(() => {
-    if (visible && content.ready && more) setN((k) => k + 1);
-  }, [visible, content.ready, more, n]);
-  const loaded = !locked || !parts.length || (visible && content.ready && !more);
-  return (
-    <li style={{ '--lang': c.color } as CSSProperties}>
-      <LangBadge course={c} size="sm" />
-      <div className="grow">
-        <b>{c.name}填字</b>
-        <small className="muted">
-          {!loaded ? '載入中…' : locked ? `再學會 ${UNLOCK.crossword - have} 個單字就能解鎖` : done ? '今天已完成，明天有新題目' : '完成可多拿 20 XP'}
-        </small>
-      </div>
-      {!loaded ? (
-        <span className="chip">…</span>
-      ) : locked ? (
-        <span className="chip">🔒</span>
-      ) : done ? (
-        <span className="chip ok">完成 ✓</span>
-      ) : (
-        <a className="btn small primary" href={href(`/l/${c.id}/play/crossword?daily=1`)}>
-          挑戰
-        </a>
-      )}
-    </li>
-  );
-}
-
-function DailyPanel({ s }: { s: Save }) {
-  const [ref, visible] = useInView<HTMLElement>();
-  return (
-    <section className="card panel" ref={ref}>
-      <header className="panel-head">
-        <h2>每日填字</h2>
-        <small className="muted">每天一題・用你學過的字出題</small>
-      </header>
-      <ul className="daily">
-        {META_LIST.map((c) => (
-          <DailyRow key={c.id} c={c} s={s} visible={visible} />
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function WeekChart({ s }: { s: Save }) {
-  const days = lastDays(7);
-  const totals = days.map((d) => (s.days[d] ? sum(s.days[d].xp) : 0));
-  const max = Math.max(s.settings.dailyGoal, ...totals);
-  const names = ['日', '一', '二', '三', '四', '五', '六'];
-  return (
-    <section className="card panel">
-      <header className="panel-head">
-        <h2>最近 7 天 XP</h2>
-        <small className="muted">本週共 {sum(totals)} XP</small>
-      </header>
-      <div className="week-legend">
-        {META_LIST.map((c) => (
-          <span key={c.id}>
-            <i style={{ background: c.color }} />
-            {c.name}
-          </span>
-        ))}
-        <span>
-          <i className="goal" />
-          每日目標 {s.settings.dailyGoal} XP
-        </span>
-      </div>
-      <div className="week" style={{ '--goal': s.settings.dailyGoal / max } as CSSProperties}>
-        <div className="week-goal" />
-        {days.map((d, i) => {
-          const log = s.days[d];
-          const [y, m, dd] = d.split('-').map(Number);
-          const wd = new Date(y, m - 1, dd).getDay();
-          const label = i === 6 ? '今天' : `週${names[wd]}`;
-          const tip = `${label}（${m}/${dd}）：` + (totals[i] ? META_LIST.map((c) => `${c.name} ${log?.xp[c.id] ?? 0}`).join('、') + ' XP' : log?.frozen ? '用了連勝保護' : '沒有學習');
-          return (
-            // 滑鼠移上去（手機點一下）顯示這天三種語言各拿了多少 XP
-            <div key={d} className={cx('week-col', i === 6 && 'today')} tabIndex={0} aria-label={tip}>
-              <small className="week-num">{totals[i] || (log?.frozen ? '❄️' : '')}</small>
-              <div className="week-bar">
-                {LANGS.map((l) => {
-                  const v = log?.xp[l] ?? 0;
-                  const c = META_LIST.find((x) => x.id === l)!;
-                  return v > 0 ? <i key={l} title={`${c.name} ${v} XP`} style={{ height: `${(v / max) * 100}%`, background: c.color }} /> : null;
-                })}
-              </div>
-              <small>{i === 6 ? '今天' : names[wd]}</small>
-              <span className="week-tip" role="tooltip">
-                <b>
-                  {label}（{m}/{dd}）
-                </b>
-                {META_LIST.map((c) => (
-                  <span key={c.id}>
-                    <i style={{ background: c.color }} />
-                    {c.name}　{log?.xp[c.id] ?? 0} XP
-                  </span>
-                ))}
-                {!totals[i] && log?.frozen && <span>❄️ 用了連勝保護</span>}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </section>
   );
 }
 
@@ -489,7 +318,7 @@ export function Home() {
       : '今天就開始你的連勝';
 
   return (
-    <div className="page">
+    <div className="page today-page">
       <section className="hero card">
         <div className="grow">
           <p className="eyebrow">
@@ -498,7 +327,6 @@ export function Home() {
           <h1>
             <span className={cx('flame', lit && 'lit', flameTier(s.streak.count))}>🔥</span> {title}
           </h1>
-          <ContinueBar s={s} />
           <div className="hero-chips">
             <span className="chip">最佳紀錄 {s.streak.best} 天</span>
             <span className="chip">❄️ 連勝保護 ×{s.streak.freezes}</span>
@@ -510,43 +338,26 @@ export function Home() {
         <GoalRing value={todayXp} goal={s.settings.dailyGoal} />
       </section>
 
+      <TodayCard s={s} />
+
       <NewsCard s={s} />
 
-      <GuideTip id="home" title="首頁怎麼用？">
+      <GuideTip id="today" title="「今天」頁怎麼用？">
         <ul>
-          <li>「▶ 繼續」直接開始下一堂課；「🧠 複習」是今天該複習的字，每天先清空最有效。</li>
-          <li>右邊的圓圈是今天的目標 XP，達成就能延續連勝 🔥。</li>
-          <li>往下是三種語言的段位、每日任務、每日填字和每次都不一樣的小知識。看不懂的地方按右上角 ❓。</li>
+          <li>「▶ 開始今天的學習」會先複習到期的字，再上下一堂新課；上方三個字可以換語言。</li>
+          <li>右上的圓圈是今天的目標 XP，達成就能延續連勝 🔥。</li>
+          <li>下方導覽列：學習（路線、單字庫）、練功（遊戲、模擬考）、查詢（圖鑑、觀念）、我的（外觀、成就、商店、設定）。</li>
         </ul>
       </GuideTip>
 
+      <h2 className="section-title">
+        三種語言 <small>點一下看學習路線</small>
+      </h2>
+      <LangRows s={s} />
+
+      <QuestPanel s={s} />
+
       <Mascot />
-
-      <h2 className="section-title">
-        我的語言 <small>按「▶ 繼續學習」直接上下一課</small>
-      </h2>
-      <section className="lang-grid">
-        {META_LIST.map((c) => (
-          <LangCard key={c.id} meta={c} s={s} />
-        ))}
-      </section>
-
-      <h2 className="section-title">
-        每日挑戰 <small>每天換新・三個任務都領完可以開寶箱</small>
-      </h2>
-      <div className="grid-2">
-        <QuestPanel s={s} />
-        <DailyPanel s={s} />
-      </div>
-
-      <h2 className="section-title">
-        充電站 <small>每次打開都不一樣</small>
-      </h2>
-      <TipCard />
-
-      <ProverbCard />
-
-      <WeekChart s={s} />
     </div>
   );
 }

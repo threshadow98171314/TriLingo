@@ -1,17 +1,18 @@
-// 用 Session 流程跑的三種練習：課程（含單元測驗）、複習、聽力特訓
+// 用 Session 流程跑的練習：課程（含單元測驗）、今天的學習、複習、聽力特訓、打字特訓
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { ResultData } from '../components/Result';
 import { Session } from '../components/Session';
 import { Empty } from '../components/ui';
-import { courseIndex, META, stageOutline } from '../content';
-import { dueItems, learnedItems, learnedVocab, nextBankLesson, UNLOCK, weakestItems } from '../core/progress';
+import { courseIndex, META, OUTLINE, stageOutline } from '../content';
+import { dueItems, learnedItems, learnedVocab, nextBankLesson, nextUp, UNLOCK, weakestItems } from '../core/progress';
 import { sample, shuffle } from '../core/rng';
 import { BOSS_PASS, finishGame, finishLesson, getSave, type SessionStats } from '../core/store';
+import { TODAY_REVIEW } from '../core/today';
 import { canSpeak, listenMuted, unmuteListening, useVoices } from '../core/tts';
 import type { LangId, VocabItem } from '../core/types';
 import { fmtTime } from '../core/util';
 import { buildLesson, buildListening, buildReview, isVocab, LANG_NAME, typeWordEx, type Ctx, type Exercise } from '../engine/exercises';
-import { href, lessonPath, stagePath } from '../router';
+import { href, lessonPath, nav, stagePath } from '../router';
 
 // 「現在不方便聽」期間不出聽力題
 /** 這個語言要不要出打字題（設定頁可以分別關掉日文、韓文） */
@@ -44,7 +45,8 @@ export function Blocked({ lang, icon, title, back, children }: { lang: LangId; i
 
 // ───────── 課程／單元測驗 ─────────
 
-export function LessonPage({ lang, lessonId }: { lang: LangId; lessonId: string }) {
+/** today：從「今天的學習」來的，上完課回到「今天」頁 */
+export function LessonPage({ lang, lessonId, today = false }: { lang: LangId; lessonId: string; today?: boolean }) {
   const ref = courseIndex(lang).lessons.get(lessonId);
   const build = () => (ref ? buildLesson(ref.unit, ref.lesson, ctxOf(lang), (id) => !!getSave().items[id]) : []);
   // 題目是隨機產生的，放在 state 裡才不會在重新渲染時換掉
@@ -63,6 +65,12 @@ export function LessonPage({ lang, lessonId }: { lang: LangId; lessonId: string 
   const again = (label: string) => ({ label, run: () => setGame((g) => ({ run: g.run + 1, exercises: build() })) });
 
   const onFinish = (stats: SessionStats): ResultData => {
+    const res = lessonResult(stats);
+    // 今天的學習：複習和新課都做完了，主要按鈕回到「今天」頁
+    return today && res.outcome.passed ? { ...res, emoji: '☀️', next: { label: '完成！回到今天', to: '/' } } : res;
+  };
+
+  const lessonResult = (stats: SessionStats): ResultData => {
     const outcome = finishLesson({ lang, unit, lesson, stats });
     const lines = statLines(stats);
     const base = { outcome, lines, back, backLabel: '回到路線' };
@@ -121,6 +129,50 @@ export function LessonPage({ lang, lessonId }: { lang: LangId; lessonId: string 
       onFinish={onFinish}
     />
   );
+}
+
+// ───────── 今天的學習：先複習、再上新課 ─────────
+
+export function TodayPage({ lang }: { lang: LangId }) {
+  // 進來時排好：到期的字（最多 TODAY_REVIEW 個）和下一堂新課（外層的 CourseGate 已經下載好這兩部分）
+  const [plan] = useState(() => {
+    const s = getSave();
+    const idx = courseIndex(lang).items;
+    const entries = dueItems(s, lang)
+      .slice(0, TODAY_REVIEW)
+      .map((item) => ({ item, strength: s.items[item.id].s, pool: idx.get(item.id)!.unit.items }));
+    const up = nextUp(s, OUTLINE[lang]);
+    return { exercises: shuffle(buildReview(entries, ctxOf(lang))), up };
+  });
+  const lessonTo = plan.up ? `${lessonPath(lang, plan.up.lesson.id)}?today=1` : null;
+
+  // 沒有要複習的字：直接去上新課（取代這一頁，按「上一頁」不會再回到這裡）
+  useEffect(() => {
+    if (!plan.exercises.length) nav(lessonTo ?? `/l/${lang}/arcade`, true);
+  }, [plan, lessonTo, lang]);
+  if (!plan.exercises.length) return null;
+
+  const onFinish = (stats: SessionStats): ResultData => ({
+    emoji: '🧠',
+    headline: '複習完成！',
+    sub: plan.up ? '接著上今天的新課，一鼓作氣完成今天的學習。' : '學習路線都完成了，今天到期的字也複習好了。',
+    outcome: finishGame({
+      lang,
+      game: 'review',
+      parts: [
+        ['完成複習', 5],
+        ['答對題數', stats.correct],
+      ],
+      count: stats.graded,
+      maxCombo: stats.maxCombo,
+    }),
+    lines: statLines(stats),
+    back: '/',
+    backLabel: '回到今天',
+    next: lessonTo ? { label: `下一步：新課「${plan.up!.unit.title}」`, to: lessonTo } : undefined,
+  });
+
+  return <Session lang={lang} title="今天的學習・① 複習" exercises={plan.exercises} mode="review" exitTo="/" onFinish={onFinish} />;
 }
 
 // ───────── 複習 ─────────

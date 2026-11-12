@@ -538,7 +538,7 @@ export function AvatarArt({ id, size = 40 }: { id: string; size?: number | strin
   return <Art size={size}>{draw()}</Art>;
 }
 
-/** 頭像的中文名稱（商店、個人頁用） */
+/** 頭像的中文名稱（商店、「我的」頁用） */
 export const AVATAR_NAME: Record<string, string> = {
   '🐱': '橘貓',
   '🐶': '小狗',

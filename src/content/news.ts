@@ -1,4 +1,4 @@
-// 首頁「這次更新了什麼」卡片與關卡的 NEW 標籤。每次發布新版本時更新這裡（版本只看前兩段，例如 0.10）。
+// 「今天」頁「這次更新了什麼」卡片與關卡的 NEW 標籤。每次發布新版本時更新這裡（版本只看前兩段，例如 0.10）。
 // 看過的會記在存檔的 guide（news-版本、new:關卡@版本），跟著雲端同步。
 import type { LangId } from '../core/types';
 
@@ -16,22 +16,17 @@ export interface NewsItem {
 }
 
 export const NEWS: { version: string; items: NewsItem[] } = {
-  version: '0.11',
+  version: '0.12',
   items: [
-    { lang: 'ja', text: 'N1 新增讀解（長文、A・B 比較、找資料）、聽解與文法⑤⑥', to: '/l/ja/s/ja.n1', cta: '去上課' },
-    { lang: 'en', text: '多益金色證書新增長篇閱讀速讀、推論題攻略、滿分衝刺', to: '/l/en/s/en.gold', cta: '去上課' },
-    { lang: 'ko', text: '韓文開放高級 1、2：高級文法、慣用語與俗語、評論閱讀、演講聽力、四字成語、寫作', to: '/l/ko/s/ko.k5', cta: '去上課' },
-    { lang: 'ko', text: '新的 TOPIK II 모의고사（5–6 級）', to: '/l/ko/mock', cta: '去考考看' },
-    { icon: '🥋', text: '遊樂場新增「專屬」分類：每種語言都有只屬於自己的特訓' },
-    { lang: 'ja', text: '日文：活用道場（動詞變化）、助數詞大挑戰', to: '/l/ja/arcade', cta: '去玩' },
-    { lang: 'ko', text: '韓文：數字大考驗（固有語／漢字語）、-아요／어요 活用', to: '/l/ko/arcade', cta: '去玩' },
-    { lang: 'en', text: '英文：不規則動詞、拼字蜜蜂', to: '/l/en/arcade', cta: '去玩' },
-    { icon: '👆', text: '商店新增會動的外觀：點擊特效、進度條跑者、全對慶祝', to: '/shop?tab=looks&kind=tap', cta: '去逛逛' },
-    { icon: '🌊', text: '網站背景新增海底世界、雨夜窗邊、雲海、螢光森林（會動）', to: '/shop?tab=looks&kind=wall', cta: '去看看' },
+    { icon: '☀️', text: '新的「今天」頁：按「▶ 開始今天的學習」，先複習快要忘記的字、再接著上新課，一個按鈕就完成' },
+    { icon: '🧭', text: '導覽列換新：今天、學習、練功、查詢、我的；上方的語言按鈕一點就能切換語言' },
+    { icon: '📚', text: '學習路線變短了：關卡改成小標籤，只展開目前在上的單元，單字庫有自己的分頁' },
+    { icon: '👤', text: '「我的」集合了成就、商店、設定、使用說明；小知識和諺語搬到「我的 → 充電站」', to: '/me?tab=recharge', cta: '去看看' },
+    { icon: '⚡', text: '網站變快了：題目按關卡分包、用到才下載，第一次打開少下載八成' },
   ],
 };
 
-/** 首頁卡片「知道了」記的 id：同一版又加了新項目時，卡片會再出現一次 */
+/** 「今天」頁卡片「知道了」記的 id：同一版又加了新項目時，卡片會再出現一次 */
 export const newsSeenKey = () => `news-${NEWS.version}-${NEWS.items.length}`;
 
 /** 關卡在這個版本新增了內容，而且還沒打開過：顯示 NEW */

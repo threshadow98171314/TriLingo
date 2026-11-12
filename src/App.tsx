@@ -1,11 +1,12 @@
 import { lazy, Suspense, useEffect, type ComponentType, type ReactNode } from 'react';
 import { CelebrationHost } from './components/Celebrations';
 import { CourseGate, PageLoading, type GateNeed } from './components/CourseGate';
-import { WelcomeTour } from './components/Guide';
+import { NAV_INTRO, NavIntro, WelcomeTour } from './components/Guide';
 import { BottomNav, TopBar } from './components/Layout';
 import { ToTop } from './components/ToTop';
 import { Empty } from './components/ui';
 import { WallLayer } from './components/Wall';
+import { setCurrentLang } from './core/currentLang';
 import { nowMs } from './core/date';
 import { setEggKeysEnabled } from './core/eggs';
 import { fx, seasonOf, type AmbientKind } from './core/fx';
@@ -22,7 +23,7 @@ function page<M, K extends keyof M>(load: () => Promise<M>, name: K) {
   return lazy(async () => ({ default: (await load())[name] as ComponentType<M[K] extends ComponentType<infer Props> ? Props : never> }));
 }
 
-// 首頁和語言頁隨主程式載入；其他頁面點進去才下載（同一個檔案裡的頁面一起下載）
+// 「今天」頁和語言頁隨主程式載入；其他頁面點進去才下載（同一個檔案裡的頁面一起下載）
 const P = {
   ArtGallery: page(() => import('./pages/ArtGallery'), 'ArtGallery'),
   BigTwo: page(() => import('./pages/BigTwo'), 'BigTwoPage'),
@@ -47,6 +48,7 @@ const P = {
   Shop: page(() => import('./pages/Shop'), 'ShopPage'),
   Song: page(() => import('./pages/Songs'), 'SongPage'),
   Sort: page(() => import('./pages/FunGames'), 'SortPage'),
+  Today: page(() => import('./pages/Practice'), 'TodayPage'),
   TrueFalse: page(() => import('./pages/TrueFalse'), 'TrueFalsePage'),
   Typing: page(() => import('./pages/Practice'), 'TypingPage'),
   TypingGuide: page(() => import('./pages/TypingGuide'), 'TypingGuidePage'),
@@ -91,12 +93,17 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
         return view(<LangPage lang={lang} tab="path" />);
       case 's':
         return view(<LangPage lang={lang} tab="path" stageId={p[3]} />);
+      case 'bank':
+        return view(<LangPage lang={lang} tab="bank" stageId={p[3]} />);
+      case 'today':
+        // 今天的學習：先複習到期的字，再上下一堂新課（兩部分的題目都先下載好）
+        return gated(<P.Today lang={lang} />, ['active', 'next']);
       case 'arcade':
       case 'dex':
       case 'concepts':
         return view(<LangPage lang={lang} tab={p[2]} />);
       case 'songs':
-        return view(<LangPage lang={lang} tab={lang === 'ja' ? 'songs' : 'path'} />);
+        return view(<LangPage lang={lang} tab={lang === 'ja' ? 'songs' : 'dex'} />);
       case 'song':
         return view(<P.Song id={p[3] ?? ''} />);
       case 'concept':
@@ -106,10 +113,10 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
         if (p[3]) return gated(<P.Mock lang={lang} examId={p[3]} />, 'mocks');
         return view(<LangPage lang={lang} tab="mock" />);
       case 'chart':
-        return view(<LangPage lang={lang} tab={lang === 'en' ? 'path' : 'chart'} />);
+        return view(<LangPage lang={lang} tab={lang === 'en' ? 'dex' : 'chart'} />);
       case 'lesson':
         // 上課只需要這一課所在的那一包
-        return gated(<P.Lesson lang={lang} lessonId={p[3] ?? ''} />, { units: [p[3] ?? ''] });
+        return gated(<P.Lesson lang={lang} lessonId={p[3] ?? ''} today={route.query.get('today') === '1'} />, { units: [p[3] ?? ''] });
       case 'typing-guide':
         return langView(<P.TypingGuide lang={lang} />);
       case 'review':
@@ -137,7 +144,7 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
     <div className="page narrow">
       <Empty icon="🧭" title="找不到這個頁面">
         <a className="btn primary" href={href('/')}>
-          回首頁
+          回到今天
         </a>
       </Empty>
     </div>,
@@ -181,6 +188,12 @@ export function App() {
 
   const { page, focus } = resolve(route);
 
+  // 進到哪個語言的頁面，導覽列的「學習、練功、查詢」就跟著換成那個語言
+  const routeLang = route.parts[0] === 'l' && (LANGS as string[]).includes(route.parts[1]) ? (route.parts[1] as LangId) : null;
+  useEffect(() => {
+    if (routeLang) setCurrentLang(routeLang);
+  }, [routeLang]);
+
   // 背景飄落特效：預設不飄，裝備了商店買的才飄（「四季更迭」跟著季節換）
   // 上課、玩遊戲時：不飄背景粒子，也暫停鍵盤秘技偵測（避免和作答按鍵衝突）
   const ambient = s.equip.ambient;
@@ -190,7 +203,7 @@ export function App() {
     fx.setAmbient(!focus && fxSetting ? kind : null);
   }, [focus, fxSetting, ambient]);
 
-  // 點擊特效：首頁、商店、個人頁點一下，點的地方冒出小特效（上課、玩遊戲時不放，免得干擾作答）
+  // 點擊特效：今天、商店、我的這些頁面點一下，點的地方冒出小特效（上課、玩遊戲時不放，免得干擾作答）
   const tap = s.equip.tap;
   useEffect(() => {
     if (!tap || focus) return;
@@ -208,8 +221,9 @@ export function App() {
       {page}
       {!focus && <BottomNav route={route} />}
       {!focus && <ToTop />}
-      {/* 第一次打開：新手導覽（上課、玩遊戲中不打擾） */}
+      {/* 第一次打開：新手導覽；看過舊版導覽的人：介紹新的導覽列（上課、玩遊戲中不打擾） */}
       {!focus && !s.guide.welcome && <WelcomeTour />}
+      {!focus && s.guide.welcome && !s.guide[NAV_INTRO] && <NavIntro />}
       <CelebrationHost />
     </>
   );

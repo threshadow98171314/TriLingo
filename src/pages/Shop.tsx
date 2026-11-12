@@ -438,16 +438,16 @@ export const KIND_DESC: Record<CosmeticKind, string> = {
   frame: '框住你的頭像，名片和上方導覽列都看得到。標「✨ 動態」的會動！',
   title: '顯示在名片的名字下面。銅、銀稱號用金幣買；金、白金、傳說稱號要達成條件才拿得到，等級越高特效越華麗（傳說稱號還有皇冠）。',
   name: '名片上的名字特效。',
-  bg: '個人頁最上方的名片背景。',
+  bg: '「我的」頁最上方的名片背景。',
   pet: '上課時陪在進度條旁邊：答對會跳、答錯會一起難過，連擊 5 題還會轉一圈。',
-  outfit: '首頁的喵師父會穿上。',
+  outfit: '「今天」頁的喵師父會穿上。',
   ambient: '網站背景一直飄落的東西，按「試看」先看 8 秒。預設不飄；「四季更迭」只要 1 金幣，會跟著季節換。',
   wall: '整個網站最底層的背景，按「試看」先看 8 秒。圖案都很淡，不會干擾閱讀；深色、淺色主題各有一套配色。',
   totop: '頁面往下捲之後，右下角會出現「回到頂端」按鈕，按下去會播放這個特效。',
   burst: '答對時爆出來的特效。',
   sound: '答對時的聲音，可以先試聽。',
   skin: '換掉整個網站的強調色（按鈕、進度條、連結）。',
-  tap: '在首頁、商店、個人頁點一下，點的地方就會冒出特效，按「試點」先玩玩看。上課、玩遊戲時不會出現，免得干擾作答。',
+  tap: '在「今天」、商店、「我的」頁點一下，點的地方就會冒出特效，按「試點」先玩玩看。上課、玩遊戲時不會出現，免得干擾作答。',
   runner: '上課時沿著進度條往前跑：答對一題衝一段、答對會跳一下、答錯會晃一下。',
   perfect: '一堂課全部答對時，結算畫面放的大特效，按「試放」先看看。',
 };
@@ -669,7 +669,7 @@ function StickerAlbum({ first }: { first: Sticker['theme'] | 'all' }) {
       <header className="panel-head">
         <h2>貼紙簿</h2>
         <small className="muted">
-          已收集 {got(STICKERS)} / {STICKERS.length}・可以到 <a href={href('/me?tab=board')}>個人頁 → 貼紙板</a> 布置
+          已收集 {got(STICKERS)} / {STICKERS.length}・可以到 <a href={href('/me?tab=board')}>我的 → 貼紙板</a> 布置
         </small>
       </header>
       <div className="theme-chips" role="tablist" aria-label="貼紙主題">
@@ -772,7 +772,7 @@ function LookResult({ k, onClose }: { k: string; onClose: () => void }) {
       </div>
       <div className="modal-actions">
         <a className="btn ghost" href={href(`/me?tab=looks&kind=${c.kind}`)} onClick={onClose}>
-          到個人頁換上
+          到「我的」換上
         </a>
         <button type="button" className="btn primary" onClick={onClose} autoFocus>
           好耶

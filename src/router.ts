@@ -45,8 +45,10 @@ export function useRoute(): Route {
   );
 }
 
-export function nav(to: string) {
-  location.hash = to;
+/** 換頁；replace 為 true 時取代目前這一頁（按「上一頁」不會回到這裡，用在自動轉頁） */
+export function nav(to: string, replace = false) {
+  if (replace) location.replace(`#${to}`);
+  else location.hash = to;
 }
 
 /** 產生連結用的 href */

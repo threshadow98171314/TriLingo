@@ -263,7 +263,7 @@ export const PETS: Cosmetic[] = [
   { kind: 'pet', id: '🐲', name: '小龍', desc: '會冒出小火花的龍寶寶，只在神秘商品出現。', cost: 450, anim: true, rare: true },
 ];
 
-/** 名牌特效：個人頁名片上的名字 */
+/** 名牌特效：「我的」頁名片上的名字 */
 export const NAMES: Cosmetic[] = [
   { kind: 'name', id: 'sakura', name: '櫻花粉', desc: '名字染上柔和的櫻花漸層。', cost: 100 },
   { kind: 'name', id: 'ice', name: '冰晶藍', desc: '冰涼透明的藍色漸層。', cost: 100 },
@@ -274,7 +274,7 @@ export const NAMES: Cosmetic[] = [
   { kind: 'name', id: 'star', name: '星光閃爍', desc: '名字旁邊有星星在閃，只在神秘商品出現。', cost: 400, anim: true, rare: true },
 ];
 
-/** 名片背景：個人頁最上方的名片 */
+/** 名片背景：「我的」頁最上方的名片 */
 export const BGS: Cosmetic[] = [
   { kind: 'bg', id: 'sunset', name: '晚霞', desc: '橘粉色的傍晚天空。', cost: 150 },
   { kind: 'bg', id: 'bamboo', name: '竹林', desc: '嵐山竹林的清新綠意。', cost: 150 },
@@ -371,7 +371,7 @@ export const TOTOPS: Cosmetic[] = [
   { kind: 'totop', id: 'dragon', name: '金龍升天', desc: '金龍盤旋而上，撒下一場金幣雨，只在神秘商品出現。', cost: 480, rare: true, icon: '🐉' },
 ];
 
-/** 點擊特效：在首頁、商店、個人頁點一下，點的地方冒出小特效（上課、玩遊戲時不會出現，免得干擾作答） */
+/** 點擊特效：在「今天」、商店、「我的」頁點一下，點的地方冒出小特效（上課、玩遊戲時不會出現，免得干擾作答） */
 export const TAPS: Cosmetic[] = [
   { kind: 'tap', id: 'ripple', name: '水波漣漪', desc: '點一下，泛起一圈圈的水波。', cost: 100, icon: '💧', anim: true },
   { kind: 'tap', id: 'star', name: '星光一點', desc: '點到哪裡，星星就從哪裡跳出來。', cost: 100, icon: '⭐', anim: true },

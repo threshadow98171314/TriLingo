@@ -809,13 +809,8 @@ rt {
     gap: 20px;
   }
 }
-@media (max-width: 420px) {
-  .brand span:last-child {
-    display: none;
-  }
-}
 
-/* ───────── 首頁 ───────── */
+/* ───────── 今天（首頁） ───────── */
 .hero {
   display: flex;
   align-items: center;
@@ -852,6 +847,11 @@ rt {
   flex: none;
   width: 132px;
   height: 132px;
+}
+.goal-ring svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 .ring-bg,
 .ring-fg {
@@ -892,46 +892,53 @@ rt {
 .goal-ring.done .goal-text span {
   color: var(--ok);
 }
+/* 手機：問候和連勝在左、目標圈縮小放右邊，小標籤排在下面一整行（不用捲很久才看到「開始今天的學習」） */
 @media (max-width: 520px) {
   .hero {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: center;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 12px;
+    padding: 16px;
+  }
+  .hero .grow {
+    display: contents;
+  }
+  .hero .eyebrow {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
+  }
+  .hero h1 {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    font-size: 1.22rem;
   }
   .hero-chips {
-    justify-content: center;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    gap: 6px;
+    margin-top: 4px;
   }
   .goal-ring {
-    margin: 0 auto;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: 96px;
+    height: 96px;
+  }
+  .goal-text b {
+    font-size: 1.4rem;
+  }
+  .goal-text small {
+    font-size: 0.7rem;
+  }
+  .goal-text span {
+    margin-top: 1px;
+    font-size: 0.6rem;
   }
 }
 
-.lang-grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
-}
-.lang-card {
-  display: grid;
-  gap: 14px;
-  align-content: start;
-  border-top: 4px solid var(--lang);
-}
-.lang-card header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.lang-card h2 small {
-  margin-left: 4px;
-  color: var(--muted);
-  font-weight: 600;
-}
-.lang-card header p {
-  font-size: 0.82rem;
-  line-height: 1.35;
-}
-.lang-rank,
 .rank-line,
 .result-rank {
   display: flex;
@@ -960,35 +967,6 @@ rt {
 }
 .rank-info small {
   color: var(--muted);
-}
-.lang-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 0.9rem;
-  color: var(--muted);
-}
-.lang-meta b {
-  color: var(--text);
-}
-.next-up {
-  display: flex;
-  justify-content: center;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-  margin-top: -6px;
-  font-size: 0.85rem;
-  color: var(--muted);
-  text-align: center;
-}
-.next-up b {
-  color: var(--lang);
-  white-space: nowrap;
-}
-.next-up:hover b {
-  text-decoration: underline;
 }
 
 .emblem {
@@ -1097,25 +1075,6 @@ rt {
   }
 }
 
-.daily {
-  display: grid;
-  gap: 10px;
-}
-.daily li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--card-2);
-}
-.daily li .grow {
-  display: grid;
-}
-.daily li small {
-  line-height: 1.35;
-}
-
 .week {
   --bar-h: 120px;
   position: relative;
@@ -1163,65 +1122,6 @@ rt {
 }
 
 /* ───────── 語言主頁 ───────── */
-.lang-head {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  border-top: 4px solid var(--lang);
-}
-.lang-head h1 small {
-  color: var(--muted);
-  font-size: 0.6em;
-  font-weight: 600;
-  margin-left: 6px;
-}
-.goals {
-  margin-top: 6px;
-  display: grid;
-  gap: 2px;
-  font-size: 0.9rem;
-  color: var(--muted);
-}
-.lang-head .rank-line {
-  flex: 1 1 300px;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--card-2);
-}
-
-.tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 5px;
-  border-radius: 16px;
-  background: var(--card);
-  border: 1px solid var(--line);
-}
-.tabs a {
-  flex: 1 1 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 9px 14px;
-  border-radius: 12px;
-  font-weight: 800;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.tabs a.on {
-  background: var(--lang);
-  color: var(--ink);
-}
-@media (max-width: 480px) {
-  /* 手機上四個分頁要剛好排成一列 */
-  .tabs a {
-    padding: 9px 6px;
-    font-size: 0.92rem;
-  }
-}
 .dot {
   min-width: 20px;
   padding: 0 6px;
@@ -1231,117 +1131,6 @@ rt {
   font-size: 0.72rem;
   line-height: 20px;
   text-align: center;
-}
-
-/* 關卡排成會換行的格子：不藏在橫向捲動裡，手機上也一眼看得到全部 */
-.stage-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
-  gap: 10px;
-  padding: 4px 2px 10px;
-}
-.stage-row.track {
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-}
-.stage-card {
-  position: relative;
-  min-width: 0;
-  display: grid;
-  gap: 1px;
-  align-content: start;
-  padding: 12px 12px 10px;
-  border-radius: 16px;
-  background: var(--card);
-  border: 2px solid var(--line);
-  border-top: 6px solid var(--c);
-  transition:
-    transform 0.12s,
-    border-color 0.12s;
-}
-.stage-card:hover {
-  transform: translateY(-2px);
-}
-.stage-card b {
-  font-size: 1.25rem;
-  line-height: 1.3;
-}
-.stage-card small {
-  color: var(--muted);
-  overflow-wrap: anywhere;
-}
-/* 手機：主題路線卡改成圖示在左、文字在右，兩張一排 */
-@media (max-width: 640px) {
-  .stage-row.track .stage-card {
-    grid-template-columns: auto minmax(0, 1fr);
-    column-gap: 8px;
-    padding: 10px 10px 8px;
-  }
-  .stage-row.track .stage-card > * {
-    grid-column: 2;
-  }
-  .stage-row.track .stage-card > .stage-icon {
-    grid-column: 1;
-    grid-row: 1 / span 3;
-  }
-  .stage-row.track .stage-card b {
-    font-size: 1.08rem;
-  }
-  .stage-row.track .stage-status {
-    margin-top: 2px;
-  }
-}
-.stage-status {
-  margin-top: 6px;
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: var(--c);
-}
-.stage-card.coming {
-  opacity: 0.62;
-}
-.stage-card.coming .stage-status {
-  color: var(--muted);
-}
-.stage-card.active {
-  opacity: 1;
-  border-color: var(--c);
-  background: color-mix(in srgb, var(--c) 14%, var(--card));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent);
-}
-.stage-icon {
-  font-size: 1.4rem;
-  line-height: 1.2;
-}
-/* 多益證書：做成一張小證書的樣子 */
-.stage-card.cert {
-  border-top-width: 2px;
-  border-color: color-mix(in srgb, var(--c) 55%, var(--line));
-  background:
-    linear-gradient(160deg, color-mix(in srgb, var(--c) 26%, var(--card)), var(--card) 62%),
-    var(--card);
-}
-.stage-card.cert.active {
-  border-color: var(--c);
-}
-.cert-seal {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 45%, #fff), var(--c) 60%, color-mix(in srgb, var(--c) 65%, #000));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 30%, transparent);
-}
-.cert-seal::after {
-  content: '';
-  position: absolute;
-  left: 7px;
-  top: 22px;
-  width: 12px;
-  height: 14px;
-  background: var(--c);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 68%, 0 100%);
 }
 
 .stage-detail {
@@ -1383,12 +1172,34 @@ rt {
 .unit {
   display: grid;
   gap: 14px;
-  padding: 16px;
+  padding: 14px 16px;
 }
-.unit > header {
+/* 單元標題整列是按鈕：點一下展開／收起這個單元的課 */
+.unit-head {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.unit-head .grow {
+  display: grid;
+  gap: 2px;
+}
+.unit-head small {
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+.unit-head:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 10px;
 }
 .unit-icon {
   flex: none;
@@ -1403,20 +1214,50 @@ rt {
   font-weight: 800;
   line-height: 1;
 }
-.unit h3 {
+.unit-title {
   font-size: 1.08rem;
+  line-height: 1.3;
 }
 .unit-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.85rem;
   font-weight: 800;
   color: var(--muted);
   white-space: nowrap;
 }
+.unit-caret {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
 .unit.complete .unit-count {
   color: var(--ok);
 }
-.unit.locked > header {
+.unit.locked .unit-head {
   opacity: 0.6;
+}
+/* 目前在上的單元：外框用關卡的顏色標出來 */
+.unit.current {
+  border-color: color-mix(in srgb, var(--c) 60%, var(--line));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--c) 18%, transparent),
+    var(--shadow);
+}
+/* 收起來的單元只剩一行標題 */
+.unit.folded {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.unit.folded .unit-icon {
+  min-width: 38px;
+  height: 38px;
+  font-size: 1.15rem;
+}
+.unit.folded .unit-head small {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .unit-hint {
   font-size: 0.82rem;
@@ -3281,13 +3122,6 @@ button.dex-tile:hover {
 }
 
 /* ───────── 實戰模擬考 ───────── */
-@media (max-width: 480px) {
-  /* 五個分頁（日、韓文）也要排成一列 */
-  .tabs a {
-    padding: 9px 4px;
-    font-size: 0.86rem;
-  }
-}
 .mock-list {
   display: grid;
   gap: 16px;
@@ -3692,41 +3526,7 @@ button.dex-tile:hover {
   line-height: 1.6;
 }
 
-/* ───────── 首頁：接續學習、知識補充站 ───────── */
-.hero-cta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.hero-cta .btn.primary {
-  display: inline-grid;
-  justify-items: start;
-  gap: 1px;
-  padding: 10px 18px;
-  background: var(--lang);
-  border-color: var(--lang);
-  color: var(--ink);
-  text-align: left;
-}
-.hero-cta .btn.primary small {
-  font-weight: 600;
-  font-size: 0.78rem;
-  opacity: 0.8;
-}
-.hero-cta .btn:not(.primary) {
-  align-self: stretch;
-  display: inline-flex;
-  align-items: center;
-}
-@media (max-width: 720px) {
-  .hero-cta {
-    justify-content: center;
-  }
-  .hero-cta .btn.primary {
-    justify-items: center;
-    text-align: center;
-  }
-}
+/* ───────── 充電站（「我的」頁）：小知識、諺語 ───────── */
 .tip-card {
   border-left: 4px solid var(--lang, var(--accent));
 }
@@ -3756,65 +3556,6 @@ button.dex-tile:hover {
   line-height: 1.45;
 }
 
-/* ───────── 語言頁：切換語言、收合完成的單元 ───────── */
-.lang-switch {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.lang-switch a {
-  flex: 1 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 7px 14px;
-  border-radius: 99px;
-  border: 1px solid var(--line);
-  background: var(--card);
-  color: var(--muted);
-  font-weight: 800;
-  font-size: 0.9rem;
-}
-.lang-switch a span {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--c) 25%, var(--card-2));
-  color: var(--text);
-  font-size: 0.8rem;
-}
-.lang-switch a.on {
-  border-color: var(--c);
-  color: var(--text);
-  background: color-mix(in srgb, var(--c) 14%, var(--card));
-}
-.unit-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: var(--card-2);
-  color: var(--ok);
-  cursor: pointer;
-}
-.unit-toggle .stars {
-  font-size: 0.75rem;
-}
-.unit.folded {
-  gap: 0;
-  padding-top: 12px;
-  padding-bottom: 12px;
-}
-.unit.folded .unit-icon {
-  min-width: 38px;
-  height: 38px;
-}
 .result-tip {
   display: grid;
   gap: 4px;
@@ -3889,6 +3630,8 @@ button.dex-tile:hover {
 }
 .guide-icon {
   flex: none;
+  width: 30px;
+  text-align: center;
   font-size: 1.5rem;
   line-height: 1.2;
 }
@@ -3920,7 +3663,7 @@ button.dex-tile:hover {
     flex-wrap: wrap;
   }
   .guide-tip > .grow {
-    flex-basis: calc(100% - 40px);
+    flex-basis: calc(100% - 44px);
   }
   .guide-tip > .btn {
     margin-left: auto;
@@ -4158,26 +3901,6 @@ button.dex-tile:hover {
 }
 .stat.help {
   padding: 5px 8px;
-}
-
-/* 語言頁分頁：圖示＋文字；手機上改成上下排列 */
-.tabs a .tab-icon {
-  font-size: 1rem;
-  line-height: 1;
-}
-@media (max-width: 520px) {
-  /* 手機上分頁很多（日文有 7 個）：排成兩列，全部看得到 */
-  .tabs {
-    display: grid;
-    grid-template-columns: repeat(var(--tab-cols, 4), minmax(0, 1fr));
-    overflow: visible;
-  }
-  .tabs a {
-    flex-direction: column;
-    gap: 2px;
-    padding: 7px 2px;
-    font-size: 0.78rem;
-  }
 }
 
 /* 五十音：平片假名對照 */
@@ -5356,9 +5079,6 @@ p.small {
   align-items: center;
   gap: 6px;
 }
-.stage-card.town .stage-icon {
-  font-size: 1.4rem;
-}
 
 /* ───────── 圖片題 ───────── */
 .pic-prompt,
@@ -6050,6 +5770,25 @@ p.small {
 .me-tabs {
   margin: 0;
 }
+.me-tabs a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+/* 手機：四個分頁排一列，圖示放在字的上面（「貼紙板」「充電站」才不會被折成兩行） */
+@media (max-width: 480px) {
+  .me-tabs {
+    gap: 6px;
+  }
+  .me-tabs a {
+    flex-direction: column;
+    gap: 2px;
+    padding: 7px 2px;
+    font-size: 0.85rem;
+  }
+}
 .ward-grid {
   display: grid;
   gap: 8px;
@@ -6172,50 +5911,6 @@ p.small {
   margin: -6px 4px 0;
 }
 
-/* 手機上方列：東西多的時候（雲端同步、雙倍 XP）收起文字，避免超出畫面 */
-@media (max-width: 420px) {
-  .topbar-in {
-    padding: 10px 12px;
-    gap: 10px;
-  }
-  .top-stats {
-    gap: 6px;
-  }
-  .top-stats .stat:not(.icon) {
-    padding: 4px 8px;
-  }
-  .topbar-in:has(.stat.cloud, .stat.boost) .brand b {
-    display: none;
-  }
-  .stat .boost-x,
-  .topbar-in:has(.stat.boost) .stat.help {
-    display: none;
-  }
-}
-@media (max-width: 350px) {
-  .brand b,
-  .topbar-in:has(.stat.boost) .stat.cloud {
-    display: none;
-  }
-}
-
-/* 平板寬度：導覽列有五個項目，收起「三語道場」副標與縮小間距 */
-@media (min-width: 760px) and (max-width: 960px) {
-  .brand span:last-child {
-    display: none;
-  }
-  .topnav {
-    margin-left: 0;
-  }
-  .topnav a {
-    padding: 6px 9px;
-  }
-  .topbar-in:has(.stat.cloud, .stat.boost) .brand b,
-  .stat .boost-x {
-    display: none;
-  }
-}
-
 /* ───────── 外觀分類選擇器（商店、個人頁） ───────── */
 .kind-picker {
   display: grid;
@@ -6335,4 +6030,605 @@ p.small {
     min-width: 0;
     max-width: 210px;
   }
+}
+
+/* ───────── 上方導覽列的語言切換 ───────── */
+.lang-pick {
+  position: relative;
+  flex: none;
+}
+.lang-pick-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 10px 0 4px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.lang-pick-btn:hover,
+.lang-pick-btn.open {
+  border-color: var(--lang);
+}
+.lang-pick-glyph {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 9px;
+  background: linear-gradient(140deg, color-mix(in srgb, var(--lang) 80%, #fff), var(--lang) 55%, color-mix(in srgb, var(--lang) 65%, #000));
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+.lang-pick-caret {
+  font-size: 0.68rem;
+  color: var(--muted);
+  transition: transform 0.15s;
+}
+.lang-pick-btn.open .lang-pick-caret {
+  transform: rotate(180deg);
+}
+.lang-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 60;
+  width: max-content;
+  min-width: 230px;
+  max-width: calc(100vw - 24px);
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
+  animation: fade-in 0.15s both;
+}
+.lang-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 11px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.lang-menu-item:hover {
+  background: var(--card-2);
+}
+.lang-menu-item.on {
+  background: color-mix(in srgb, var(--lang) 14%, var(--card));
+}
+.lang-menu-item .grow {
+  display: grid;
+  gap: 1px;
+}
+.lang-menu-item b small {
+  margin-left: 2px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.lang-menu-item .grow > small {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.lang-menu-check {
+  color: var(--lang);
+  font-weight: 900;
+}
+
+/* 上方列在手機、平板（下面有導覽列）：Logo 只留圖示，旁邊是語言切換；
+   頭像收起來（底部導覽列的「我的」就是頭像）。東西多的時候（雲端同步、雙倍 XP）再收起一些，避免超出畫面 */
+@media (max-width: 759px) {
+  .brand b,
+  .brand span:last-child,
+  .top-stats > .avatar {
+    display: none;
+  }
+}
+/* 雙倍 XP 生效時多了倒數：先收起「×2」、說明按鈕和雲端同步的圖示 */
+@media (max-width: 1020px) {
+  .stat .boost-x,
+  .topbar-in:has(.stat.boost) .stat.help,
+  .topbar-in:has(.stat.boost) .stat.cloud {
+    display: none;
+  }
+}
+@media (max-width: 520px) {
+  .topbar-in {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .top-stats {
+    gap: 6px;
+  }
+  .top-stats .stat:not(.icon) {
+    padding: 4px 8px;
+  }
+  .lang-pick-name {
+    display: none;
+  }
+  .lang-pick-btn {
+    gap: 5px;
+    padding-right: 8px;
+  }
+}
+/* 很窄的手機：語言切換只留字；有雲端同步或雙倍 XP 時收起說明按鈕（「我的」裡也有使用說明），雙倍 XP 時連勝也先收起來 */
+@media (max-width: 360px) {
+  .lang-pick-caret,
+  .topbar-in:has(.stat.cloud, .stat.boost) .stat.help,
+  .topbar-in:has(.stat.boost) .stat.streak {
+    display: none;
+  }
+  .lang-pick-btn {
+    padding-right: 4px;
+  }
+}
+
+/* 平板、小筆電：導覽列有五個項目，收起「三語道場」副標、語言名稱，再窄一點連「TriLingo」也收起來 */
+@media (min-width: 760px) and (max-width: 1079px) {
+  .brand span:last-child {
+    display: none;
+  }
+}
+@media (min-width: 760px) and (max-width: 1020px) {
+  .lang-pick-name {
+    display: none;
+  }
+}
+@media (min-width: 760px) and (max-width: 899px) {
+  .brand b {
+    display: none;
+  }
+}
+@media (min-width: 760px) and (max-width: 960px) {
+  .topnav {
+    margin-left: 0;
+  }
+  .topnav a {
+    padding: 6px 9px;
+  }
+}
+
+/* ───────── 今天：開始今天的學習、三種語言 ───────── */
+.today-card {
+  display: grid;
+  gap: 14px;
+  border-top: 4px solid var(--lang);
+}
+.today-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.today-head h2 {
+  font-size: 1.2rem;
+}
+.today-langs {
+  display: flex;
+  flex: none;
+  gap: 6px;
+}
+.today-lang {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 11px;
+  border: 2px solid var(--line);
+  background: var(--card-2);
+  color: var(--muted);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+.today-lang:hover {
+  color: var(--text);
+}
+.today-lang.on {
+  border-color: var(--lang);
+  background: color-mix(in srgb, var(--lang) 22%, var(--card-2));
+  color: var(--text);
+}
+.today-steps {
+  display: grid;
+  gap: 8px;
+}
+.today-steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--card-2);
+}
+.today-steps .grow {
+  display: grid;
+  gap: 2px;
+}
+.today-steps small {
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.today-step-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--lang) 20%, var(--card));
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.today-go {
+  font-size: 1.05rem;
+}
+
+.lang-rows {
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+}
+.lang-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  color: inherit;
+}
+.lang-row:hover {
+  background: var(--card-2);
+}
+.lang-row-main {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.lang-row-name {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.lang-row-name b {
+  font-size: 1.05rem;
+}
+.lang-row-name small {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.lang-row-rank {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.lang-row-main .bar {
+  height: 7px;
+}
+.lang-row-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex: none;
+}
+.lang-row-go {
+  flex: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--muted);
+}
+/* 寬螢幕：三種語言並排 */
+@media (min-width: 900px) {
+  .lang-rows {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+}
+.news-more {
+  margin-top: 2px;
+  padding-left: 0;
+  font-size: 0.85rem;
+}
+
+/* ───────── 語言頁：學習、練功、查詢 ───────── */
+.lang-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-top: 4px solid var(--lang);
+}
+.lang-bar .grow {
+  display: grid;
+  gap: 2px;
+}
+.lang-bar h1 {
+  font-size: 1.3rem;
+}
+.lang-bar h1 small {
+  margin-left: 4px;
+  font-size: 0.65em;
+  font-weight: 600;
+  color: var(--muted);
+}
+.lang-bar .rank-line {
+  flex: 0 1 280px;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--card-2);
+}
+@media (max-width: 600px) {
+  .lang-bar {
+    flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+  .lang-bar .rank-line {
+    flex: 1 1 100%;
+    padding: 6px 10px;
+  }
+}
+
+/* 子分頁：路線／單字庫、遊樂場／模擬考、圖鑑／觀念／查表 */
+.subtabs {
+  display: flex;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+.subtabs a {
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.subtabs a:hover {
+  color: var(--text);
+  background: var(--card-2);
+}
+.subtabs a.on {
+  background: var(--lang);
+  color: var(--ink);
+}
+.subtab-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+@media (max-width: 480px) {
+  .subtabs a {
+    padding: 8px 6px;
+    font-size: 0.9rem;
+  }
+  /* 四個以上的分頁（日文的查詢）：圖示放在字的上面，才排得進一列 */
+  .subtabs:has(> a:nth-child(4)) a {
+    flex-direction: column;
+    gap: 2px;
+    padding: 7px 2px;
+    font-size: 0.8rem;
+  }
+}
+
+/* 關卡標籤：排成會換行的幾列，全部一眼看得到 */
+.stage-chips {
+  display: grid;
+  gap: 10px;
+}
+.stage-chip-group {
+  display: grid;
+  gap: 6px;
+}
+.stage-chip-label {
+  margin-left: 2px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.stage-chip-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+/* 主題路線的標籤有圖示，比較寬 */
+.stage-chip-row.track {
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+}
+.stage-chip {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+  padding: 6px 8px 5px;
+  border-radius: 14px;
+  border: 2px solid var(--line);
+  border-top: 4px solid var(--c);
+  background: var(--card);
+  color: inherit;
+  line-height: 1.25;
+  transition:
+    transform 0.12s,
+    border-color 0.12s;
+}
+.stage-chip:hover {
+  transform: translateY(-1px);
+}
+.stage-chip b {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+.stage-chip small {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--c);
+  white-space: nowrap;
+}
+.stage-chip-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+/* 多益證書：卡片帶一點證書的底色 */
+.stage-chip.cert {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 22%, var(--card)), var(--card) 70%);
+}
+.stage-chip.coming {
+  opacity: 0.6;
+}
+.stage-chip.coming small {
+  color: var(--muted);
+}
+.stage-chip.complete small {
+  color: var(--ok);
+}
+.stage-chip.on {
+  opacity: 1;
+  border-color: var(--c);
+  background: color-mix(in srgb, var(--c) 16%, var(--card));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 24%, transparent);
+}
+.stage-chip .new-tag {
+  position: absolute;
+  top: -9px;
+  right: -6px;
+  margin: 0;
+}
+/* 關卡說明在手機上最多三行，免得把課程往下推太多 */
+@media (max-width: 600px) {
+  .stage-desc {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+  }
+}
+
+/* ───────── 「我的」：成就、商店、設定、說明的入口 ───────── */
+.me-hub {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.me-hub-tile {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+  padding: 12px 8px;
+  text-align: center;
+  color: inherit;
+  transition:
+    transform 0.12s,
+    border-color 0.12s;
+}
+.me-hub-tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+.me-hub-icon {
+  font-size: 1.6rem;
+  line-height: 1.2;
+}
+.me-hub-tile b {
+  font-size: 0.95rem;
+}
+.me-hub-tile small {
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+@media (max-width: 560px) {
+  .me-hub {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .me-hub-tile {
+    grid-template-columns: auto minmax(0, 1fr);
+    justify-items: start;
+    align-items: center;
+    column-gap: 10px;
+    padding: 10px 12px;
+    text-align: left;
+  }
+  .me-hub-icon {
+    grid-row: 1 / span 2;
+    font-size: 1.4rem;
+  }
+}
+
+/* ───────── 「導覽列換新了」說明 ───────── */
+.nav-intro .welcome-slide {
+  min-height: 0;
+}
+.nav-intro-list {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+}
+.nav-intro-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--card-2);
+}
+.nav-intro-list .grow {
+  display: grid;
+  gap: 1px;
+}
+.nav-intro-list small {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.nav-intro-icon {
+  flex: none;
+  width: 30px;
+  text-align: center;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+.nav-intro-lang {
+  font-size: 0.85rem;
+  line-height: 1.6;
 }

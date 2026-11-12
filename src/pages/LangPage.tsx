@@ -1,10 +1,14 @@
-// 語言主頁：學習路線、遊樂場、圖鑑、字母表四個分頁
-import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { RankLine } from '../components/RankEmblem';
-import { Bar, LangBadge, Stars } from '../components/ui';
+// 語言頁：導覽列的「學習」「練功」「查詢」三個區域，各區域上方有子分頁：
+// - 學習：路線、單字庫（只靠大綱顯示，不用等題目下載）
+// - 練功：遊樂場（每日、專屬特訓、遊戲）、模擬考
+// - 查詢：圖鑑、觀念、五十音表／字母表、日文歌
+// 語言在上方導覽列切換。
+import { lazy, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { CourseGate } from '../components/CourseGate';
 import { GuideTip } from '../components/Guide';
-import { loadedCourse, META, META_LIST, OUTLINE, prefetch } from '../content';
+import { RankLine } from '../components/RankEmblem';
+import { Bar, LangBadge, Stars } from '../components/ui';
+import { loadedCourse, META, OUTLINE, prefetch } from '../content';
 import { APP_MINOR, stageIsNew, stageSeenKey } from '../content/news';
 import { bankState, currentStage, learnedIn, lessonState, nextBankLesson, nextInStage, quickStats, stageState, starsOf, unitState } from '../core/progress';
 import type { Save } from '../core/save';
@@ -23,27 +27,83 @@ const SongsTab = lazy(() => import('./Songs').then((m) => ({ default: m.SongsTab
 // 情境小鎮的地圖（插畫比較大）
 const TownMap = lazy(() => import('../components/TownMap').then((m) => ({ default: m.TownMap })));
 
-export type LangTab = 'path' | 'arcade' | 'mock' | 'concepts' | 'songs' | 'dex' | 'chart';
+export type LangTab = 'path' | 'bank' | 'arcade' | 'mock' | 'dex' | 'concepts' | 'chart' | 'songs';
+type Area = 'learn' | 'practice' | 'lookup';
+
+const AREA_OF: Record<LangTab, Area> = { path: 'learn', bank: 'learn', arcade: 'practice', mock: 'practice', dex: 'lookup', concepts: 'lookup', chart: 'lookup', songs: 'lookup' };
+const AREA_DESC: Record<Area, string> = { learn: '學習路線與單字庫', practice: '複習、遊戲、專屬特訓、模擬考', lookup: '圖鑑、觀念講堂與查表' };
+
+interface SubTab {
+  id: LangTab;
+  icon: string;
+  label: string;
+  to: string;
+  badge?: number;
+}
+
+function SubTabs({ items, active }: { items: SubTab[]; active: LangTab }) {
+  return (
+    <nav className="subtabs" aria-label="分頁">
+      {items.map((t) => (
+        <a key={t.id} href={href(t.to)} className={cx(active === t.id && 'on')} aria-current={active === t.id ? 'page' : undefined}>
+          <span className="subtab-icon" aria-hidden>
+            {t.icon}
+          </span>
+          {t.label}
+          {!!t.badge && <span className="dot">{t.badge}</span>}
+        </a>
+      ))}
+    </nav>
+  );
+}
 
 // ───────── 學習路線 ─────────
 
-function StageCard({ lang, stage, s, active }: { lang: LangId; stage: StageOutline; s: Save; active: boolean }) {
+function StageChip({ lang, stage, s, active }: { lang: LangId; stage: StageOutline; s: Save; active: boolean }) {
   const ss = stageState(s, stage);
+  const icon = stage.style === 'track' || stage.style === 'town' ? stage.icon : undefined;
   return (
     <a
       href={href(stagePath(lang, stage.id))}
-      className={cx('stage-card', stage.style, active && 'active', !ss.ready && 'coming', ss.complete && 'complete')}
+      className={cx('stage-chip', stage.style, active && 'on', !ss.ready && 'coming', ss.complete && 'complete')}
       style={{ '--c': stage.color } as CSSProperties}
+      aria-current={active ? 'page' : undefined}
+      title={`${stage.title}（${stage.subtitle}）`}
     >
-      {stage.style === 'cert' && <span className="cert-seal" aria-hidden />}
-      {(stage.style === 'track' || stage.style === 'town') && <span className="stage-icon">{stage.icon}</span>}
-      <b lang={stage.style === 'level' ? lang : undefined}>{stage.short}</b>
-      <small>{stage.subtitle}</small>
-      <span className="stage-status">
-        {!ss.ready ? '準備中' : ss.complete ? '完成 ✓' : `${Math.round(ss.pct * 100)}%`}
-        {stageIsNew(stage, s.guide) && <i className="new-tag">NEW</i>}
-      </span>
+      <b lang={stage.style === 'level' ? lang : undefined}>
+        {icon && (
+          <span className="stage-chip-icon" aria-hidden>
+            {icon}
+          </span>
+        )}
+        {stage.short}
+      </b>
+      <small>{!ss.ready ? '準備中' : ss.complete ? '完成 ✓' : `${Math.round(ss.pct * 100)}%`}</small>
+      {stageIsNew(stage, s.guide) && <i className="new-tag">NEW</i>}
     </a>
+  );
+}
+
+/** 關卡：小標籤排成會換行的幾列，全部一眼看得到 */
+function StageChips({ lang, s, activeId }: { lang: LangId; s: Save; activeId: string }) {
+  const course = OUTLINE[lang];
+  const groups = [
+    { label: course.pathLabel, track: false, stages: course.stages.filter((x) => x.group === 'main') },
+    { label: course.trackLabel ?? '', track: true, stages: course.stages.filter((x) => x.group === 'track') },
+  ].filter((g) => g.stages.length);
+  return (
+    <nav className="stage-chips" aria-label="關卡">
+      {groups.map((g) => (
+        <div key={g.label} className="stage-chip-group">
+          <span className="stage-chip-label">{g.label}</span>
+          <div className={cx('stage-chip-row', g.track && 'track')}>
+            {g.stages.map((st) => (
+              <StageChip key={st.id} lang={lang} stage={st} s={s} active={st.id === activeId} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </nav>
   );
 }
 
@@ -84,30 +144,38 @@ function LessonNodes({ lang, stage, ui, s, nextId }: { lang: LangId; stage: Stag
 function UnitRow({ lang, stage, ui, s, nextId }: { lang: LangId; stage: StageOutline; ui: number; s: Save; nextId?: string }) {
   const u = stage.units[ui];
   const st = unitState(s, stage, ui);
-  // 已完成的單元預設收起來，路線比較短、比較好找到目前的課
-  const [open, setOpen] = useState(!st.complete);
+  // 只展開目前在上的單元，其他的收成一行（點標題展開），路線比較短、一眼找到下一課
+  const current = !!nextId && u.lessons.some((l) => l.id === nextId);
+  const [open, setOpen] = useState(current);
   return (
-    <section className={cx('unit card', st.complete && 'complete', !st.unlocked && !st.complete && 'locked', !open && 'folded')}>
-      <header>
+    <section className={cx('unit card', st.complete && 'complete', !st.unlocked && !st.complete && 'locked', current && 'current', !open && 'folded')}>
+      <button type="button" className="unit-head" onClick={() => setOpen(!open)} aria-expanded={open}>
         <span className="unit-icon" lang={lang}>
           {u.icon}
         </span>
-        <div className="grow">
-          <h3>{u.title}</h3>
+        <span className="grow">
+          <b className="unit-title">{u.title}</b>
           <small className="muted" lang={lang}>
             {u.subtitle}
           </small>
-        </div>
-        {st.complete ? (
-          <button type="button" className="unit-count unit-toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
-            完成 ✓ <Stars n={Math.round(st.stars / Math.max(1, st.total))} /> {open ? '▲' : '▼'}
-          </button>
-        ) : (
-          <span className="unit-count">{!st.unlocked ? '🔒 未解鎖' : `${st.done} / ${st.total}`}</span>
-        )}
-      </header>
+        </span>
+        <span className="unit-count">
+          {st.complete ? (
+            <>
+              完成 ✓ <Stars n={Math.round(st.stars / Math.max(1, st.total))} />
+            </>
+          ) : !st.unlocked ? (
+            '🔒 未解鎖'
+          ) : (
+            `${st.done} / ${st.total}`
+          )}
+          <span className="unit-caret" aria-hidden>
+            {open ? '▲' : '▼'}
+          </span>
+        </span>
+      </button>
       {open && <LessonNodes lang={lang} stage={stage} ui={ui} s={s} nextId={nextId} />}
-      {!st.unlocked && !st.complete && <p className="unit-hint muted">完成上一個單元就會解鎖。已經會了？直接挑戰「跳級測驗」，通過就算完成。</p>}
+      {open && !st.unlocked && !st.complete && <p className="unit-hint muted">完成上一個單元就會解鎖。已經會了？直接挑戰「跳級測驗」，通過就算完成。</p>}
     </section>
   );
 }
@@ -194,7 +262,7 @@ function BankSection({ lang, stage, s }: { lang: LangId; stage: StageOutline; s:
       <header className="bank-head card">
         <div className="grow">
           <h3>
-            📚 單字庫 <small className="muted">{bs.decks} 組・{bs.words.toLocaleString()} 個字</small>
+            📒 單字庫 <small className="muted">{bs.decks} 組・{bs.words.toLocaleString()} 個字</small>
           </h3>
           <p className="muted">照主題分好組的大量單字，不用照順序、也不會上鎖。學過的字會自動排進每天的複習。</p>
           <div className="bank-prog">
@@ -208,7 +276,7 @@ function BankSection({ lang, stage, s }: { lang: LangId; stage: StageOutline; s:
           </a>
         )}
       </header>
-      <GuideTip id="tab:bank" icon="📚" title="單字庫怎麼用？">
+      <GuideTip id="tab:bank" icon="📒" title="單字庫怎麼用？">
         學習路線教文法和最核心的字；單字庫補足考試需要的大量單字。建議每天學一兩組新字（每組約 25 個字、分成 5 課），再去做「今日複習」。點分組可以展開，按「學習」從那一組開始。
       </GuideTip>
       {[...groups].map(([name, uis]) => (
@@ -224,7 +292,8 @@ function TownStage({ lang, stageId, s }: { lang: LangId; stageId: string; s: Sav
   return stage ? <TownMap lang={lang} stage={stage} s={s} /> : null;
 }
 
-function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string }) {
+/** 學習：上方是關卡標籤，下面是這一關的路線或單字庫 */
+function LearnArea({ lang, s, stageId, bank }: { lang: LangId; s: Save; stageId?: string; bank: boolean }) {
   // 路線只看大綱（有哪些單元、幾課），不用等題目下載
   const course = OUTLINE[lang];
   const stage = course.stages.find((x) => x.id === stageId) ?? currentStage(s, course);
@@ -236,6 +305,8 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
 
   const ss = stageState(s, stage);
   const up = nextInStage(s, stage);
+  const hasBank = stage.units.some((u) => u.bank);
+  const showBank = bank && hasBank;
   // 趁空檔先下載下一堂課的題目，點進去就不用等
   const upUnit = up?.unit.id;
   useEffect(() => {
@@ -243,29 +314,18 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
   }, [lang, upUnit]);
   // 打開路線時，下一課如果在畫面下方看不到，就自動捲過去
   useEffect(() => {
+    if (showBank) return;
     const t = setTimeout(() => {
       const el = document.querySelector('.node.next');
       if (el && el.getBoundingClientRect().top + window.scrollY > window.innerHeight * 0.8) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }, 120);
     return () => clearTimeout(t);
-  }, [stage.id]);
-  const groups = [
-    { label: course.pathLabel, kind: 'main', stages: course.stages.filter((x) => x.group === 'main') },
-    { label: course.trackLabel ?? '', kind: 'track', stages: course.stages.filter((x) => x.group === 'track') },
-  ].filter((g) => g.stages.length);
+  }, [stage.id, showBank]);
 
+  const bs = hasBank ? bankState(s, stage) : null;
   return (
     <>
-      {groups.map((g) => (
-        <div key={g.label} className="stage-group">
-          <h3 className="group-label">{g.label}</h3>
-          <div className={cx('stage-row', g.kind)}>
-            {g.stages.map((st) => (
-              <StageCard key={st.id} lang={lang} stage={st} s={s} active={st.id === stage.id} />
-            ))}
-          </div>
-        </div>
-      ))}
+      <StageChips lang={lang} s={s} activeId={stage.id} />
 
       <section className="stage-detail" style={{ '--c': stage.color } as CSSProperties}>
         <header className="stage-head card">
@@ -273,7 +333,7 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
             <h2>
               {stage.title} <small>{stage.subtitle}</small>
             </h2>
-            <p className="muted">{stage.description}</p>
+            <p className="muted stage-desc">{stage.description}</p>
           </div>
           {ss.ready && (
             <div className="stage-prog">
@@ -284,38 +344,53 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
               </small>
             </div>
           )}
-          {up && (
+          {up && !showBank && (
             <a className="btn primary" href={href(lessonPath(lang, up.lesson.id))}>
               {ss.done ? '繼續' : '開始'}：{up.unit.title}
             </a>
           )}
         </header>
 
-        {stage.style === 'town' ? (
-          <CourseGate lang={lang} need={{ stages: [stage.id] }} compact>
-            <TownStage lang={lang} stageId={stage.id} s={s} />
-          </CourseGate>
-        ) : (
-          stage.units.map((u, ui) => (u.bank ? null : <UnitRow key={u.id} lang={lang} stage={stage} ui={ui} s={s} nextId={up?.lesson.id} />))
+        {bs && (
+          <SubTabs
+            active={showBank ? 'bank' : 'path'}
+            items={[
+              { id: 'path', icon: '🗺️', label: '路線', to: stagePath(lang, stage.id) },
+              { id: 'bank', icon: '📒', label: `單字庫 ${bs.decks} 組`, to: `/l/${lang}/bank/${stage.id}` },
+            ]}
+          />
         )}
 
-        <BankSection lang={lang} stage={stage} s={s} />
+        {showBank ? (
+          <BankSection lang={lang} stage={stage} s={s} />
+        ) : (
+          <>
+            <TabGuide tab="path" lang={lang} />
+            {stage.style === 'town' ? (
+              <CourseGate lang={lang} need={{ stages: [stage.id] }} compact>
+                <TownStage lang={lang} stageId={stage.id} s={s} />
+              </CourseGate>
+            ) : (
+              stage.units.map((u, ui) => (u.bank ? null : <UnitRow key={u.id} lang={lang} stage={stage} ui={ui} s={s} nextId={up?.lesson.id} />))
+            )}
 
-        {stage.planned.length > 0 && (
-          <section className="planned card">
-            <h3>{ss.ready ? '即將推出的單元' : '這一關的內容準備中'}</h3>
-            <p className="muted">
-              {ss.ready ? '以下單元已排入製作清單。' : '頁面已經建好，內容還在製作。先把前面的關卡打穩，這裡開放時會直接接上。'}
-            </p>
-            <ul>
-              {stage.planned.map((p) => (
-                <li key={p}>
-                  <span>🔒</span>
-                  {p}
-                </li>
-              ))}
-            </ul>
-          </section>
+            {stage.planned.length > 0 && (
+              <section className="planned card">
+                <h3>{ss.ready ? '即將推出的單元' : '這一關的內容準備中'}</h3>
+                <p className="muted">
+                  {ss.ready ? '以下單元已排入製作清單。' : '頁面已經建好，內容還在製作。先把前面的關卡打穩，這裡開放時會直接接上。'}
+                </p>
+                <ul>
+                  {stage.planned.map((p) => (
+                    <li key={p}>
+                      <span>🔒</span>
+                      {p}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </>
         )}
       </section>
     </>
@@ -330,8 +405,8 @@ function TabGuide({ tab, lang }: { tab: LangTab; lang: LangId }) {
       return (
         <GuideTip id="tab:path" title="學習路線怎麼走？" icon="📚">
           <ul>
-            <li>上面一排是關卡（例如 N5、N4），點一下切換；每個關卡下面有好幾個單元。</li>
-            <li>圓圈是課：數字＝還沒上、✓＝完成、🔒＝要先上完前一課。星星是這堂課的成績。</li>
+            <li>上面的標籤是關卡，點一下就能切換；有單字庫的關卡，可以在「路線」和「單字庫」之間切換。</li>
+            <li>只展開目前在上的單元，其他單元點標題就能展開。圓圈是課：數字＝還沒上、✓＝完成、🔒＝要先上完前一課。</li>
             <li>👑 單元測驗隨時都能挑戰，答對 80% 就完成整個單元、解鎖下一個單元；已經會的內容可以直接考來跳級。</li>
           </ul>
         </GuideTip>
@@ -383,6 +458,8 @@ function TabGuide({ tab, lang }: { tab: LangTab; lang: LangId }) {
           </p>
         </GuideTip>
       );
+    default:
+      return null;
   }
 }
 
@@ -390,92 +467,80 @@ function TabGuide({ tab, lang }: { tab: LangTab; lang: LangId }) {
 
 export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; stageId?: string }) {
   const s = useSave();
-  const course = META[lang];
-  // 標題與分頁不需要題目，先顯示；分頁內容等題目下載完成
-  const due = quickStats(s, lang).due;
-  const tabs: { id: LangTab; icon: string; label: string; to: string }[] = [
-    { id: 'path', icon: '📚', label: '學習路線', to: `/l/${lang}` },
-    { id: 'arcade', icon: '🎮', label: '遊樂場', to: `/l/${lang}/arcade` },
-    { id: 'mock', icon: '📝', label: '模擬考', to: `/l/${lang}/mock` },
-    { id: 'concepts', icon: '💡', label: '觀念', to: `/l/${lang}/concepts` },
-    ...(lang === 'ja' ? [{ id: 'songs' as const, icon: '🎵', label: '日文歌', to: '/l/ja/songs' }] : []),
-    { id: 'dex', icon: '📖', label: '圖鑑', to: `/l/${lang}/dex` },
-  ];
-  if (lang !== 'en') tabs.push({ id: 'chart', icon: lang === 'ja' ? 'あ' : '가', label: lang === 'ja' ? '五十音表' : '字母表', to: `/l/${lang}/chart` });
-
+  const meta = META[lang];
+  const area = AREA_OF[tab];
   // 字母表的題目在有 chart 的單元那幾包（五十音、韓文字母）
   const chartUnits = useMemo(() => OUTLINE[lang].stages.flatMap((st) => st.units.filter((u) => u.hasChart).map((u) => u.id)), [lang]);
 
-  const sameTab = (l: LangId) => (tab === 'chart' && l === 'en' ? '' : tab === 'path' ? '' : `/${tab}`);
+  const practiceTabs: SubTab[] = [
+    { id: 'arcade', icon: '🎮', label: '遊樂場', to: `/l/${lang}/arcade`, badge: quickStats(s, lang).due },
+    { id: 'mock', icon: '📝', label: '模擬考', to: `/l/${lang}/mock` },
+  ];
+  const lookupTabs: SubTab[] = [
+    { id: 'dex', icon: '📖', label: '圖鑑', to: `/l/${lang}/dex` },
+    { id: 'concepts', icon: '💡', label: '觀念', to: `/l/${lang}/concepts` },
+    ...(lang !== 'en' ? [{ id: 'chart' as const, icon: lang === 'ja' ? 'あ' : '가', label: lang === 'ja' ? '五十音表' : '字母表', to: `/l/${lang}/chart` }] : []),
+    ...(lang === 'ja' ? [{ id: 'songs' as const, icon: '🎵', label: '日文歌', to: '/l/ja/songs' }] : []),
+  ];
+
   return (
-    <div className="page" style={{ '--lang': course.color } as CSSProperties}>
-      <nav className="lang-switch" aria-label="切換語言">
-        {META_LIST.map((m) => (
-          <a key={m.id} href={href(`/l/${m.id}${sameTab(m.id)}`)} className={cx(m.id === lang && 'on')} style={{ '--c': m.color } as CSSProperties} aria-current={m.id === lang ? 'page' : undefined}>
-            <span lang={m.id}>{m.glyph}</span>
-            {m.name}
-          </a>
-        ))}
-      </nav>
-      <section className="lang-head card">
-        <LangBadge course={course} size="lg" />
+    <div className={cx('page lang-page', `area-${area}`)} style={{ '--lang': meta.color } as CSSProperties}>
+      <section className="lang-bar card">
+        <LangBadge course={meta} />
         <div className="grow">
           <h1>
-            {course.name} <small lang={lang}>{course.native}</small>
+            {meta.name} <small lang={lang}>{meta.native}</small>
           </h1>
-          <ul className="goals">
-            {course.goals.map((g) => (
-              <li key={g}>🎯 {g}</li>
-            ))}
-          </ul>
+          <small className="muted">{AREA_DESC[area]}</small>
         </div>
-        <RankLine xp={s.xp[lang]} size={76} />
+        <RankLine xp={s.xp[lang]} size={40} compact />
       </section>
 
-      <nav className="tabs" style={{ '--tab-cols': Math.ceil(tabs.length / 2) } as CSSProperties}>
-        {tabs.map((t) => (
-          <a key={t.id} href={href(t.to)} className={cx(tab === t.id && 'on')}>
-            <span className="tab-icon" aria-hidden>
-              {t.icon}
-            </span>
-            <span className="tab-label">{t.label}</span>
-            {t.id === 'arcade' && due > 0 && <span className="dot">{due}</span>}
-          </a>
-        ))}
-      </nav>
+      {area === 'learn' && <LearnArea lang={lang} s={s} stageId={stageId} bank={tab === 'bank'} />}
 
-      <TabGuide tab={tab} lang={lang} />
-      {/* 學習路線只看大綱，馬上就能顯示；其他分頁各自等需要的題目（遊樂場、圖鑑：學過的字所在的那幾包） */}
-      {tab === 'path' && <PathTab lang={lang} s={s} stageId={stageId} />}
-      {tab === 'arcade' && (
-        <CourseGate lang={lang} need="active" compact>
-          <ArcadeTab lang={lang} s={s} />
-        </CourseGate>
+      {area === 'practice' && (
+        <>
+          <SubTabs items={practiceTabs} active={tab} />
+          <TabGuide tab={tab} lang={lang} />
+          {/* 遊樂場用學過的字出題：下載學過的字所在的那幾包 */}
+          {tab === 'arcade' && (
+            <CourseGate lang={lang} need="active" compact>
+              <ArcadeTab lang={lang} s={s} />
+            </CourseGate>
+          )}
+          {tab === 'mock' && (
+            <CourseGate lang={lang} need="mocks" compact>
+              <MockTab lang={lang} s={s} />
+            </CourseGate>
+          )}
+        </>
       )}
-      {tab === 'mock' && (
-        <CourseGate lang={lang} need="mocks" compact>
-          <MockTab lang={lang} s={s} />
-        </CourseGate>
-      )}
-      {tab === 'concepts' && (
-        <CourseGate lang={lang} need="concepts" compact>
-          <ConceptsTab lang={lang} s={s} />
-        </CourseGate>
-      )}
-      {tab === 'songs' && lang === 'ja' && (
-        <CourseGate lang={lang} need={[]} compact>
-          <SongsTab s={s} />
-        </CourseGate>
-      )}
-      {tab === 'dex' && (
-        <CourseGate lang={lang} need="active" compact>
-          <DexTab lang={lang} s={s} />
-        </CourseGate>
-      )}
-      {tab === 'chart' && (
-        <CourseGate lang={lang} need={{ units: chartUnits }} compact>
-          <ChartTab lang={lang} s={s} />
-        </CourseGate>
+
+      {area === 'lookup' && (
+        <>
+          <SubTabs items={lookupTabs} active={tab} />
+          <TabGuide tab={tab} lang={lang} />
+          {tab === 'dex' && (
+            <CourseGate lang={lang} need="active" compact>
+              <DexTab lang={lang} s={s} />
+            </CourseGate>
+          )}
+          {tab === 'concepts' && (
+            <CourseGate lang={lang} need="concepts" compact>
+              <ConceptsTab lang={lang} s={s} />
+            </CourseGate>
+          )}
+          {tab === 'chart' && (
+            <CourseGate lang={lang} need={{ units: chartUnits }} compact>
+              <ChartTab lang={lang} s={s} />
+            </CourseGate>
+          )}
+          {tab === 'songs' && lang === 'ja' && (
+            <CourseGate lang={lang} need={[]} compact>
+              <SongsTab s={s} />
+            </CourseGate>
+          )}
+        </>
       )}
     </div>
   );

@@ -1,21 +1,17 @@
-// 上方導覽列與手機版底部導覽
+// 上方導覽列與手機版底部導覽：今天、學習、練功、查詢、我的（區域的定義在 core/nav.ts）。
+// 學習、練功、查詢跟著目前的語言，語言在上方導覽列切換。
 import { useEffect, useState } from 'react';
 import { useCloud } from '../core/cloud';
+import { useCurrentLang } from '../core/currentLang';
 import { nowMs, today } from '../core/date';
 import { tapCount, triggerEgg } from '../core/eggs';
+import { sectionOf, sectionPath, SECTIONS } from '../core/nav';
 import { useSave } from '../core/store';
 import { cx, fmtTime } from '../core/util';
 import { href, type Route } from '../router';
 import { Avatar } from './Avatar';
+import { LangPicker } from './LangPicker';
 import { Coin, flameTier } from './ui';
-
-const NAV = [
-  { to: '/', icon: '🏠', label: '首頁', match: (p: string[]) => p.length === 0 || p[0] === 'l' },
-  { to: '/profile', icon: '🏆', label: '成就', match: (p: string[]) => p[0] === 'profile' },
-  { to: '/me', icon: '', label: '個人', match: (p: string[]) => p[0] === 'me' },
-  { to: '/shop', icon: '🛒', label: '商店', match: (p: string[]) => p[0] === 'shop' },
-  { to: '/settings', icon: '⚙️', label: '設定', match: (p: string[]) => p[0] === 'settings' },
-];
 
 /** 雙倍 XP 剩餘秒數（每秒更新） */
 export function useBoostLeft(): number {
@@ -34,6 +30,8 @@ export function TopBar({ route }: { route: Route }) {
   const s = useSave();
   const boost = useBoostLeft();
   const cloud = useCloud();
+  const lang = useCurrentLang();
+  const sec = sectionOf(route.parts);
   const lit = s.streak.count > 0 && s.streak.last === today();
   const cloudTitle: Record<string, string> = {
     syncing: '雲端同步中…',
@@ -60,9 +58,10 @@ export function TopBar({ route }: { route: Route }) {
           <b>{today().endsWith('-04-01') ? 'LingoTri' : 'TriLingo'}</b>
           <span>三語道場</span>
         </a>
+        <LangPicker route={route} />
         <nav className="topnav">
-          {NAV.map((n) => (
-            <a key={n.to} href={href(n.to)} className={cx(n.match(route.parts) && 'on')}>
+          {SECTIONS.map((n) => (
+            <a key={n.id} href={href(sectionPath(n.id, lang))} className={cx(sec === n.id && 'on')} aria-current={sec === n.id ? 'page' : undefined}>
               {n.label}
             </a>
           ))}
@@ -87,7 +86,7 @@ export function TopBar({ route }: { route: Route }) {
           <a className="stat" href={href('/shop')} title="金幣" data-coin-target>
             <Coin n={s.coins} />
           </a>
-          <a className={cx('avatar', route.parts[0] === 'me' && 'on')} href={href('/me')} title={`${s.name}・個人頁`}>
+          <a className={cx('avatar', route.parts[0] === 'me' && 'on')} href={href('/me')} title={`${s.name}・我的`}>
             <Avatar id={s.avatar} frame={s.equip.frame} size={30} />
           </a>
         </div>
@@ -98,11 +97,13 @@ export function TopBar({ route }: { route: Route }) {
 
 export function BottomNav({ route }: { route: Route }) {
   const s = useSave();
+  const lang = useCurrentLang();
+  const sec = sectionOf(route.parts);
   return (
     <nav className="bottomnav">
-      {NAV.map((n) => (
-        <a key={n.to} href={href(n.to)} className={cx(n.match(route.parts) && 'on')}>
-          {/* 「個人」用自己的頭像當圖示 */}
+      {SECTIONS.map((n) => (
+        <a key={n.id} href={href(sectionPath(n.id, lang))} className={cx(sec === n.id && 'on')} aria-current={sec === n.id ? 'page' : undefined}>
+          {/* 「我的」用自己的頭像當圖示 */}
           {n.icon ? (
             <span>{n.icon}</span>
           ) : (

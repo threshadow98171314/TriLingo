@@ -1,20 +1,26 @@
 // 等這個畫面需要的題目下載完成才顯示內容。題目是一包一包分開的（見 content/parts.ts），
 // need 說明需要哪些：
 // - "active"（預設）：學過的字所在的那幾包。複習、遊樂場這些用學過的字出題的畫面用這個。
+// - "next"：下一堂新課所在的那一包（「今天的學習」用）。
 // - { units }／{ stages }／"all"／"mocks"／"concepts"：見 content/index.ts 的 Need。
 // 頁面的程式也是用到才下載（React.lazy），CourseGate 裡面順便等程式下載完成。
 // 下載通常一瞬間就好（之後瀏覽器會快取），所以稍微延遲才出現載入畫面，避免閃一下。
 import { Suspense, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
-import { META, useContent, type Need } from '../content';
-import { activeNeed } from '../core/progress';
+import { META, OUTLINE, useContent, type Need } from '../content';
+import { activeNeed, nextUp } from '../core/progress';
 import { getSave } from '../core/store';
 import type { LangId } from '../core/types';
 import { Empty, LangBadge } from './ui';
 
-export type GateNeed = Need | 'active' | (Need | 'active')[];
+type GateItem = Need | 'active' | 'next';
+export type GateNeed = GateItem | GateItem[];
 
 function resolve(lang: LangId, need: GateNeed): Need {
   if (need === 'active') return activeNeed(getSave(), lang);
+  if (need === 'next') {
+    const up = nextUp(getSave(), OUTLINE[lang]);
+    return { units: up ? [up.unit.id] : [] };
+  }
   if (Array.isArray(need)) return need.map((n) => resolve(lang, n));
   return need;
 }
