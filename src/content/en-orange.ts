@@ -1,23 +1,7 @@
-// 英文：以多益 TOEIC 證書顏色分級。橘 → 棕 → 綠 → 藍 → 金（最高，860–990）
+// 英文橘色證書（10–215）的學習路線：最基本的職場與生活單字、be 動詞、介系詞、基礎時態、Part 2 入門。
+// 單字庫在 en-orange-bank.ts。
 import type { Unit } from '../core/types';
-import { attachMore, cz, en, grammarUnit, moreTable, note, qa, vocabUnit } from './dsl';
-import { BLUE_UNITS } from './en-blue';
-import { BLUE_BANK } from './en-blue-bank';
-import { BROWN_UNITS } from './en-brown';
-import { BROWN_BANK } from './en-brown-bank';
-import { GREEN_UNITS } from './en-green';
-import { GOLD_UNITS } from './en-gold';
-import { GOLD_UNITS_2 } from './en-gold2';
-import { GOLD_BANK } from './en-gold-bank';
-import { GREEN_BANK } from './en-green-bank';
-import { DRILL_LR } from './en-drill-lr';
-import { DRILL_P5A } from './en-drill-p5a';
-import { DRILL_P5B } from './en-drill-p5b';
-import { DRILL_P5C } from './en-drill-p5c';
-import { EN_MORE } from './en-more';
-import { EN_BIZ_UNITS, EN_LIFE_UNITS, EN_TRAVEL_UNITS } from './en-scenes';
-import { ORANGE_BANK } from './en-orange-bank';
-import { TOWN_UNITS } from './en-town';
+import { cz, en, grammarUnit, note, qa, vocabUnit } from './dsl';
 
 // ───────── 橘色證書（10–215）：基礎起步 ─────────
 
@@ -301,22 +285,4 @@ const listening = grammarUnit(
   'listening',
 );
 
-/** 各關卡的單元（關卡名稱、說明、預定大綱在 meta.ts） */
-export const UNITS: Record<string, Unit[]> = {
-  'en.orange': [office, people, g1, time, money, g2, travel, dining, verbs, g3, adjectives, listening, ...ORANGE_BANK],
-  'en.brown': [...BROWN_UNITS, ...BROWN_BANK],
-  'en.green': [...GREEN_UNITS, ...GREEN_BANK],
-  'en.blue': [...BLUE_UNITS, ...BLUE_BANK],
-  'en.gold': [...GOLD_UNITS, ...GOLD_UNITS_2, ...GOLD_BANK],
-  'en.drill': [...DRILL_P5A, ...DRILL_P5B, ...DRILL_P5C, ...DRILL_LR],
-  'en.town': TOWN_UNITS,
-  'en.travel': EN_TRAVEL_UNITS,
-  'en.biz': EN_BIZ_UNITS,
-  'en.life': EN_LIFE_UNITS,
-};
-
-// 學習路線單字的補充例句（答對時隨機挑一句顯示）
-attachMore(Object.values(UNITS), moreTable(EN_MORE), false);
-
-export { EN_MOCKS as MOCKS } from './en-mock';
-export { CONCEPTS } from './en-concepts';
+export const ORANGE_UNITS: Unit[] = [office, people, g1, time, money, g2, travel, dining, verbs, g3, adjectives, listening];

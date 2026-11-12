@@ -1,5 +1,6 @@
 // 日文內容一律用「漢字[よみ]」標註振假名，例如：学校[がっこう]へ行[い]きます。
 // 一段連續的漢字對應一個中括號；由這一個字串就能導出純文字、假名讀音與 <ruby> 顯示。
+import type { VocabItem } from '../core/types';
 
 const RE = /([㐀-鿿々]+)\[([^\]]+)\]/g;
 
@@ -93,4 +94,11 @@ export function confusableReadings(reading: string): string[] {
 
   out.delete(reading);
   return [...out];
+}
+
+/** 學過的假名（平、片都算）換成平假名、不重複：假名對對碰用來湊「平假名＋片假名」的牌 */
+export function kanaPairs(learned: VocabItem[]): string[] {
+  const hira = new Set<string>();
+  for (const it of learned) if (it.kind === 'char' && it.id.startsWith('ja.kana.')) hira.add(toHiragana(it.w));
+  return [...hira];
 }

@@ -1,11 +1,12 @@
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { preloadCourses } from './content';
+import { OUTLINE, prefetch } from './content';
 import { initCloud } from './core/cloud';
 import { initEggs } from './core/eggs';
 import { initPerf } from './core/perf';
-import { initStore } from './core/store';
+import { lastStudiedLang, nextUp } from './core/progress';
+import { getSave, initStore } from './core/store';
 import './styles.css';
 import './fx.css';
 import './games.css';
@@ -32,6 +33,11 @@ createRoot(document.getElementById('root')!).render(
   </ErrorBoundary>,
 );
 
-// 畫面出來之後，趁空檔把三種語言的題目都先下載好
+// 畫面出來之後，趁空檔先把「下一堂課」的題目下載好，按「繼續」就不用等
 const idle = (f: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(f, { timeout: 2500 }) : setTimeout(f, 1200));
-idle(preloadCourses);
+idle(() => {
+  const s = getSave();
+  const lang = lastStudiedLang(s);
+  const up = lang && nextUp(s, OUTLINE[lang]);
+  if (lang && up) prefetch(lang, { units: [up.unit.id] });
+});

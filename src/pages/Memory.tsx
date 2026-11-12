@@ -12,7 +12,7 @@ import { finishGame, getSave, recordAnswer, useSave } from '../core/store';
 import type { LangId, VocabItem } from '../core/types';
 import { clamp, cx, fmtTime } from '../core/util';
 import { front, isVocab } from '../engine/exercises';
-import { toHiragana, toKatakana } from '../engine/furigana';
+import { kanaPairs, toKatakana } from '../engine/furigana';
 import { nav } from '../router';
 import { Blocked } from './Practice';
 
@@ -45,13 +45,6 @@ function vocabCards(vocab: VocabItem[], lang: LangId): Card[] {
       { key: i * 2 + 1, pair: i, text: v.kind === 'char' ? (v.rm ?? v.m) : v.m, lang: 'zh' as const, itemId: v.id },
     ]),
   );
-}
-
-/** 假名模式：學過的假名（平、片都算），各取一組平假名＋片假名 */
-export function kanaPairs(learned: VocabItem[]): string[] {
-  const hira = new Set<string>();
-  for (const it of learned) if (it.kind === 'char' && it.id.startsWith('ja.kana.')) hira.add(toHiragana(it.w));
-  return [...hira];
 }
 
 function kanaCards(hira: string[]): Card[] {

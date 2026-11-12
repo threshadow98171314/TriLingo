@@ -3,7 +3,7 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { ResultData } from '../components/Result';
 import { Session } from '../components/Session';
 import { Empty } from '../components/ui';
-import { courseIndex, META } from '../content';
+import { courseIndex, META, stageOutline } from '../content';
 import { dueItems, learnedItems, learnedVocab, nextBankLesson, UNLOCK, weakestItems } from '../core/progress';
 import { sample, shuffle } from '../core/rng';
 import { BOSS_PASS, finishGame, finishLesson, getSave, type SessionStats } from '../core/store';
@@ -78,8 +78,9 @@ export function LessonPage({ lang, lessonId }: { lang: LangId; lessonId: string 
         };
       }
       if (unit.bank) {
-        // 單字庫：直接接下一組還沒學完的字
-        const nb = nextBankLesson(getSave(), stage, unit.id) ?? nextBankLesson(getSave(), stage);
+        // 單字庫：直接接下一組還沒學完的字（看大綱找，下一組的題目可能在還沒下載的另一包）
+        const all = stageOutline(stage.id);
+        const nb = all ? (nextBankLesson(getSave(), all, unit.id) ?? nextBankLesson(getSave(), all)) : null;
         return {
           ...base,
           emoji: '👑',

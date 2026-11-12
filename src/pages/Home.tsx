@@ -1,17 +1,17 @@
 // 首頁：連勝、每日目標、接續學習、三種語言的段位、每日任務、每日填字、知識補充、一週紀錄
-import { useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import { GuideTip } from '../components/Guide';
 import { Mascot } from '../components/Mascot';
 import { RankEmblem } from '../components/RankEmblem';
 import { Bar, Coin, flameTier, flyCoins, LangBadge, Modal, Ruby, SpeakBtn, Tx } from '../components/ui';
-import { META, META_LIST, useCourse } from '../content';
+import { META, META_LIST, OUTLINE, useContent } from '../content';
 import { APP_MINOR, NEWS, newsSeenKey } from '../content/news';
 import { PROVERBS } from '../content/proverbs';
 import { randomTip, TIPS } from '../content/tips';
 import { fx } from '../core/fx';
 import { furiKana } from '../engine/furigana';
 import { lastDays, nowMs, today } from '../core/date';
-import { crosswordPool, lastStudiedLang, langStats, nextUp, quickStats, UNLOCK } from '../core/progress';
+import { activeParts, crosswordPool, lastStudiedLang, nextUp, quickStats, UNLOCK } from '../core/progress';
 import { questsFor } from '../core/quests';
 import { rankOf, TIERS } from '../core/ranks';
 import { emptyDay, type Save } from '../core/save';
@@ -43,14 +43,12 @@ function GoalRing({ value, goal }: { value: number; goal: number }) {
 }
 
 function LangCard({ meta: course, s }: { meta: CourseMeta; s: Save }) {
-  // 題目還在下載時，先用存檔算得出來的數字顯示
-  const loaded = useCourse(course.id);
+  // 只看存檔和大綱，不用下載題目
+  const outline = OUTLINE[course.id];
   const xp = s.xp[course.id];
   const r = rankOf(xp);
-  const quick = quickStats(s, course.id);
-  const full = loaded ? langStats(s, course.id) : null;
-  const st = { learned: full?.learned ?? quick.learned, due: full?.due ?? quick.due, total: full?.total };
-  const up = loaded ? nextUp(s, loaded) : null;
+  const st = { ...quickStats(s, course.id), total: outline.total };
+  const up = nextUp(s, outline);
   const todayXp = s.days[today()]?.xp[course.id] ?? 0;
   return (
     <article className="lang-card card" style={{ '--lang': course.color } as CSSProperties}>
@@ -79,7 +77,7 @@ function LangCard({ meta: course, s }: { meta: CourseMeta; s: Save }) {
 
       <div className="lang-meta">
         <span>
-          已學 <b>{st.learned}</b> / {st.total ?? '…'}
+          已學 <b>{st.learned}</b> / {st.total}
         </span>
         {st.due > 0 ? (
           <a className="chip warn" href={href(`/l/${course.id}/review`)}>
@@ -100,10 +98,8 @@ function LangCard({ meta: course, s }: { meta: CourseMeta; s: Save }) {
             {up.stage.short} › {up.unit.title}
             {up.lesson.boss && '・單元測驗'}
           </>
-        ) : loaded ? (
-          '全部課程都完成了！'
         ) : (
-          '正在載入課程…'
+          '全部課程都完成了！'
         )}
         <b>學習路線 ›</b>
       </a>
@@ -323,10 +319,9 @@ function NewsCard({ s }: { s: Save }) {
 
 function ContinueBar({ s }: { s: Save }) {
   const lang: LangId | null = lastStudiedLang(s);
-  const course = useCourse(lang ?? 'en');
   if (!lang) return null;
   const meta = META[lang];
-  const up = course ? nextUp(s, course) : null;
+  const up = nextUp(s, OUTLINE[lang]);
   const due = quickStats(s, lang).due;
   return (
     <div className="hero-cta" style={{ '--lang': meta.color } as CSSProperties}>
@@ -343,11 +338,38 @@ function ContinueBar({ s }: { s: Save }) {
   );
 }
 
-function DailyRow({ c, s }: { c: CourseMeta; s: Save }) {
-  const loaded = useCourse(c.id);
-  const have = loaded ? crosswordPool(s, c.id).length : 0;
-  const locked = have < UNLOCK.crossword;
+/** 元素捲進畫面（或快要捲進來）之後變成 true，之後一直是 true：不急的東西等這時候再下載 */
+function useInView<T extends Element>(): [RefObject<T | null>, boolean] {
+  const ref = useRef<T>(null);
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || seen) return;
+    if (typeof IntersectionObserver !== 'function') {
+      setSeen(true);
+      return;
+    }
+    const io = new IntersectionObserver((es) => es.some((e) => e.isIntersecting) && setSeen(true), { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [seen]);
+  return [ref, seen];
+}
+
+function DailyRow({ c, s, visible }: { c: CourseMeta; s: Save; visible: boolean }) {
   const done = !!s.days[today()]?.dailyCw?.[c.id];
+  // 要知道學過的字裡有幾個能放進填字，才需要題目。今天已經完成的不用查；
+  // 其他的等這一區捲進畫面，從學得最多的那一包開始一包一包下載，湊滿解鎖的字數就停
+  const parts = done ? [] : activeParts(s, c.id);
+  const [n, setN] = useState(1);
+  const content = useContent(c.id, visible && parts.length ? { units: parts.slice(0, n) } : null);
+  const have = done ? 0 : crosswordPool(s, c.id).length;
+  const locked = !done && have < UNLOCK.crossword;
+  const more = locked && n < parts.length;
+  useEffect(() => {
+    if (visible && content.ready && more) setN((k) => k + 1);
+  }, [visible, content.ready, more, n]);
+  const loaded = !locked || !parts.length || (visible && content.ready && !more);
   return (
     <li style={{ '--lang': c.color } as CSSProperties}>
       <LangBadge course={c} size="sm" />
@@ -373,15 +395,16 @@ function DailyRow({ c, s }: { c: CourseMeta; s: Save }) {
 }
 
 function DailyPanel({ s }: { s: Save }) {
+  const [ref, visible] = useInView<HTMLElement>();
   return (
-    <section className="card panel">
+    <section className="card panel" ref={ref}>
       <header className="panel-head">
         <h2>每日填字</h2>
         <small className="muted">每天一題・用你學過的字出題</small>
       </header>
       <ul className="daily">
         {META_LIST.map((c) => (
-          <DailyRow key={c.id} c={c} s={s} />
+          <DailyRow key={c.id} c={c} s={s} visible={visible} />
         ))}
       </ul>
     </section>

@@ -1,9 +1,11 @@
 // 猜詞（類似 Wordle）：六次機會猜出一個字，規則在 engine/wordle.ts。
 // 練習模式從學過的字出題；每日猜詞從整個課程出題（同一天每個人都一樣）。
+// 整個課程的候選字只存 id（gen/wordle-*.json），挑好題目再下載那個字所在的那一包。
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { CourseGate } from '../components/CourseGate';
 import { ResultScreen, type ResultData } from '../components/Result';
 import { ExampleBox, SpeakBtn, Tx } from '../components/ui';
-import { courseIndex, META } from '../content';
+import { courseIndex, META, requireExtra } from '../content';
 import { today } from '../core/date';
 import { learnedVocab, UNLOCK } from '../core/progress';
 import { pick } from '../core/rng';
@@ -20,19 +22,20 @@ import { Blocked } from './Practice';
 
 const KO_BY_KEY: Record<string, string> = Object.fromEntries(Object.entries(KO_KEYS).map(([j, k]) => [k, j]));
 
-/** 這次的題目 */
-function pickTarget(lang: LangId, daily: boolean, recent: string[]): { item: VocabItem; learned: boolean } | null {
-  const s = getSave();
-  const all = W.wordlePool([...courseIndex(lang).items.values()].map((x) => x.item).filter(isVocab), lang);
-  if (daily) {
-    const item = W.dailyPick(all, today(), lang);
-    return item ? { item, learned: !!s.items[item.id] } : null;
-  }
-  const mine = W.wordlePool(learnedVocab(s, lang), lang);
+/** 這次題目的 id。外層要先下載學過的字（練習模式）和每日候選字 */
+function pickTargetId(lang: LangId, daily: boolean, recent: string[]): string | null {
+  const all = requireExtra('wordle', lang);
+  if (daily) return W.dailyPick(all, today(), lang) ?? null;
+  const mine = W.wordlePool(learnedVocab(getSave(), lang), lang).map((i) => i.id);
   const pool = mine.length >= 5 ? mine : all;
-  const fresh = pool.filter((i) => !recent.includes(i.id));
-  const item = pick(fresh.length ? fresh : pool);
-  return item ? { item, learned: !!s.items[item.id] } : null;
+  const fresh = pool.filter((id) => !recent.includes(id));
+  return pick(fresh.length ? fresh : pool) ?? null;
+}
+
+/** 這個字的題目（外層的 CourseGate 已經把它所在的那一包下載好） */
+function targetOf(lang: LangId, id: string): { item: VocabItem; learned: boolean } | null {
+  const item = courseIndex(lang).items.get(id)?.item;
+  return item && isVocab(item) ? { item, learned: !!getSave().items[item.id] } : null;
 }
 
 export function WordlePage({ lang, daily }: { lang: LangId; daily: boolean }) {
@@ -46,13 +49,29 @@ export function WordlePage({ lang, daily }: { lang: LangId; daily: boolean }) {
       </Blocked>
     );
   }
-  return <Game key={run} lang={lang} daily={daily} recent={recent.current} onAgain={() => setRun((x) => x + 1)} />;
+  return <Round key={run} lang={lang} daily={daily} recent={recent.current} onAgain={() => setRun((x) => x + 1)} />;
 }
 
-function Game({ lang, daily, recent, onAgain }: { lang: LangId; daily: boolean; recent: string[]; onAgain: () => void }) {
+function Round({ lang, daily, recent, onAgain }: { lang: LangId; daily: boolean; recent: string[]; onAgain: () => void }) {
+  const [id] = useState(() => pickTargetId(lang, daily, recent));
+  if (!id) {
+    return (
+      <Blocked lang={lang} icon="🔠" title="找不到適合的題目" back={`/l/${lang}/arcade`}>
+        再多學一些單字之後就能玩。
+      </Blocked>
+    );
+  }
+  return (
+    <CourseGate lang={lang} need={{ units: [id] }}>
+      <Game lang={lang} daily={daily} recent={recent} id={id} onAgain={onAgain} />
+    </CourseGate>
+  );
+}
+
+function Game({ lang, daily, recent, id, onAgain }: { lang: LangId; daily: boolean; recent: string[]; id: string; onAgain: () => void }) {
   const s = useSave();
   const back = `/l/${lang}/arcade`;
-  const [target] = useState(() => pickTarget(lang, daily, recent));
+  const [target] = useState(() => targetOf(lang, id));
   const answer = useMemo(() => (target ? W.tilesOf(target.item, lang)! : []), [target, lang]);
   const len = W.WORD_LEN[lang];
   const [rows, setRows] = useState<string[][]>([]);

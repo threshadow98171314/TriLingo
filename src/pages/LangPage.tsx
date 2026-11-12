@@ -1,54 +1,33 @@
 // 語言主頁：學習路線、遊樂場、圖鑑、字母表四個分頁
-import { useEffect, useState, type CSSProperties } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { RankLine } from '../components/RankEmblem';
-import { Bar, ItemCard, LangBadge, Modal, Stars } from '../components/ui';
+import { Bar, LangBadge, Stars } from '../components/ui';
 import { CourseGate } from '../components/CourseGate';
 import { GuideTip } from '../components/Guide';
-import { TownMap } from '../components/TownMap';
-import { ConceptsTab } from './Concepts';
-import { SongsTab } from './Songs';
-import { pictureOf } from '../engine/pictures';
-import { kanaPairs } from './Memory';
-import { MockTab } from './Mock';
-import { courseIndex, META, META_LIST, requireCourse } from '../content';
-import { drillsFor } from '../engine/drills';
+import { loadedCourse, META, META_LIST, OUTLINE, prefetch } from '../content';
 import { APP_MINOR, stageIsNew, stageSeenKey } from '../content/news';
-import { addDays, dayNum, today } from '../core/date';
-import { mastery, MASTERY_LABEL } from '../core/logic';
-import {
-  bankState,
-  bankUnits,
-  crosswordPool,
-  currentStage,
-  dueItems,
-  langStats,
-  learnedItems,
-  learnedVocab,
-  lessonState,
-  nextBankLesson,
-  nextInStage,
-  pathUnits,
-  quickStats,
-  stageState,
-  starsOf,
-  unitState,
-  UNLOCK,
-} from '../core/progress';
+import { bankState, currentStage, learnedIn, lessonState, nextBankLesson, nextInStage, quickStats, stageState, starsOf, unitState } from '../core/progress';
 import type { Save } from '../core/save';
 import { markGuide, setStage, useSave } from '../core/store';
-import { canSpeak, speak, useVoices } from '../core/tts';
-import type { Item, LangId, Stage, Unit, VocabItem } from '../core/types';
-import { cx, fmtTime } from '../core/util';
-import { clozeSentence, isVocab, LANG_NAME, sayOf } from '../engine/exercises';
-import { furiPlain } from '../engine/furigana';
-import { basicTable } from '../engine/hangul';
+import type { LangId, StageOutline } from '../core/types';
+import { cx } from '../core/util';
 import { href, lessonPath, stagePath } from '../router';
+
+// 學習路線以外的分頁用到才下載程式
+const ArcadeTab = lazy(() => import('./tabs/Arcade').then((m) => ({ default: m.ArcadeTab })));
+const DexTab = lazy(() => import('./tabs/Dex').then((m) => ({ default: m.DexTab })));
+const ChartTab = lazy(() => import('./tabs/Chart').then((m) => ({ default: m.ChartTab })));
+const MockTab = lazy(() => import('./Mock').then((m) => ({ default: m.MockTab })));
+const ConceptsTab = lazy(() => import('./Concepts').then((m) => ({ default: m.ConceptsTab })));
+const SongsTab = lazy(() => import('./Songs').then((m) => ({ default: m.SongsTab })));
+// 情境小鎮的地圖（插畫比較大）
+const TownMap = lazy(() => import('../components/TownMap').then((m) => ({ default: m.TownMap })));
 
 export type LangTab = 'path' | 'arcade' | 'mock' | 'concepts' | 'songs' | 'dex' | 'chart';
 
 // ───────── 學習路線 ─────────
 
-function StageCard({ lang, stage, s, active }: { lang: LangId; stage: Stage; s: Save; active: boolean }) {
+function StageCard({ lang, stage, s, active }: { lang: LangId; stage: StageOutline; s: Save; active: boolean }) {
   const ss = stageState(s, stage);
   return (
     <a
@@ -69,7 +48,7 @@ function StageCard({ lang, stage, s, active }: { lang: LangId; stage: Stage; s: 
 }
 
 /** 一個單元裡的課（圓圈）；路線上的單元和單字庫的組共用 */
-function LessonNodes({ lang, stage, ui, s, nextId }: { lang: LangId; stage: Stage; ui: number; s: Save; nextId?: string }) {
+function LessonNodes({ lang, stage, ui, s, nextId }: { lang: LangId; stage: StageOutline; ui: number; s: Save; nextId?: string }) {
   const u = stage.units[ui];
   const st = unitState(s, stage, ui);
   return (
@@ -102,7 +81,7 @@ function LessonNodes({ lang, stage, ui, s, nextId }: { lang: LangId; stage: Stag
   );
 }
 
-function UnitRow({ lang, stage, ui, s, nextId }: { lang: LangId; stage: Stage; ui: number; s: Save; nextId?: string }) {
+function UnitRow({ lang, stage, ui, s, nextId }: { lang: LangId; stage: StageOutline; ui: number; s: Save; nextId?: string }) {
   const u = stage.units[ui];
   const st = unitState(s, stage, ui);
   // 已完成的單元預設收起來，路線比較短、比較好找到目前的課
@@ -135,9 +114,7 @@ function UnitRow({ lang, stage, ui, s, nextId }: { lang: LangId; stage: Stage; u
 
 // ───────── 單字庫 ─────────
 
-const learnedIn = (s: Save, u: Unit) => u.items.filter((i) => s.items[i.id]).length;
-
-function DeckRow({ lang, stage, ui, s }: { lang: LangId; stage: Stage; ui: number; s: Save }) {
+function DeckRow({ lang, stage, ui, s }: { lang: LangId; stage: StageOutline; ui: number; s: Save }) {
   const u = stage.units[ui];
   const st = unitState(s, stage, ui);
   const [open, setOpen] = useState(false);
@@ -149,9 +126,9 @@ function DeckRow({ lang, stage, ui, s }: { lang: LangId; stage: Stage; ui: numbe
         <button type="button" className="deck-toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
           <span className="deck-title">{u.title}</span>
           <small className="muted">
-            {got} / {u.items.length} 字
+            {got} / {u.count} 字
           </small>
-          <Bar v={got / u.items.length} color="var(--c)" />
+          <Bar v={got / u.count} color="var(--c)" />
         </button>
         {st.complete ? (
           <span className="deck-done" title="小測驗已通過">
@@ -170,9 +147,9 @@ function DeckRow({ lang, stage, ui, s }: { lang: LangId; stage: Stage; ui: numbe
   );
 }
 
-function BankGroup({ lang, stage, s, name, uis, nextId }: { lang: LangId; stage: Stage; s: Save; name: string; uis: number[]; nextId?: string }) {
+function BankGroup({ lang, stage, s, name, uis, nextId }: { lang: LangId; stage: StageOutline; s: Save; name: string; uis: number[]; nextId?: string }) {
   const units = uis.map((ui) => stage.units[ui]);
-  const words = units.reduce((a, u) => a + u.items.length, 0);
+  const words = units.reduce((a, u) => a + u.count, 0);
   const got = units.reduce((a, u) => a + learnedIn(s, u), 0);
   // 下一組新字所在的分組預設打開
   const [open, setOpen] = useState(() => units.some((u) => u.id === nextId));
@@ -204,7 +181,7 @@ function BankGroup({ lang, stage, s, name, uis, nextId }: { lang: LangId; stage:
   );
 }
 
-function BankSection({ lang, stage, s }: { lang: LangId; stage: Stage; s: Save }) {
+function BankSection({ lang, stage, s }: { lang: LangId; stage: StageOutline; s: Save }) {
   const groups = new Map<string, number[]>();
   stage.units.forEach((u, ui) => {
     if (u.bank) groups.set(u.bank, [...(groups.get(u.bank) ?? []), ui]);
@@ -241,8 +218,15 @@ function BankSection({ lang, stage, s }: { lang: LangId; stage: Stage; s: Save }
   );
 }
 
+/** 情境小鎮的地圖要用到單字和對話，等這一關的題目下載好才畫 */
+function TownStage({ lang, stageId, s }: { lang: LangId; stageId: string; s: Save }) {
+  const stage = loadedCourse(lang).stages.find((x) => x.id === stageId);
+  return stage ? <TownMap lang={lang} stage={stage} s={s} /> : null;
+}
+
 function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string }) {
-  const course = requireCourse(lang);
+  // 路線只看大綱（有哪些單元、幾課），不用等題目下載
+  const course = OUTLINE[lang];
   const stage = course.stages.find((x) => x.id === stageId) ?? currentStage(s, course);
   useEffect(() => setStage(lang, stage.id), [lang, stage.id]);
   // 打開過這個關卡，NEW 標籤就拿掉
@@ -252,6 +236,11 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
 
   const ss = stageState(s, stage);
   const up = nextInStage(s, stage);
+  // 趁空檔先下載下一堂課的題目，點進去就不用等
+  const upUnit = up?.unit.id;
+  useEffect(() => {
+    if (upUnit) prefetch(lang, { units: [upUnit] });
+  }, [lang, upUnit]);
   // 打開路線時，下一課如果在畫面下方看不到，就自動捲過去
   useEffect(() => {
     const t = setTimeout(() => {
@@ -303,7 +292,9 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
         </header>
 
         {stage.style === 'town' ? (
-          <TownMap lang={lang} stage={stage} s={s} />
+          <CourseGate lang={lang} need={{ stages: [stage.id] }} compact>
+            <TownStage lang={lang} stageId={stage.id} s={s} />
+          </CourseGate>
         ) : (
           stage.units.map((u, ui) => (u.bank ? null : <UnitRow key={u.id} lang={lang} stage={stage} ui={ui} s={s} nextId={up?.lesson.id} />))
         )}
@@ -328,582 +319,6 @@ function PathTab({ lang, s, stageId }: { lang: LangId; s: Save; stageId?: string
         )}
       </section>
     </>
-  );
-}
-
-// ───────── 遊樂場 ─────────
-
-type ArcadeCat = 'daily' | 'special' | 'table' | 'words' | 'skills';
-
-const ARCADE_CATS: [ArcadeCat, string, string][] = [
-  ['daily', '⭐', '每日'],
-  // 名稱跟著語言變：日文專屬、韓文專屬、英文專屬
-  ['special', '🥋', '專屬'],
-  ['table', '🃏', '對戰與牌桌'],
-  ['words', '🧩', '單字遊戲'],
-  ['skills', '🎧', '聽力'],
-];
-
-interface Game {
-  cat: ArcadeCat;
-  icon: string;
-  title: string;
-  desc: string;
-  to: string;
-  need: number;
-  have: number;
-  badge?: string;
-  hot?: boolean;
-  /** 無法遊玩的原因（例如沒有語音） */
-  blocked?: string;
-}
-
-function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
-  useVoices();
-  const [cat, setCat] = useState<ArcadeCat | 'all'>('all');
-  const vocab = learnedVocab(s, lang).length;
-  const words = learnedVocab(s, lang).filter((i) => i.kind !== 'char').length;
-  const pictured = learnedVocab(s, lang).filter((i) => i.kind !== 'char' && pictureOf(i.m)).length;
-  const cw = crosswordPool(s, lang).length;
-  const learned = learnedItems(s, lang).length;
-  const due = dueItems(s, lang).length;
-  const dailyDone = !!s.days[today()]?.dailyCw?.[lang];
-  const bestMatch = s.best.match[lang];
-  const bestBlitz = s.best.blitz[lang];
-
-  const games: Game[] = [
-    {
-      icon: '🧠',
-      cat: 'daily',
-      title: '今日複習',
-      desc: '間隔複習：在快要忘記的時候複習，記得最牢。沒有到期的字時，可以做加強練習。',
-      to: `/l/${lang}/review`,
-      need: 4,
-      have: learned,
-      badge: due > 0 ? `${due} 個到期` : '今天已清空',
-      hot: due > 0,
-    },
-    {
-      icon: '⚔️',
-      cat: 'table',
-      title: '單字卡牌對決',
-      desc: '回合制卡牌冒險：用學過的單字組牌組、一路打上 10 層。出牌前要答對牌上的字，連對 3 題會心一擊；看怪物的意圖決定攻守，挑牌、升級、收集遺物。',
-      to: `/l/${lang}/play/duel`,
-      need: UNLOCK.duel,
-      have: words,
-      badge: (s.best.duel?.[lang] ?? 0) >= 10 ? '已通關 👑' : (s.best.duel?.[lang] ?? 0) > 0 ? `最高第 ${s.best.duel[lang]} 層` : '新・挑戰',
-      hot: s.stats.duels === 0 && words >= UNLOCK.duel,
-    },
-    {
-      cat: 'table',
-      icon: '🂧',
-      title: '排七',
-      desc: '和 Emma、さくら、민준 四人接龍：每種花色從 7 往上下接，沒牌能接就要蓋牌罰分，罰分最少的贏。每出一張牌前要先答對一個學過的字。',
-      to: `/l/${lang}/play/sevens`,
-      need: UNLOCK.sevens,
-      have: words,
-      badge: s.stats.sevens > 0 ? `第一名 ${s.stats.sevensWins} 次` : '新・牌桌',
-      hot: s.stats.sevens === 0 && words >= UNLOCK.sevens,
-    },
-    {
-      cat: 'table',
-      icon: '🂢',
-      title: '大老二',
-      desc: '四人比誰先出完：單張、對子、順子、葫蘆、鐵支、同花順，2 最大、黑桃最大。每次出牌前要先答對一個學過的字，答錯就只能過。',
-      to: `/l/${lang}/play/bigtwo`,
-      need: UNLOCK.bigtwo,
-      have: words,
-      badge: s.stats.bigtwo > 0 ? `第一名 ${s.stats.bigtwoWins} 次` : '新・牌桌',
-      hot: s.stats.bigtwo === 0 && words >= UNLOCK.bigtwo,
-    },
-    {
-      icon: '🔗',
-      cat: 'table',
-      title: lang === 'ja' ? '接龍對戰（しりとり）' : lang === 'ko' ? '接龍對戰（끝말잇기）' : '接龍對戰（Word Chain）',
-      desc:
-        lang === 'ja'
-          ? '和電腦輪流用最後一個假名接字，「ん」結尾就輸！考驗字彙量和臨場反應，難度越高電腦越會出難接的字。'
-          : lang === 'ko'
-            ? '和電腦輪流用最後一個字接字，可以用頭音法則（력→역）。考驗字彙量和臨場反應。'
-            : '和電腦輪流用最後一個字母接單字，考驗字彙量和臨場反應；困難模式電腦會故意出難接的字。',
-      to: `/l/${lang}/play/chain`,
-      need: UNLOCK.chain,
-      have: words,
-      badge: (s.best.chain?.[lang] ?? 0) > 0 ? `最高 ${s.best.chain[lang]} 分` : '新・挑戰',
-    },
-    {
-      icon: '🔠',
-      cat: 'words',
-      title: '猜詞',
-      desc:
-        lang === 'en'
-          ? '六次機會猜出 5 個字母的英文單字：綠色＝位置對、黃色＝有這個字母但位置不對。靠推理和字彙量取勝。'
-          : lang === 'ja'
-            ? '六次機會猜出 4 個假名的日文單字（用讀音猜）：綠色＝位置對、黃色＝有這個假名但位置不對。'
-            : '六次機會猜出韓文單字：每個字拆成子音和母音共 6 格，綠色＝位置對、黃色＝有但位置不對。',
-      to: `/l/${lang}/play/wordle`,
-      need: UNLOCK.wordle,
-      have: words,
-      badge: s.stats.wordles > 0 ? `猜中 ${s.stats.wordles} 次` : '新・挑戰',
-    },
-    {
-      icon: '📆',
-      cat: 'daily',
-      title: '每日猜詞',
-      desc: '每天一題，從整個課程出題（可能是還沒學過的字），猜中多拿 15 XP。',
-      to: `/l/${lang}/play/wordle?daily=1`,
-      need: UNLOCK.wordle,
-      have: words,
-      badge: s.days[today()]?.dailyWordle?.[lang] ? '今天已完成 ✓' : '今天還沒挑戰',
-      hot: !s.days[today()]?.dailyWordle?.[lang] && words >= UNLOCK.wordle,
-    },
-    {
-      icon: '🧩',
-      cat: 'words',
-      title: '填字遊戲',
-      desc: '看中文提示，把學過的單字填進交叉的格子裡。每次都是新的盤面。',
-      to: `/l/${lang}/play/crossword`,
-      need: UNLOCK.crossword,
-      have: cw,
-    },
-    {
-      icon: '📅',
-      cat: 'daily',
-      title: '每日填字',
-      desc: '每天一題固定的題目，完成可以多拿 20 XP。',
-      to: `/l/${lang}/play/crossword?daily=1`,
-      need: UNLOCK.crossword,
-      have: cw,
-      badge: dailyDone ? '今天已完成 ✓' : '今天還沒挑戰',
-      hot: !dailyDone,
-    },
-    {
-      icon: '🃏',
-      cat: 'words',
-      title: '配對消消樂',
-      desc: '和時間賽跑，把單字和意思配成一對消掉。三回合計時。',
-      to: `/l/${lang}/play/match`,
-      need: UNLOCK.match,
-      have: vocab,
-      badge: bestMatch !== undefined ? `最佳 ${fmtTime(bestMatch)}` : undefined,
-    },
-    {
-      icon: '⏱️',
-      cat: 'words',
-      title: '限時快答',
-      desc: '60 秒內能答對幾題？連擊越高，每題分數越多；答錯會扣時間。',
-      to: `/l/${lang}/play/blitz`,
-      need: UNLOCK.blitz,
-      have: vocab,
-      badge: bestBlitz > 0 ? `最高 ${bestBlitz} 分` : undefined,
-    },
-    {
-      icon: '🎧',
-      cat: 'skills',
-      title: '聽力特訓',
-      desc: '不看字，只聽聲音選意思。朝「不用字幕」的目標前進。',
-      to: `/l/${lang}/play/listen`,
-      need: UNLOCK.listen,
-      have: vocab,
-      blocked: canSpeak(lang) ? undefined : `這個瀏覽器沒有${LANG_NAME[lang]}語音，請改用 Chrome 或 Edge。`,
-    },
-  ];
-  games.push(
-    {
-      icon: '🖼️',
-      cat: 'words',
-      title: '看圖猜字',
-      desc: '看可愛的插圖選出單字，或看單字選出插圖。動物、食物、地點、日用品…學過的字越多，圖越多。',
-      to: `/l/${lang}/play/pics`,
-      need: UNLOCK.pics,
-      have: pictured,
-      badge: s.stats.pics > 0 ? `已完成 ${s.stats.pics} 次` : '新遊戲',
-      hot: s.stats.pics === 0 && pictured >= UNLOCK.pics,
-    },
-    {
-      icon: '🗂️',
-      cat: 'words',
-      title: '分類大挑戰',
-      desc: lang === 'en' ? '把單字放進正確的主題，還有一回合要分詞性（名詞、動詞、形容詞），多益文法題最愛考。' : '把學過的單字放進正確的主題分類，用情境把字串起來，記得更牢。',
-      to: `/l/${lang}/play/sort`,
-      need: UNLOCK.sort,
-      have: words,
-      badge: s.stats.sorts > 0 ? `已完成 ${s.stats.sorts} 次` : '新遊戲',
-    },
-    {
-      icon: '✅',
-      cat: 'words',
-      title: '真假快判',
-      desc: '字和意思配對正確嗎？45 秒內憑直覺按 ✓ 或 ✗，連擊越高分數越多。',
-      to: `/l/${lang}/play/truefalse`,
-      need: UNLOCK.truefalse,
-      have: vocab,
-      badge: (s.best.tf?.[lang] ?? 0) > 0 ? `最高 ${s.best.tf[lang]} 分` : '新遊戲',
-    },
-    {
-      icon: '🃏',
-      cat: 'words',
-      title: '記憶翻牌',
-      desc: '12 張蓋著的牌，一次翻兩張，把字和意思配成一對。考驗記憶力也複習單字。',
-      to: `/l/${lang}/play/memory`,
-      need: UNLOCK.memory,
-      have: vocab,
-      badge: s.best.memory?.[lang] !== undefined ? `最快 ${fmtTime(s.best.memory[lang]!)}` : '新遊戲',
-    },
-  );
-  if (lang === 'ja') {
-    games.push({
-      icon: 'あ',
-      cat: 'special',
-      title: '假名對對碰',
-      desc: '翻牌找出平假名和對應的片假名（あ↔ア），兩種假名一起記熟。',
-      to: `/l/${lang}/play/memory?kana=1`,
-      need: 6,
-      have: kanaPairs(learnedItems(s, lang).filter(isVocab)).length,
-    });
-  }
-  if (lang === 'ja' || lang === 'ko') {
-    games.push(
-      {
-        icon: '⌨️',
-        cat: 'special',
-        title: '打字特訓',
-        desc:
-          lang === 'ja'
-            ? '看中文或聽發音，用日文鍵盤把單字、短句打出來。假名、漢字、混著打都可以；打錯一次會告訴你差在哪裡。'
-            : '看中文或聽發音，用韓文鍵盤把單字、短句打出來；打錯一次會告訴你差在哪個字母。',
-        to: `/l/${lang}/play/typing`,
-        need: UNLOCK.typing,
-        have: words,
-        badge: s.stats.typings > 0 ? `已完成 ${s.stats.typings} 次` : '新遊戲',
-        hot: s.stats.typings === 0,
-      },
-      {
-        icon: '🎹',
-        cat: 'special',
-        title: '打字教室',
-        desc: lang === 'ja' ? '促音、長音、ん、拗音、外來語怎麼打？看說明，當場試打。' : '韓文鍵盤配置、雙子音、複合母音、收尾音怎麼打？看說明，當場試打。',
-        to: `/l/${lang}/typing-guide`,
-        need: 0,
-        have: 0,
-      },
-    );
-  }
-
-  // 語言專屬特訓：活用道場、助數詞（日）、數字大考驗、活用（韓）、不規則動詞、拼字蜜蜂（英）
-  for (const d of drillsFor(lang)) {
-    const best = s.best.drill?.[`${d.id}.${lang}`] ?? 0;
-    games.push({
-      icon: d.icon,
-      cat: 'special',
-      title: d.title,
-      desc: d.desc,
-      to: `/l/${lang}/play/${d.id}`,
-      need: d.need,
-      have: words,
-      badge: best > 0 ? `最高 ${best} 分` : '新遊戲',
-      hot: best === 0 && words >= d.need,
-      blocked: d.needsVoice && !canSpeak(lang) ? `這個瀏覽器沒有${LANG_NAME[lang]}語音，請改用 Chrome 或 Edge。` : undefined,
-    });
-  }
-  const catName = (id: ArcadeCat | 'all', name: string) => (id === 'special' ? `${LANG_NAME[lang]}專屬` : name);
-
-  const shown = cat === 'all' ? ARCADE_CATS.map((c) => c[0]) : [cat];
-  return (
-    <>
-      {/* 遊戲很多：依類型分組，可以只看一類 */}
-      <div className="arcade-cats" role="tablist" aria-label="遊戲分類">
-        {([['all', '🎮', '全部'], ...ARCADE_CATS] as [ArcadeCat | 'all', string, string][]).map(([id, icon, name]) => {
-          const list = id === 'all' ? games : games.filter((g) => g.cat === id);
-          const hot = list.some((g) => g.hot && g.have >= g.need);
-          return (
-            <button key={id} type="button" role="tab" aria-selected={cat === id} className={cx('arcade-cat', cat === id && 'on')} onClick={() => setCat(id)}>
-              <span aria-hidden>{icon}</span>
-              {catName(id, name)}
-              <small>{list.length}</small>
-              {hot && <i className="arcade-dot" aria-label="有新挑戰" />}
-            </button>
-          );
-        })}
-      </div>
-      {shown.map((c) => {
-        const list = games.filter((g) => g.cat === c);
-        if (!list.length) return null;
-        const [, icon, name] = ARCADE_CATS.find((x) => x[0] === c)!;
-        return (
-          <section key={c} className="arcade-group">
-            {cat === 'all' && (
-              <h3 className="group-label">
-                {icon} {catName(c, name)}
-              </h3>
-            )}
-            <div className="arcade">
-              {list.map((g) => {
-                const locked = g.have < g.need;
-                return (
-                  <article key={g.title} className={cx('game card', locked && 'locked', g.hot && !locked && 'hot')}>
-                    <div className="game-icon">{g.icon}</div>
-                    <div className="grow">
-                      <h3>
-                        {g.title}
-                        {g.badge && !locked && <span className={cx('chip', g.hot && 'warn')}>{g.badge}</span>}
-                      </h3>
-                      <p className="muted">{g.desc}</p>
-                      {locked ? (
-                        <div className="game-lock">
-                          <Bar v={g.have / g.need} />
-                          <small>
-                            🔒 再學會 {g.need - g.have} 個字詞就能解鎖（{g.have} / {g.need}）
-                          </small>
-                        </div>
-                      ) : g.blocked ? (
-                        <small className="warn-text">{g.blocked}</small>
-                      ) : (
-                        <a className="btn primary small" href={href(g.to)}>
-                          開始
-                        </a>
-                      )}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </section>
-        );
-      })}
-    </>
-  );
-}
-
-// ───────── 圖鑑 ─────────
-
-function tileLabel(it: Item): string {
-  if (isVocab(it)) return it.w;
-  if (it.kind === 'sentence') return it.s;
-  if (it.kind === 'cloze') return furiPlain(clozeSentence(it));
-  return furiPlain(it.ask ?? it.q);
-}
-
-function DexUnit({ lang, u, s, onOpen }: { lang: LangId; u: Unit; s: Save; onOpen: (it: Item) => void }) {
-  const got = learnedIn(s, u);
-  return (
-    <section className="card dex-unit">
-      <header>
-        <b>
-          <span lang={lang}>{u.icon}</span> {u.title}
-        </b>
-        <small className="muted">
-          {got} / {u.items.length}
-        </small>
-      </header>
-      <div className={cx('dex-grid', u.kind)}>
-        {u.items.map((it) => {
-          const m = mastery(s.items[it.id]);
-          return m === 0 ? (
-            <span key={it.id} className="dex-tile unknown" title="還沒學到">
-              ？
-            </span>
-          ) : (
-            <button key={it.id} type="button" className={`dex-tile m${m}`} lang={lang} onClick={() => onOpen(it)}>
-              {tileLabel(it)}
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function DexBank({ lang, stage, s, onOpen }: { lang: LangId; stage: Stage; s: Save; onOpen: (it: Item) => void }) {
-  const [open, setOpen] = useState(false);
-  const decks = bankUnits(stage);
-  const bs = bankState(s, stage);
-  return (
-    <section className="card dex-bank">
-      <button type="button" className="bank-group-head" onClick={() => setOpen(!open)} aria-expanded={open}>
-        <span className="bank-icon">📚</span>
-        <span className="grow">
-          <b>單字庫</b>
-          <small className="muted">{decks.length} 組</small>
-        </span>
-        <span className="bank-group-prog">
-          {bs.learned} / {bs.words}
-        </span>
-        <span aria-hidden>{open ? '▲' : '▼'}</span>
-      </button>
-      {open && decks.filter((u) => learnedIn(s, u) > 0).map((u) => <DexUnit key={u.id} lang={lang} u={u} s={s} onOpen={onOpen} />)}
-      {open && bs.learned === 0 && <p className="muted">還沒有學過單字庫的字。到學習路線的「📚 單字庫」挑一組開始吧。</p>}
-    </section>
-  );
-}
-
-function DexTab({ lang, s }: { lang: LangId; s: Save }) {
-  const course = requireCourse(lang);
-  const [open, setOpen] = useState<Item | null>(null);
-  const st = langStats(s, lang);
-  const p = open ? s.items[open.id] : undefined;
-  const dueIn = p ? p.due - dayNum(today()) : 0;
-
-  return (
-    <>
-      <section className="card dex-summary">
-        <div className="grow">
-          <h2>
-            已收集 {st.learned} <small>/ {st.total}</small>
-          </h2>
-          <Bar v={st.total ? st.learned / st.total : 0} color="var(--lang)" />
-        </div>
-        <div className="dex-legend">
-          {[1, 2, 3, 4].map((m) => (
-            <span key={m}>
-              <i className={`m${m}`} />
-              {MASTERY_LABEL[m]}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {course.stages
-        .filter((stage) => stage.units.length)
-        .map((stage) => (
-          <div key={stage.id} className="dex-stage">
-            <h3 className="group-label">{stage.title}</h3>
-            {pathUnits(stage).map((u) => (
-              <DexUnit key={u.id} lang={lang} u={u} s={s} onOpen={setOpen} />
-            ))}
-            {bankUnits(stage).length > 0 && <DexBank lang={lang} stage={stage} s={s} onOpen={setOpen} />}
-          </div>
-        ))}
-
-      {open && p && (
-        <Modal onClose={() => setOpen(null)}>
-          <ItemCard item={open} lang={lang} big />
-          <div className="dex-info">
-            <span className={`chip m${mastery(p)}`}>{MASTERY_LABEL[mastery(p)]}</span>
-            <span className="chip">
-              答對 {p.ok}・答錯 {p.ng}
-            </span>
-            <span className="chip">{dueIn <= 0 ? '今天該複習了' : `${dueIn} 天後複習（${addDays(today(), dueIn).slice(5)}）`}</span>
-          </div>
-          <button type="button" className="btn wide" onClick={() => setOpen(null)}>
-            關閉
-          </button>
-        </Modal>
-      )}
-    </>
-  );
-}
-
-// ───────── 字母表 ─────────
-
-type KanaMode = 'both' | 'h' | 'k';
-
-function ChartTab({ lang, s }: { lang: LangId; s: Save }) {
-  useVoices();
-  const course = requireCourse(lang);
-  const idx = courseIndex(lang).items;
-  const all = course.stages.flatMap((st) => st.units).filter((u) => u.chart);
-  const table = lang === 'ko' ? basicTable() : null;
-  // 日文：平假名、片假名分開看，或並排對照
-  const [mode, setMode] = useState<KanaMode>('both');
-  const units = lang !== 'ja' ? all : all.filter((u) => (mode === 'k' ? u.id.startsWith('ja.kana.k') : u.id.startsWith('ja.kana.h')));
-  const pairOf = (unitId: string) => (lang === 'ja' && mode === 'both' ? all.find((u) => u.id === unitId.replace('ja.kana.h', 'ja.kana.k')) : undefined);
-
-  return (
-    <div className="charts">
-      <p className="muted chart-tip">點任何一個字就能聽發音。已經學過的字會亮起來。</p>
-      {lang === 'ja' && (
-        <div className="seg small chart-mode" role="tablist" aria-label="假名">
-          {(
-            [
-              ['both', 'あ ア 對照'],
-              ['h', 'あ 平假名'],
-              ['k', 'ア 片假名'],
-            ] as [KanaMode, string][]
-          ).map(([m, label]) => (
-            <button key={m} type="button" role="tab" aria-selected={mode === m} className={cx(mode === m && 'on')} onClick={() => setMode(m)}>
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
-      {table && (
-        <section className="card chart">
-          <h3>
-            基本音節表 <small className="muted">반절표：子音 × 母音</small>
-          </h3>
-          <div className="chart-scroll">
-            <table className="chart-table">
-              <thead>
-                <tr>
-                  <th />
-                  {table.vowels.map((v) => (
-                    <th key={v} lang="ko">
-                      {v}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {table.rows.map((r) => (
-                  <tr key={r.cons}>
-                    <th lang="ko">{r.cons}</th>
-                    {r.cells.map((c) => (
-                      <td key={c.syl}>
-                        <button type="button" className="chart-cell on" onClick={() => speak(c.syl, 'ko')}>
-                          <b lang="ko">{c.syl}</b>
-                          <small>{c.rm}</small>
-                        </button>
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
-      {units.map((u) => {
-        const pair = pairOf(u.id);
-        return (
-          <section key={u.id} className="card chart">
-            <h3>
-              {pair ? u.title.replace('平假名', '平假名＋片假名') : u.title} <small className="muted">{u.subtitle}</small>
-            </h3>
-            <div className="chart-scroll">
-              <table className={cx('chart-table', pair && 'pair')}>
-                <tbody>
-                  {u.chart!.map((row, ri) => (
-                    <tr key={row.label}>
-                      <th lang={lang}>{row.label}</th>
-                      {row.cells.map((id, ci) => {
-                        const it = id ? (idx.get(id)?.item as VocabItem | undefined) : undefined;
-                        const pid = pair?.chart?.[ri]?.cells[ci];
-                        const kata = pid ? (idx.get(pid)?.item as VocabItem | undefined) : undefined;
-                        const on = (it && s.items[it.id]) || (kata && s.items[kata.id]);
-                        return (
-                          <td key={ci}>
-                            {it && (
-                              <button type="button" className={cx('chart-cell', on && 'on')} onClick={() => speak(sayOf(it, lang), lang)}>
-                                <b lang={lang}>
-                                  {it.w}
-                                  {kata && <span className="kata">{kata.w}</span>}
-                                </b>
-                                <small>{it.rm}</small>
-                              </button>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        );
-      })}
-    </div>
   );
 }
 
@@ -988,6 +403,9 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
   ];
   if (lang !== 'en') tabs.push({ id: 'chart', icon: lang === 'ja' ? 'あ' : '가', label: lang === 'ja' ? '五十音表' : '字母表', to: `/l/${lang}/chart` });
 
+  // 字母表的題目在有 chart 的單元那幾包（五十音、韓文字母）
+  const chartUnits = useMemo(() => OUTLINE[lang].stages.flatMap((st) => st.units.filter((u) => u.hasChart).map((u) => u.id)), [lang]);
+
   const sameTab = (l: LangId) => (tab === 'chart' && l === 'en' ? '' : tab === 'path' ? '' : `/${tab}`);
   return (
     <div className="page" style={{ '--lang': course.color } as CSSProperties}>
@@ -1027,15 +445,38 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
       </nav>
 
       <TabGuide tab={tab} lang={lang} />
-      <CourseGate lang={lang} compact>
-        {tab === 'path' && <PathTab lang={lang} s={s} stageId={stageId} />}
-        {tab === 'arcade' && <ArcadeTab lang={lang} s={s} />}
-        {tab === 'mock' && <MockTab lang={lang} s={s} />}
-        {tab === 'concepts' && <ConceptsTab lang={lang} s={s} />}
-        {tab === 'songs' && lang === 'ja' && <SongsTab s={s} />}
-        {tab === 'dex' && <DexTab lang={lang} s={s} />}
-        {tab === 'chart' && <ChartTab lang={lang} s={s} />}
-      </CourseGate>
+      {/* 學習路線只看大綱，馬上就能顯示；其他分頁各自等需要的題目（遊樂場、圖鑑：學過的字所在的那幾包） */}
+      {tab === 'path' && <PathTab lang={lang} s={s} stageId={stageId} />}
+      {tab === 'arcade' && (
+        <CourseGate lang={lang} need="active" compact>
+          <ArcadeTab lang={lang} s={s} />
+        </CourseGate>
+      )}
+      {tab === 'mock' && (
+        <CourseGate lang={lang} need="mocks" compact>
+          <MockTab lang={lang} s={s} />
+        </CourseGate>
+      )}
+      {tab === 'concepts' && (
+        <CourseGate lang={lang} need="concepts" compact>
+          <ConceptsTab lang={lang} s={s} />
+        </CourseGate>
+      )}
+      {tab === 'songs' && lang === 'ja' && (
+        <CourseGate lang={lang} need={[]} compact>
+          <SongsTab s={s} />
+        </CourseGate>
+      )}
+      {tab === 'dex' && (
+        <CourseGate lang={lang} need="active" compact>
+          <DexTab lang={lang} s={s} />
+        </CourseGate>
+      )}
+      {tab === 'chart' && (
+        <CourseGate lang={lang} need={{ units: chartUnits }} compact>
+          <ChartTab lang={lang} s={s} />
+        </CourseGate>
+      )}
     </div>
   );
 }

@@ -56,3 +56,10 @@ export interface DrillDef {
 }
 
 export type DrillId = 'conj' | 'counter' | 'numbers' | 'koconj' | 'irregular' | 'spell';
+
+/**
+ * 每個特訓屬於哪個語言。存檔、網址只需要這張小表；出題的程式（index.ts 的 DRILLS）比較大，
+ * 進到特訓或遊樂場才下載。新增特訓時兩邊都要加（測試會檢查）。
+ */
+export const DRILL_LANG: Record<DrillId, LangId> = { conj: 'ja', counter: 'ja', numbers: 'ko', koconj: 'ko', irregular: 'en', spell: 'en' };
+export const DRILL_IDS = Object.keys(DRILL_LANG) as DrillId[];

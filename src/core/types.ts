@@ -189,6 +189,41 @@ export interface CourseMeta extends Omit<Course, 'stages' | 'mocks' | 'concepts'
   stages: StageMeta[];
 }
 
+// ───────── 大綱：有哪些單元、幾課、幾個字（不含題目） ─────────
+// 學習路線、首頁只需要大綱就能顯示；題目一包一包分開，上課、複習時才下載（見 content/parts.ts）。
+
+export interface LessonOutline {
+  id: string;
+  title: string;
+  boss?: boolean;
+}
+
+export interface UnitOutline {
+  id: string;
+  title: string;
+  subtitle?: string;
+  icon: string;
+  kind: UnitKind;
+  bank?: string;
+  /** 這個單元有幾個項目（單字、句子、題目） */
+  count: number;
+  lessons: LessonOutline[];
+  /** 題目放在這個關卡的第幾包 */
+  part: number;
+  /** 有字母表（五十音表、韓文字母表） */
+  hasChart?: boolean;
+}
+
+export interface StageOutline extends StageMeta {
+  units: UnitOutline[];
+}
+
+export interface CourseOutline extends Omit<CourseMeta, 'stages'> {
+  stages: StageOutline[];
+  /** 這個語言全部的項目數 */
+  total: number;
+}
+
 // ───────── 實戰模擬考 ─────────
 
 /** 模擬考的一題。opts 的第一個是正確答案（出題時會洗牌） */

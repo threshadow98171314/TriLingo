@@ -9,6 +9,7 @@ import { koNumberQuestions } from './koNumbers';
 import type { DrillCtx, DrillDef, DrillId, DrillQ } from './types';
 
 export type { DrillDef, DrillId, DrillQ } from './types';
+export { DRILL_IDS, DRILL_LANG } from './types';
 
 /** 拼字蜜蜂：從學過的英文單字出題，聽發音拼出來 */
 function spellQuestions(ctx: DrillCtx, n: number): DrillQ[] {
@@ -124,5 +125,3 @@ export function drillOf(lang: LangId, id: string): DrillDef | undefined {
 }
 
 export const drillsFor = (lang: LangId): DrillDef[] => DRILLS.filter((d) => d.lang === lang);
-
-export const DRILL_IDS: DrillId[] = DRILLS.map((d) => d.id);

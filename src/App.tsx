@@ -1,6 +1,6 @@
-import { useEffect, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, type ComponentType, type ReactNode } from 'react';
 import { CelebrationHost } from './components/Celebrations';
-import { CourseGate } from './components/CourseGate';
+import { CourseGate, PageLoading, type GateNeed } from './components/CourseGate';
 import { WelcomeTour } from './components/Guide';
 import { BottomNav, TopBar } from './components/Layout';
 import { ToTop } from './components/ToTop';
@@ -12,53 +12,80 @@ import { fx, seasonOf, type AmbientKind } from './core/fx';
 import { SKINS } from './core/shop';
 import { useSave } from './core/store';
 import { LANGS, type LangId } from './core/types';
-import { ArtGallery } from './pages/ArtGallery';
-import { BigTwoPage } from './pages/BigTwo';
-import { BlitzPage } from './pages/Blitz';
-import { CardDuelPage } from './pages/CardDuel';
-import { CrosswordPage } from './pages/Crossword';
-import { DrillPage } from './pages/Drill';
-import { drillOf } from './engine/drills';
-import { ConceptPage, ConceptQuizPage } from './pages/Concepts';
-import { PicturesPage, SortPage } from './pages/FunGames';
-import { SongPage } from './pages/Songs';
-import { HelpPage } from './pages/Help';
+import { DRILL_LANG, type DrillId } from './engine/drills/types';
 import { Home } from './pages/Home';
 import { LangPage } from './pages/LangPage';
-import { MatchPage } from './pages/MatchGame';
-import { MemoryPage } from './pages/Memory';
-import { MockPage } from './pages/Mock';
-import { LessonPage, ListenPage, ReviewPage, TypingPage } from './pages/Practice';
-import { MePage } from './pages/Me';
-import { ProfilePage } from './pages/Profile';
-import { SettingsPage } from './pages/Settings';
-import { SevensPage } from './pages/Sevens';
-import { ShopPage } from './pages/Shop';
-import { TrueFalsePage } from './pages/TrueFalse';
-import { TypingGuidePage } from './pages/TypingGuide';
-import { WordChainPage } from './pages/WordChain';
-import { WordlePage } from './pages/Wordle';
 import { href, useRoute, type Route } from './router';
+
+/** 用到才下載的頁面：load 載入頁面所在的檔案，name 是匯出的元件名稱 */
+function page<M, K extends keyof M>(load: () => Promise<M>, name: K) {
+  return lazy(async () => ({ default: (await load())[name] as ComponentType<M[K] extends ComponentType<infer Props> ? Props : never> }));
+}
+
+// 首頁和語言頁隨主程式載入；其他頁面點進去才下載（同一個檔案裡的頁面一起下載）
+const P = {
+  ArtGallery: page(() => import('./pages/ArtGallery'), 'ArtGallery'),
+  BigTwo: page(() => import('./pages/BigTwo'), 'BigTwoPage'),
+  Blitz: page(() => import('./pages/Blitz'), 'BlitzPage'),
+  CardDuel: page(() => import('./pages/CardDuel'), 'CardDuelPage'),
+  Concept: page(() => import('./pages/Concepts'), 'ConceptPage'),
+  ConceptQuiz: page(() => import('./pages/Concepts'), 'ConceptQuizPage'),
+  Crossword: page(() => import('./pages/Crossword'), 'CrosswordPage'),
+  Drill: page(() => import('./pages/Drill'), 'DrillPage'),
+  Help: page(() => import('./pages/Help'), 'HelpPage'),
+  Lesson: page(() => import('./pages/Practice'), 'LessonPage'),
+  Listen: page(() => import('./pages/Practice'), 'ListenPage'),
+  Match: page(() => import('./pages/MatchGame'), 'MatchPage'),
+  Me: page(() => import('./pages/Me'), 'MePage'),
+  Memory: page(() => import('./pages/Memory'), 'MemoryPage'),
+  Mock: page(() => import('./pages/Mock'), 'MockPage'),
+  Pictures: page(() => import('./pages/FunGames'), 'PicturesPage'),
+  Profile: page(() => import('./pages/Profile'), 'ProfilePage'),
+  Review: page(() => import('./pages/Practice'), 'ReviewPage'),
+  Settings: page(() => import('./pages/Settings'), 'SettingsPage'),
+  Sevens: page(() => import('./pages/Sevens'), 'SevensPage'),
+  Shop: page(() => import('./pages/Shop'), 'ShopPage'),
+  Song: page(() => import('./pages/Songs'), 'SongPage'),
+  Sort: page(() => import('./pages/FunGames'), 'SortPage'),
+  TrueFalse: page(() => import('./pages/TrueFalse'), 'TrueFalsePage'),
+  Typing: page(() => import('./pages/Practice'), 'TypingPage'),
+  TypingGuide: page(() => import('./pages/TypingGuide'), 'TypingGuidePage'),
+  WordChain: page(() => import('./pages/WordChain'), 'WordChainPage'),
+  Wordle: page(() => import('./pages/Wordle'), 'WordlePage'),
+};
 
 /** 網址 → 頁面。focus 為 true 的頁面（上課、玩遊戲）不顯示導覽列。 */
 function resolve(route: Route): { page: ReactNode; focus: boolean } {
   const p = route.parts;
-  const view = (page: ReactNode) => ({ page, focus: false });
+  // 等頁面的程式下載
+  const view = (node: ReactNode) => ({ page: <Suspense fallback={<PageLoading />}>{node}</Suspense>, focus: false });
   // 以網址當 key：換到另一堂課時整個重來
-  const play = (page: ReactNode) => ({ page: <div key={route.raw}>{page}</div>, focus: true });
+  const play = (node: ReactNode) => ({ page: <div key={route.raw}>{node}</div>, focus: true });
 
   if (p.length === 0) return view(<Home />);
-  if (p[0] === 'profile') return view(<ProfilePage />);
-  if (p[0] === 'me') return view(<MePage />);
-  if (p[0] === 'shop') return view(<ShopPage />);
-  if (p[0] === 'settings') return view(<SettingsPage />);
-  if (p[0] === 'help') return view(<HelpPage />);
-  if (p[0] === 'art') return view(<ArtGallery />);
+  if (p[0] === 'profile') return view(<P.Profile />);
+  if (p[0] === 'me') return view(<P.Me />);
+  if (p[0] === 'shop') return view(<P.Shop />);
+  if (p[0] === 'settings') return view(<P.Settings />);
+  if (p[0] === 'help') return view(<P.Help />);
+  if (p[0] === 'art') return view(<P.ArtGallery />);
 
   if (p[0] === 'l' && (LANGS as string[]).includes(p[1])) {
     const lang = p[1] as LangId;
-    // 上課、玩遊戲要先等這個語言的題目下載完成（語言頁自己會處理）
-    const gated = (node: ReactNode) => play(<CourseGate lang={lang}>{node}</CourseGate>);
+    // 上課、玩遊戲：等需要的題目和頁面的程式下載完成（預設是學過的字所在的那幾包，見 CourseGate）
+    const gated = (node: ReactNode, need: GateNeed = 'active') =>
+      play(
+        <CourseGate lang={lang} need={need}>
+          {node}
+        </CourseGate>,
+      );
+    // 有導覽列的語言頁面
+    const langView = (node: ReactNode, need: GateNeed = []) =>
+      view(
+        <CourseGate lang={lang} need={need}>
+          {node}
+        </CourseGate>,
+      );
     switch (p[2]) {
       case undefined:
         return view(<LangPage lang={lang} tab="path" />);
@@ -71,41 +98,38 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
       case 'songs':
         return view(<LangPage lang={lang} tab={lang === 'ja' ? 'songs' : 'path'} />);
       case 'song':
-        return view(<SongPage id={p[3] ?? ''} />);
+        return view(<P.Song id={p[3] ?? ''} />);
       case 'concept':
-        if (p[4] === 'quiz') return gated(<ConceptQuizPage lang={lang} id={p[3] ?? ''} />);
-        return view(
-          <CourseGate lang={lang}>
-            <ConceptPage lang={lang} id={p[3] ?? ''} />
-          </CourseGate>,
-        );
+        if (p[4] === 'quiz') return gated(<P.ConceptQuiz lang={lang} id={p[3] ?? ''} />, 'concepts');
+        return langView(<P.Concept lang={lang} id={p[3] ?? ''} />, 'concepts');
       case 'mock':
-        if (p[3]) return gated(<MockPage lang={lang} examId={p[3]} />);
+        if (p[3]) return gated(<P.Mock lang={lang} examId={p[3]} />, 'mocks');
         return view(<LangPage lang={lang} tab="mock" />);
       case 'chart':
         return view(<LangPage lang={lang} tab={lang === 'en' ? 'path' : 'chart'} />);
       case 'lesson':
-        return gated(<LessonPage lang={lang} lessonId={p[3] ?? ''} />);
+        // 上課只需要這一課所在的那一包
+        return gated(<P.Lesson lang={lang} lessonId={p[3] ?? ''} />, { units: [p[3] ?? ''] });
       case 'typing-guide':
-        return view(<TypingGuidePage lang={lang} />);
+        return langView(<P.TypingGuide lang={lang} />);
       case 'review':
-        return gated(<ReviewPage lang={lang} />);
+        return gated(<P.Review lang={lang} />);
       case 'play':
-        if (p[3] && drillOf(lang, p[3])) return gated(<DrillPage lang={lang} id={p[3]} />);
-        if (p[3] === 'crossword') return gated(<CrosswordPage lang={lang} daily={route.query.get('daily') === '1'} />);
-        if (p[3] === 'match') return gated(<MatchPage lang={lang} />);
-        if (p[3] === 'duel') return gated(<CardDuelPage lang={lang} />);
-        if (p[3] === 'sevens') return gated(<SevensPage lang={lang} />);
-        if (p[3] === 'bigtwo') return gated(<BigTwoPage lang={lang} />);
-        if (p[3] === 'chain') return gated(<WordChainPage lang={lang} />);
-        if (p[3] === 'wordle') return gated(<WordlePage lang={lang} daily={route.query.get('daily') === '1'} />);
-        if (p[3] === 'blitz') return gated(<BlitzPage lang={lang} />);
-        if (p[3] === 'listen') return gated(<ListenPage lang={lang} />);
-        if (p[3] === 'typing' && lang !== 'en') return gated(<TypingPage lang={lang} />);
-        if (p[3] === 'truefalse') return gated(<TrueFalsePage lang={lang} />);
-        if (p[3] === 'pics') return gated(<PicturesPage lang={lang} />);
-        if (p[3] === 'sort') return gated(<SortPage lang={lang} />);
-        if (p[3] === 'memory') return gated(<MemoryPage lang={lang} kana={lang === 'ja' && route.query.get('kana') === '1'} />);
+        if (DRILL_LANG[p[3] as DrillId] === lang) return gated(<P.Drill lang={lang} id={p[3]} />);
+        if (p[3] === 'crossword') return gated(<P.Crossword lang={lang} daily={route.query.get('daily') === '1'} />);
+        if (p[3] === 'match') return gated(<P.Match lang={lang} />);
+        if (p[3] === 'duel') return gated(<P.CardDuel lang={lang} />);
+        if (p[3] === 'sevens') return gated(<P.Sevens lang={lang} />);
+        if (p[3] === 'bigtwo') return gated(<P.BigTwo lang={lang} />);
+        if (p[3] === 'chain') return gated(<P.WordChain lang={lang} />);
+        if (p[3] === 'wordle') return gated(<P.Wordle lang={lang} daily={route.query.get('daily') === '1'} />, ['active', 'wordle']);
+        if (p[3] === 'blitz') return gated(<P.Blitz lang={lang} />);
+        if (p[3] === 'listen') return gated(<P.Listen lang={lang} />);
+        if (p[3] === 'typing' && lang !== 'en') return gated(<P.Typing lang={lang} />);
+        if (p[3] === 'truefalse') return gated(<P.TrueFalse lang={lang} />);
+        if (p[3] === 'pics') return gated(<P.Pictures lang={lang} />);
+        if (p[3] === 'sort') return gated(<P.Sort lang={lang} />);
+        if (p[3] === 'memory') return gated(<P.Memory lang={lang} kana={lang === 'ja' && route.query.get('kana') === '1'} />);
     }
   }
 

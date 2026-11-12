@@ -218,28 +218,62 @@ describe('項目內容', () => {
   });
 });
 
-describe('按語言分開載入', () => {
-  it('語言檔裡的關卡 id 都對得到 meta.ts（打錯字的話那批單元會默默消失）', async () => {
+describe('按關卡分包下載', () => {
+  it('parts.ts 裡的關卡 id 都對得到 meta.ts（打錯字的話那批單元會默默消失）', async () => {
     const { META } = await import('../src/content/meta');
-    const mods = { en: await import('../src/content/en'), ja: await import('../src/content/ja'), ko: await import('../src/content/ko') };
-    for (const [lang, mod] of Object.entries(mods)) {
-      const ids = new Set(META[lang as keyof typeof META].stages.map((s) => s.id));
-      for (const key of Object.keys(mod.UNITS)) expect(ids.has(key), `${lang}：${key}`).toBe(true);
-    }
+    const { PARTS } = await import('../src/content/parts');
+    const ids = new Set(Object.values(META).flatMap((c) => c.stages.map((s) => s.id)));
+    for (const key of Object.keys(PARTS)) expect(ids.has(key), key).toBe(true);
   });
 
-  it('還沒載入時拿不到題目；載入後可以查索引，重複載入不會重新下載', async () => {
+  it('題目用到才下載：只下載需要的那一包，重複要求不會重新下載', async () => {
     const content = await import('../src/content/index');
-    expect(content.getCourse('ko')).toBeNull();
-    expect(() => content.requireCourse('ko')).toThrow();
-    const p1 = content.loadCourse('ko');
-    const p2 = content.loadCourse('ko');
-    expect(p1).toBe(p2);
-    const ko = await p1;
-    expect(content.getCourse('ko')).toBe(ko);
-    expect(ko.stages.map((s) => s.id)).toEqual(content.META.ko.stages.map((s) => s.id));
-    expect(content.courseIndex('ko').lessons.size).toBeGreaterThan(0);
-    expect(await content.loadCourse('ko')).toBe(ko);
+    content.resetContent();
+    const k1 = COURSE_LIST.find((c) => c.id === 'ko')!.stages.find((s) => s.id === 'ko.k1')!;
+    const path = k1.units.filter((u) => !u.bank);
+    const first = path[0];
+
+    // 還沒下載：已下載的課程是空的，索引查不到
+    expect(content.loadedCourse('ko').stages.every((s) => !s.units.length)).toBe(true);
+    expect(content.ready('ko', { units: [first.id] })).toBe(false);
+    expect(content.courseIndex('ko').lessons.has(first.lessons[0].id)).toBe(false);
+
+    // 用課的 id 要求：同一包只下載一次
+    const p1 = content.ensure('ko', { units: [first.lessons[0].id] });
+    const p2 = content.ensure('ko', { units: [first.lessons[1].id] });
+    await Promise.all([p1, p2]);
+    expect(content.ready('ko', { units: [first.id] })).toBe(true);
+
+    // 只有這一關的學習路線那一包：單字庫和其他關卡都還沒下載
+    const loaded = content.loadedCourse('ko');
+    expect(loaded.stages.find((s) => s.id === 'ko.k1')!.units.map((u) => u.id)).toEqual(path.map((u) => u.id));
+    expect(loaded.stages.filter((s) => s.id !== 'ko.k1').every((s) => !s.units.length)).toBe(true);
+    expect(content.ready('ko', { stages: ['ko.k1'] })).toBe(false);
+    expect(content.courseIndex('ko').lessons.has(first.lessons[0].id)).toBe(true);
+    expect(content.courseIndex('ko').items.size).toBe(path.reduce((a, u) => a + u.items.length, 0));
+
+    // 整關、整個語言
+    await content.ensure('ko', { stages: ['ko.k1'] });
+    expect(content.loadedCourse('ko').stages.find((s) => s.id === 'ko.k1')!.units.length).toBe(k1.units.length);
+    await content.ensure('ko', 'all');
+    const all = COURSE_LIST.find((c) => c.id === 'ko')!;
+    expect(content.courseIndex('ko').items.size).toBe(all.stages.reduce((a, s) => a + s.units.reduce((b, u) => b + u.items.length, 0), 0));
+
+    // 模擬考、觀念文章、猜詞的候選字各自一包
+    expect(() => content.requireExtra('mocks', 'ko')).toThrow();
+    await content.ensure('ko', ['mocks', 'concepts', 'wordle']);
+    expect(content.requireExtra('mocks', 'ko').length).toBe(all.mocks.length);
+    expect(content.requireExtra('concepts', 'ko').length).toBe(all.concepts.length);
+    expect(content.requireExtra('wordle', 'ko').length).toBeGreaterThan(10);
+    content.resetContent();
+  });
+
+  it('找不到的單元（例如內容下架的舊存檔）不會讓下載失敗', async () => {
+    const content = await import('../src/content/index');
+    content.resetContent();
+    await content.ensure('ja', { units: ['ja.n5.gone:消えた', 'ja.nowhere#1'] });
+    expect(content.ready('ja', { units: ['ja.n5.gone'] })).toBe(true);
+    expect(content.loadedCourse('ja').stages.every((s) => !s.units.length)).toBe(true);
   });
 });
 
@@ -262,10 +296,10 @@ describe('打包', () => {
     };
     walk('src');
     expect(files.length).toBeGreaterThan(20);
-    // 語言檔彼此引用沒關係（同一包）；入口 index.ts 用動態 import，all.ts 只給測試
+    // 題目檔彼此引用沒關係；parts.ts 用動態 import 一包一包載入；all.ts、outline-build.ts 只給測試和工具
     const langFile = /^src\/content\/(en|ja|ko)[-.]/;
-    const allowed = /^src\/content\/(index|all)\.ts$/;
-    const bad = /from '(\.\.\/content|\.)\/(en|ja|ko|all)(-[a-z0-9]+)?'/;
+    const allowed = /^src\/content\/(index|all|parts|outline-build)\.ts$/;
+    const bad = /from '(\.\.\/content|\.\.\/\.\.\/content|\.)\/(en|ja|ko|all|outline-build)(-[a-z0-9]+)?'/;
     for (const f of files) {
       if (langFile.test(f) || allowed.test(f)) continue;
       expect(fs.readFileSync(f, 'utf8'), f).not.toMatch(bad);

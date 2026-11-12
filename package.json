@@ -1,15 +1,16 @@
 {
   "name": "trilingo",
   "private": true,
-  "version": "0.11.2",
+  "version": "0.11.3",
   "type": "module",
   "description": "TriLingo 三語道場：英文（多益）、日文（JLPT）、韓文的遊戲化自學網頁",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "node scripts/outline.mjs && tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "node scripts/outline.mjs && vitest run",
+    "outline": "node scripts/outline.mjs",
     "icons": "node scripts/icons.mjs"
   },
   "dependencies": {

@@ -1,7 +1,8 @@
 // 實戰模擬考：考前說明 → 計時作答（可跳題、標記、重播聽力）→ 交卷看成績與逐題檢討。
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Bar, Coin, Empty, Modal, Tx } from '../components/ui';
-import { META, requireCourse } from '../content';
+import { CourseGate } from '../components/CourseGate';
+import { loadedCourse, META, requireExtra, stageOutline } from '../content';
 import { fx } from '../core/fx';
 import { stageState } from '../core/progress';
 import type { Save } from '../core/save';
@@ -77,15 +78,15 @@ function Transcript({ lines, lang }: { lines: string[]; lang: LangId }) {
 // ───────── 模擬考列表（語言頁的分頁） ─────────
 
 export function MockTab({ lang, s }: { lang: LangId; s: Save }) {
-  const course = requireCourse(lang);
-  if (!course.mocks.length) {
+  const mocks = requireExtra('mocks', lang);
+  if (!mocks.length) {
     return <Empty icon="📝" title="模擬考準備中" />;
   }
   return (
     <div className="mock-list">
-      {course.mocks.map((m) => {
+      {mocks.map((m) => {
         const rec = s.mocks[m.id];
-        const after = m.after ? course.stages.find((st) => st.id === m.after) : undefined;
+        const after = m.after ? stageOutline(m.after) : undefined;
         const pct = after ? Math.round(stageState(s, after).pct * 100) : 100;
         const listening = m.sections.some((x) => x.listening);
         return (
@@ -135,14 +136,10 @@ interface Done {
 }
 
 export function MockPage({ lang, examId }: { lang: LangId; examId: string }) {
-  const course = requireCourse(lang);
-  const exam = course.mocks.find((m) => m.id === examId);
-  const [run, setRun] = useState<{ paper: Paper; key: number } | null>(null);
-  const [done, setDone] = useState<Done | null>(null);
-
+  const exam = requireExtra('mocks', lang).find((m) => m.id === examId);
   if (!exam) {
     return (
-      <div className="page narrow" style={{ '--lang': course.color } as CSSProperties}>
+      <div className="page narrow" style={{ '--lang': META[lang].color } as CSSProperties}>
         <Empty icon="🧭" title="找不到這份模擬考">
           <a className="btn primary" href={href(mockPath(lang))}>
             回到模擬考
@@ -151,10 +148,22 @@ export function MockPage({ lang, examId }: { lang: LangId; examId: string }) {
       </div>
     );
   }
+  // 「漢字讀音」這類大題是從課程單字自動出題的：先把那幾關的題目下載好
+  const stages = [...new Set(exam.sections.flatMap((x) => x.gen?.stages ?? []))];
+  return (
+    <CourseGate lang={lang} need={{ stages }}>
+      <MockExamPage lang={lang} exam={exam} />
+    </CourseGate>
+  );
+}
+
+function MockExamPage({ lang, exam }: { lang: LangId; exam: MockExam }) {
+  const [run, setRun] = useState<{ paper: Paper; key: number } | null>(null);
+  const [done, setDone] = useState<Done | null>(null);
 
   const start = () => {
     setDone(null);
-    setRun((r) => ({ paper: buildPaper(exam, course), key: (r?.key ?? 0) + 1 }));
+    setRun((r) => ({ paper: buildPaper(exam, loadedCourse(lang)), key: (r?.key ?? 0) + 1 }));
   };
 
   if (done) return <MockResult lang={lang} data={done} onRetry={start} />;

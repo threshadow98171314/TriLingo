@@ -40,7 +40,7 @@ import {
   type MysteryOffer,
 } from './shop';
 import { setSfxEnabled, setSoundSource } from './sfx';
-import { DRILL_IDS, type DrillId } from '../engine/drills';
+import { DRILL_IDS, type DrillId } from '../engine/drills/types';
 import { setTtsPrefs } from './tts';
 import { LANGS, type LangId, type Lesson, type Unit } from './types';
 import { sum } from './util';

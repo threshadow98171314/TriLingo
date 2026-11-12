@@ -168,7 +168,7 @@ describe('新手引導', () => {
 
 describe('新遊戲', () => {
   it('假名對對碰：平假名、片假名學過的都算，同一個音只算一組', async () => {
-    const { kanaPairs } = await import('../src/pages/Memory');
+    const { kanaPairs } = await import('../src/engine/furigana');
     const kana = COURSES.ja.stages[0].units;
     const h = kana.find((u) => u.id === 'ja.kana.h1')!.items.slice(0, 3);
     const k = kana.find((u) => u.id === 'ja.kana.k1')!.items.slice(0, 5);

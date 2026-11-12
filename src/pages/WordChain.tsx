@@ -1,8 +1,9 @@
 // 接龍對戰：日文しりとり、韓文끝말잇기、英文 Word Chain，和電腦輪流接字（規則在 engine/chain.ts）。
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react';
+import { CourseGate } from '../components/CourseGate';
 import { ResultScreen, type ResultData } from '../components/Result';
 import { SpeakBtn, Tx } from '../components/ui';
-import { courseIndex, META, requireCourse } from '../content';
+import { courseIndex, META, prefetch } from '../content';
 import { learnedVocab, UNLOCK } from '../core/progress';
 import { pick } from '../core/rng';
 import { sfx } from '../core/sfx';
@@ -30,23 +31,28 @@ export function WordChainPage({ lang }: { lang: LangId }) {
     );
   }
   if (!level) return <Start lang={lang} onPick={setLevel} />;
+  // 字庫是整個課程的單字（玩家可以接任何課程裡學得到的字），所以要下載這個語言全部的題目
   return (
-    <Game
-      key={run}
-      lang={lang}
-      level={level}
-      onAgain={() => setRun((x) => x + 1)}
-      onMenu={() => {
-        setLevel(null);
-        setRun((x) => x + 1);
-      }}
-    />
+    <CourseGate lang={lang} need="all">
+      <Game
+        key={run}
+        lang={lang}
+        level={level}
+        onAgain={() => setRun((x) => x + 1)}
+        onMenu={() => {
+          setLevel(null);
+          setRun((x) => x + 1);
+        }}
+      />
+    </CourseGate>
   );
 }
 
 function Start({ lang, onPick }: { lang: LangId; onPick: (l: C.Level) => void }) {
   const s = useSave();
   const best = s.best.chain?.[lang] ?? 0;
+  // 看規則的時候先在背景下載字庫
+  useEffect(() => prefetch(lang, 'all'), [lang]);
   return (
     <div className="page narrow" style={{ '--lang': META[lang].color } as CSSProperties}>
       <button type="button" className="back-link link-btn" onClick={() => nav(`/l/${lang}/arcade`)}>
@@ -124,7 +130,7 @@ function Game({ lang, level, onAgain, onMenu }: { lang: LangId; level: C.Level; 
   // 電腦認得的字：輕鬆、普通只用前幾個關卡的字（加上你學過的字），困難用整個課程
   const [known] = useState(() => {
     const idx = courseIndex(lang).items;
-    const order = requireCourse(lang).stages.map((st) => st.id);
+    const order = META[lang].stages.map((st) => st.id);
     const cap = level === 'easy' ? 2 : level === 'normal' ? 3 : Infinity;
     const s = getSave();
     const pool = dict.filter((w) => s.items[w.id] || order.indexOf(idx.get(w.id)?.stage.id ?? '') <= cap);

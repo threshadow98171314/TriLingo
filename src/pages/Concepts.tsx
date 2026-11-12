@@ -3,7 +3,7 @@ import { useState, type CSSProperties } from 'react';
 import type { ResultData } from '../components/Result';
 import { Session } from '../components/Session';
 import { Empty, Ruby, SpeakBtn, Stars, Tx } from '../components/ui';
-import { META, requireCourse } from '../content';
+import { META, requireExtra } from '../content';
 import { starsOf } from '../core/progress';
 import type { Save } from '../core/save';
 import { finishConcept, type SessionStats } from '../core/store';
@@ -18,7 +18,7 @@ export const conceptPath = (lang: LangId, id: string) => `/l/${lang}/concept/${e
 
 /** 語言頁的「觀念」分頁：依分類列出所有文章 */
 export function ConceptsTab({ lang, s }: { lang: LangId; s: Save }) {
-  const list = requireCourse(lang).concepts;
+  const list = requireExtra('concepts', lang);
   if (!list.length) {
     return (
       <Empty icon="💡" title="觀念文章準備中">
@@ -65,7 +65,7 @@ export function ConceptsTab({ lang, s }: { lang: LangId; s: Save }) {
 }
 
 function findConcept(lang: LangId, id: string): { c: Concept; prev?: Concept; next?: Concept } | null {
-  const list = requireCourse(lang).concepts;
+  const list = requireExtra('concepts', lang);
   const i = list.findIndex((x) => x.id === id);
   if (i < 0) return null;
   return { c: list[i], prev: list[i - 1], next: list[i + 1] };
