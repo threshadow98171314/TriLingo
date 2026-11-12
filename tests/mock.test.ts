@@ -4,7 +4,7 @@ import { COURSE_LIST, COURSES } from '../src/content/all';
 import { mulberry32 } from '../src/core/rng';
 import type { MockExam } from '../src/core/types';
 import { furiKana, furiPlain } from '../src/engine/furigana';
-import { buildPaper, kanjiReadingGroups, levelOf, paperSections, parseLine, scorePaper } from '../src/engine/mock';
+import { buildPaper, kanjiReadingGroups, levelOf, paperSections, parseLine, scorePaper, skillOf, weakSkills } from '../src/engine/mock';
 import { expectedCount } from '../src/pages/Mock';
 
 const exams = COURSE_LIST.flatMap((c) => c.mocks.map((m) => ({ lang: c.id, m })));
@@ -162,6 +162,25 @@ describe('組卷與計分', () => {
     // TOPIK：答對四成約 1 級、七成約 2 級
     expect(levelOf(m, 0.45).label).toContain('1 級');
     expect(levelOf(m, 0.72).label).toContain('2 級');
+  });
+
+  it('大題分成單字、文法、閱讀、聽力；沒到合格線的大題依能力分組', () => {
+    const skills = (lang: keyof typeof COURSES, i: number) => COURSES[lang].mocks[i].sections.map((x) => `${x.id}:${skillOf(x)}`);
+    expect(skills('ja', 0)).toEqual(['yomi:vocab', 'hyoki:vocab', 'bunmyaku:vocab', 'iikae:vocab', 'bunpo:grammar', 'narabe:grammar', 'dokkai:reading', 'sokuji:listening', 'kaiwa:listening']);
+    expect(skills('en', 0)).toEqual(['p2:listening', 'p3:listening', 'p5:grammar', 'p6:grammar', 'p7:reading']);
+    // 每份模擬考的每個大題都分得出來，而且四種能力至少有兩種
+    for (const { m } of exams) expect(new Set(m.sections.map(skillOf)).size, m.id).toBeGreaterThanOrEqual(2);
+
+    const m = COURSES.ja.mocks[0];
+    const p = paperOf(m, 'ja');
+    // 只答對文法和閱讀
+    const picks = p.qs.map((q) => (['grammar', 'reading'].includes(skillOf(m.sections[q.section])) ? q.answer : null));
+    const weak = weakSkills(scorePaper(p, picks), m.pass);
+    expect(weak.map(([k, secs]) => [k, secs.map((x) => x.id)])).toEqual([
+      ['vocab', ['yomi', 'hyoki', 'bunmyaku', 'iikae']],
+      ['listening', ['sokuji', 'kaiwa']],
+    ]);
+    expect(weakSkills(scorePaper(p, p.qs.map((q) => q.answer)), m.pass)).toEqual([]);
   });
 
   it('聽力稿的說話者', () => {

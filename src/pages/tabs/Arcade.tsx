@@ -1,9 +1,10 @@
-// 語言頁的「遊樂場」分頁：每日、語言專屬、對戰與牌桌、單字遊戲、聽力。題目只用這個語言學過的字。
+// 練功的「遊樂場」分頁：每日（今日複習、弱點特訓…）、語言專屬、對戰與牌桌、單字遊戲、聽力。題目只用這個語言學過的字。
 import { useState } from 'react';
 import { Bar } from '../../components/ui';
 import { pictureOf } from '../../engine/pictures';
 import { drillsFor } from '../../engine/drills';
 import { today } from '../../core/date';
+import { mistakesOf } from '../../core/mistakes';
 import { crosswordPool, dueItems, learnedItems, learnedVocab, UNLOCK } from '../../core/progress';
 import type { Save } from '../../core/save';
 import { canSpeak, useVoices } from '../../core/tts';
@@ -47,6 +48,7 @@ export function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
   const cw = crosswordPool(s, lang).length;
   const learned = learnedItems(s, lang).length;
   const due = dueItems(s, lang).length;
+  const weak = mistakesOf(s, lang).ids.length;
   const dailyDone = !!s.days[today()]?.dailyCw?.[lang];
   const bestMatch = s.best.match[lang];
   const bestBlitz = s.best.blitz[lang];
@@ -286,6 +288,19 @@ export function ArcadeTab({ lang, s }: { lang: LangId; s: Save }) {
       blocked: d.needsVoice && !canSpeak(lang) ? `這個瀏覽器沒有${LANG_NAME[lang]}語音，請改用 Chrome 或 Edge。` : undefined,
     });
   }
+  // 錯題本有字的時候才出現
+  if (weak > 0)
+    games.splice(1, 0, {
+      icon: '🎯',
+      cat: 'daily',
+      title: '弱點特訓',
+      desc: '專練錯題本裡最常錯、還不熟的字。答錯的字會自動收進錯題本，練到精通就畢業。',
+      to: `/l/${lang}/weak`,
+      need: 0,
+      have: weak,
+      badge: `錯題本 ${weak} 個`,
+      hot: weak >= 10,
+    });
   const catName = (id: ArcadeCat | 'all', name: string) => (id === 'special' ? `${LANG_NAME[lang]}專屬` : name);
 
   const shown = cat === 'all' ? ARCADE_CATS.map((c) => c[0]) : [cat];

@@ -2,7 +2,7 @@
 // - 基本資料（meta.ts）和大綱（gen/outline-*.json：每關有哪些單元、幾課、幾個字）隨主程式載入，
 //   首頁、學習路線只靠大綱就能顯示。
 // - 題目一包一包分開（parts.ts）：上哪一課、複習哪些字，就只下載那幾包；模擬考、觀念文章、
-//   猜詞的每日候選字也各自一包。下載過的留在記憶體裡（瀏覽器也會快取檔案）。
+//   猜詞的每日候選字、搜尋索引也各自一包。下載過的留在記憶體裡（瀏覽器也會快取檔案）。
 // 頁面用 <CourseGate need={…}>（或 useContent）說明需要哪些題目，等下載完成才顯示。
 import { useEffect, useSyncExternalStore } from 'react';
 import type { Course, CourseOutline, Example, Item, LangId, Lesson, Stage, StageOutline, Unit, UnitOutline, VocabItem } from '../core/types';
@@ -13,7 +13,7 @@ import rawJa from './gen/outline-ja.json';
 import rawKo from './gen/outline-ko.json';
 import { META } from './meta';
 import { decodeOutline, unitIdOf, type RawOutline } from './outline';
-import { CONCEPTS, MOCKS, PARTS, WORDLE } from './parts';
+import { CONCEPTS, MOCKS, PARTS, SEARCH, WORDLE } from './parts';
 
 export { META, META_LIST } from './meta';
 export { stageIdOf, unitIdOf } from './outline';
@@ -55,7 +55,7 @@ export function langOfId(id: string): LangId {
 // ───────── 題目：用到哪一包才下載哪一包 ─────────
 
 /** 題目以外、一個語言一包的資料 */
-const EXTRAS = { mocks: MOCKS, concepts: CONCEPTS, wordle: WORDLE };
+const EXTRAS = { mocks: MOCKS, concepts: CONCEPTS, wordle: WORDLE, search: SEARCH };
 type Extra = keyof typeof EXTRAS;
 type ExtraData = { [K in Extra]: Awaited<ReturnType<(typeof EXTRAS)[K][LangId]>> };
 
@@ -64,7 +64,7 @@ type ExtraData = { [K in Extra]: Awaited<ReturnType<(typeof EXTRAS)[K][LangId]>>
  * - { units }：這些單元（也可以給課或項目的 id）所在的那幾包
  * - { stages }：這幾關的全部題目
  * - 'all'：整個語言
- * - 'mocks'：模擬考；'concepts'：觀念文章；'wordle'：猜詞的每日候選字
+ * - 'mocks'：模擬考；'concepts'：觀念文章；'wordle'：猜詞的每日候選字；'search'：搜尋索引
  * 可以用陣列一次要好幾種。
  */
 export type Need = 'all' | Extra | { stages: string[] } | { units: string[] } | Need[];
@@ -78,7 +78,7 @@ function parseKey(key: string): { lang: LangId; extra?: Extra } {
 }
 
 const partUnits = new Map<string, Unit[]>();
-const extraData: { [K in Extra]: Partial<Record<LangId, ExtraData[K]>> } = { mocks: {}, concepts: {}, wordle: {} };
+const extraData: { [K in Extra]: Partial<Record<LangId, ExtraData[K]>> } = { mocks: {}, concepts: {}, wordle: {}, search: {} };
 const pending = new Map<string, Promise<void>>();
 const failed = new Set<string>();
 /** 每個語言已下載的內容有變動就加一（索引、例句跟著重算） */
@@ -203,7 +203,7 @@ export function useContent(lang: LangId, need: Need | null): ContentState {
 
 // ───────── 已下載的題目 ─────────
 
-/** 模擬考、觀念文章、猜詞的每日候選字（外層的 CourseGate 要先等下載完成） */
+/** 模擬考、觀念文章、猜詞的每日候選字、搜尋索引（外層的 CourseGate 要先等下載完成） */
 export function requireExtra<K extends Extra>(name: K, lang: LangId): ExtraData[K] {
   const x = extraData[name][lang];
   if (x === undefined) throw new Error(`${META[lang].name}的${name}還沒載入`);

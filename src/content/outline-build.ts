@@ -1,19 +1,25 @@
 // 由全部題目產生 src/content/gen/ 裡的檔案：
-// - outline-*.json：大綱（每關有哪些單元、幾課、幾個字），隨主程式載入
+// - outline-*.json：大綱（每關有哪些單元、幾課、幾個字，以及觀念文章的標題），隨主程式載入
 // - more/<關卡>.<第幾包>.json：補充例句表（*-more.ts）依「包」拆開，載入那一包題目時才下載
 // - wordle-*.json：猜詞的每日候選字
+// - search-*.json：查詢的搜尋索引（原文、讀音、意思、在第幾課），打開搜尋才下載
 // 只給工具（scripts/outline.mjs）和測試用，App 不會引用。
+import type { SearchEntry } from '../core/search';
 import { LANGS, type LangId } from '../core/types';
 import { isVocab } from '../engine/exercises';
 import { wordlePool } from '../engine/wordle';
 import { COURSES, PART_UNITS } from './all';
 import { moreTable } from './dsl';
+import { CONCEPTS as EN_CONCEPTS } from './en-concepts';
+import { CONCEPTS as JA_CONCEPTS } from './ja-concepts';
+import { CONCEPTS as KO_CONCEPTS } from './ko-concepts';
 import { EN_MORE } from './en-more';
 import { JA_MORE } from './ja-more';
 import { KO_MORE } from './ko-more';
 import { encodeOutline, formatOutline } from './outline';
 
 const MORE_TEXT: Record<LangId, string> = { en: EN_MORE, ja: JA_MORE, ko: KO_MORE };
+const CONCEPTS = { en: EN_CONCEPTS, ja: JA_CONCEPTS, ko: KO_CONCEPTS };
 
 /** 猜詞的每日題目候選字：整個課程裡長度剛好的字，依課程順序（每日題目用日期挑其中一個，順序不能變） */
 export function wordleIds(lang: LangId): string[] {
@@ -44,6 +50,23 @@ export function moreByPart(lang: LangId): Record<string, Record<string, string[]
   return out;
 }
 
+/** 搜尋索引：單字、片語（不含字母），依課程順序；記下在單元的第幾課，搜尋結果可以直接連過去 */
+export function searchEntries(lang: LangId): SearchEntry[] {
+  const out: SearchEntry[] = [];
+  for (const st of COURSES[lang].stages)
+    for (const u of st.units) {
+      const lessonOf = new Map<string, number>();
+      u.lessons.forEach((l, i) => {
+        if (!l.boss) for (const id of l.itemIds) if (!lessonOf.has(id)) lessonOf.set(id, i + 1);
+      });
+      for (const it of u.items) {
+        if (!isVocab(it) || it.kind === 'char') continue;
+        out.push([it.id, lang === 'ja' && it.r && it.r !== it.w ? it.r : '', it.m, lessonOf.get(it.id) ?? 1]);
+      }
+    }
+  return out;
+}
+
 /** 一個項目一行，改了哪裡在 git 上一眼看得出來 */
 const jsonLines = (entries: string[], open: string, close: string) => `${open}\n${entries.join(',\n')}\n${close}\n`;
 
@@ -51,9 +74,14 @@ const jsonLines = (entries: string[], open: string, close: string) => `${open}\n
 export function outlineFiles(): Record<string, string> {
   const files: Record<string, string> = {};
   for (const lang of LANGS) {
-    files[`outline-${lang}.json`] = formatOutline(encodeOutline(COURSES[lang], PART_UNITS));
+    files[`outline-${lang}.json`] = formatOutline(encodeOutline(COURSES[lang], PART_UNITS, CONCEPTS[lang]));
     files[`wordle-${lang}.json`] = jsonLines(
       wordleIds(lang).map((id) => JSON.stringify(id)),
+      '[',
+      ']',
+    );
+    files[`search-${lang}.json`] = jsonLines(
+      searchEntries(lang).map((e) => JSON.stringify(e)),
       '[',
       ']',
     );

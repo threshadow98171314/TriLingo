@@ -91,7 +91,28 @@ export interface MockScore {
   pct: number;
   passed: boolean;
   level: MockLevel;
-  sections: { title: string; correct: number; total: number }[];
+  sections: { section: MockSection; title: string; correct: number; total: number }[];
+}
+
+/** 大題考的是哪一種能力（模擬考結果依弱項建議接下來怎麼練） */
+export type MockSkill = 'vocab' | 'grammar' | 'reading' | 'listening';
+
+export function skillOf(sec: MockSection): MockSkill {
+  if (sec.listening) return 'listening';
+  if (/文法/.test(sec.title) || sec.id === 'p5' || sec.id === 'p6') return 'grammar';
+  if (/語彙|意思相近|用法|語形成/.test(sec.title)) return 'vocab';
+  return 'reading';
+}
+
+/** 答對率沒到合格線的大題，依能力分組（照大題出現的順序） */
+export function weakSkills(score: MockScore, pass: number): [MockSkill, MockSection[]][] {
+  const out = new Map<MockSkill, MockSection[]>();
+  for (const x of score.sections) {
+    if (!x.total || x.correct / x.total >= pass) continue;
+    const k = skillOf(x.section);
+    out.set(k, [...(out.get(k) ?? []), x.section]);
+  }
+  return [...out];
 }
 
 export function levelOf(exam: MockExam, pct: number): MockLevel {
@@ -112,7 +133,7 @@ export function scorePaper(paper: Paper, picks: (number | null)[]): MockScore {
     level: levelOf(paper.exam, pct),
     sections: paperSections(paper).map(({ section, from, to }) => {
       const list = paper.qs.slice(from, to + 1);
-      return { title: section.title, correct: list.filter(ok).length, total: list.length };
+      return { section, title: section.title, correct: list.filter(ok).length, total: list.length };
     }),
   };
 }

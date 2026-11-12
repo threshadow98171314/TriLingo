@@ -1,7 +1,7 @@
 // 語言頁：導覽列的「學習」「練功」「查詢」三個區域，各區域上方有子分頁：
 // - 學習：路線、單字庫（只靠大綱顯示，不用等題目下載）
-// - 練功：遊樂場（每日、專屬特訓、遊戲）、模擬考
-// - 查詢：圖鑑、觀念、五十音表／字母表、日文歌
+// - 練功：遊樂場（每日、專屬特訓、遊戲）、錯題本、模擬考
+// - 查詢：搜尋、圖鑑、觀念、五十音表／字母表、日文歌
 // 語言在上方導覽列切換。
 import { lazy, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { CourseGate } from '../components/CourseGate';
@@ -19,6 +19,8 @@ import { href, lessonPath, stagePath } from '../router';
 
 // 學習路線以外的分頁用到才下載程式
 const ArcadeTab = lazy(() => import('./tabs/Arcade').then((m) => ({ default: m.ArcadeTab })));
+const MistakesTab = lazy(() => import('./tabs/Mistakes').then((m) => ({ default: m.MistakesTab })));
+const SearchTab = lazy(() => import('./tabs/Search').then((m) => ({ default: m.SearchTab })));
 const DexTab = lazy(() => import('./tabs/Dex').then((m) => ({ default: m.DexTab })));
 const ChartTab = lazy(() => import('./tabs/Chart').then((m) => ({ default: m.ChartTab })));
 const MockTab = lazy(() => import('./Mock').then((m) => ({ default: m.MockTab })));
@@ -27,11 +29,22 @@ const SongsTab = lazy(() => import('./Songs').then((m) => ({ default: m.SongsTab
 // 情境小鎮的地圖（插畫比較大）
 const TownMap = lazy(() => import('../components/TownMap').then((m) => ({ default: m.TownMap })));
 
-export type LangTab = 'path' | 'bank' | 'arcade' | 'mock' | 'dex' | 'concepts' | 'chart' | 'songs';
+export type LangTab = 'path' | 'bank' | 'arcade' | 'mistakes' | 'mock' | 'search' | 'dex' | 'concepts' | 'chart' | 'songs';
 type Area = 'learn' | 'practice' | 'lookup';
 
-const AREA_OF: Record<LangTab, Area> = { path: 'learn', bank: 'learn', arcade: 'practice', mock: 'practice', dex: 'lookup', concepts: 'lookup', chart: 'lookup', songs: 'lookup' };
-const AREA_DESC: Record<Area, string> = { learn: '學習路線與單字庫', practice: '複習、遊戲、專屬特訓、模擬考', lookup: '圖鑑、觀念講堂與查表' };
+const AREA_OF: Record<LangTab, Area> = {
+  path: 'learn',
+  bank: 'learn',
+  arcade: 'practice',
+  mistakes: 'practice',
+  mock: 'practice',
+  search: 'lookup',
+  dex: 'lookup',
+  concepts: 'lookup',
+  chart: 'lookup',
+  songs: 'lookup',
+};
+const AREA_DESC: Record<Area, string> = { learn: '學習路線與單字庫', practice: '複習、遊戲、錯題本、模擬考', lookup: '搜尋、圖鑑、觀念講堂與查表' };
 
 interface SubTab {
   id: LangTab;
@@ -141,14 +154,14 @@ function LessonNodes({ lang, stage, ui, s, nextId }: { lang: LangId; stage: Stag
   );
 }
 
-function UnitRow({ lang, stage, ui, s, nextId }: { lang: LangId; stage: StageOutline; ui: number; s: Save; nextId?: string }) {
+function UnitRow({ lang, stage, ui, s, nextId, focus }: { lang: LangId; stage: StageOutline; ui: number; s: Save; nextId?: string; focus?: boolean }) {
   const u = stage.units[ui];
   const st = unitState(s, stage, ui);
-  // 只展開目前在上的單元，其他的收成一行（點標題展開），路線比較短、一眼找到下一課
+  // 只展開目前在上的單元（和搜尋結果連過來的單元），其他的收成一行（點標題展開），路線比較短、一眼找到下一課
   const current = !!nextId && u.lessons.some((l) => l.id === nextId);
-  const [open, setOpen] = useState(current);
+  const [open, setOpen] = useState(current || !!focus);
   return (
-    <section className={cx('unit card', st.complete && 'complete', !st.unlocked && !st.complete && 'locked', current && 'current', !open && 'folded')}>
+    <section id={`u-${u.id}`} className={cx('unit card', st.complete && 'complete', !st.unlocked && !st.complete && 'locked', current && 'current', focus && 'focus', !open && 'folded')}>
       <button type="button" className="unit-head" onClick={() => setOpen(!open)} aria-expanded={open}>
         <span className="unit-icon" lang={lang}>
           {u.icon}
@@ -182,14 +195,14 @@ function UnitRow({ lang, stage, ui, s, nextId }: { lang: LangId; stage: StageOut
 
 // ───────── 單字庫 ─────────
 
-function DeckRow({ lang, stage, ui, s }: { lang: LangId; stage: StageOutline; ui: number; s: Save }) {
+function DeckRow({ lang, stage, ui, s, focus }: { lang: LangId; stage: StageOutline; ui: number; s: Save; focus?: boolean }) {
   const u = stage.units[ui];
   const st = unitState(s, stage, ui);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!!focus);
   const got = learnedIn(s, u);
   const next = u.lessons.find((l) => starsOf(s, l.id) === 0);
   return (
-    <section className={cx('deck', st.complete && 'complete')}>
+    <section id={`u-${u.id}`} className={cx('deck', st.complete && 'complete', focus && 'focus')}>
       <header>
         <button type="button" className="deck-toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
           <span className="deck-title">{u.title}</span>
@@ -215,12 +228,12 @@ function DeckRow({ lang, stage, ui, s }: { lang: LangId; stage: StageOutline; ui
   );
 }
 
-function BankGroup({ lang, stage, s, name, uis, nextId }: { lang: LangId; stage: StageOutline; s: Save; name: string; uis: number[]; nextId?: string }) {
+function BankGroup({ lang, stage, s, name, uis, nextId, focus }: { lang: LangId; stage: StageOutline; s: Save; name: string; uis: number[]; nextId?: string; focus?: string }) {
   const units = uis.map((ui) => stage.units[ui]);
   const words = units.reduce((a, u) => a + u.count, 0);
   const got = units.reduce((a, u) => a + learnedIn(s, u), 0);
-  // 下一組新字所在的分組預設打開
-  const [open, setOpen] = useState(() => units.some((u) => u.id === nextId));
+  // 下一組新字（和搜尋結果連過來的那一組）所在的分組預設打開
+  const [open, setOpen] = useState(() => units.some((u) => u.id === nextId || u.id === focus));
   return (
     <section className={cx('bank-group card', open && 'open')}>
       <button type="button" className="bank-group-head" onClick={() => setOpen(!open)} aria-expanded={open}>
@@ -241,7 +254,7 @@ function BankGroup({ lang, stage, s, name, uis, nextId }: { lang: LangId; stage:
       {open && (
         <div className="decks">
           {uis.map((ui) => (
-            <DeckRow key={stage.units[ui].id} lang={lang} stage={stage} ui={ui} s={s} />
+            <DeckRow key={stage.units[ui].id} lang={lang} stage={stage} ui={ui} s={s} focus={stage.units[ui].id === focus} />
           ))}
         </div>
       )}
@@ -249,7 +262,7 @@ function BankGroup({ lang, stage, s, name, uis, nextId }: { lang: LangId; stage:
   );
 }
 
-function BankSection({ lang, stage, s }: { lang: LangId; stage: StageOutline; s: Save }) {
+function BankSection({ lang, stage, s, focus }: { lang: LangId; stage: StageOutline; s: Save; focus?: string }) {
   const groups = new Map<string, number[]>();
   stage.units.forEach((u, ui) => {
     if (u.bank) groups.set(u.bank, [...(groups.get(u.bank) ?? []), ui]);
@@ -280,7 +293,7 @@ function BankSection({ lang, stage, s }: { lang: LangId; stage: StageOutline; s:
         學習路線教文法和最核心的字；單字庫補足考試需要的大量單字。建議每天學一兩組新字（每組約 25 個字、分成 5 課），再去做「今日複習」。點分組可以展開，按「學習」從那一組開始。
       </GuideTip>
       {[...groups].map(([name, uis]) => (
-        <BankGroup key={name} lang={lang} stage={stage} s={s} name={name} uis={uis} nextId={next?.unit.id} />
+        <BankGroup key={name} lang={lang} stage={stage} s={s} name={name} uis={uis} nextId={next?.unit.id} focus={focus} />
       ))}
     </section>
   );
@@ -292,8 +305,11 @@ function TownStage({ lang, stageId, s }: { lang: LangId; stageId: string; s: Sav
   return stage ? <TownMap lang={lang} stage={stage} s={s} /> : null;
 }
 
-/** 學習：上方是關卡標籤，下面是這一關的路線或單字庫 */
-function LearnArea({ lang, s, stageId, bank }: { lang: LangId; s: Save; stageId?: string; bank: boolean }) {
+/** 關卡說明下方最多列出幾篇相關的觀念文章 */
+const RELATED_SHOWN = 3;
+
+/** 學習：上方是關卡標籤，下面是這一關的路線或單字庫。focus：要打開並捲過去的單元（搜尋結果連過來） */
+function LearnArea({ lang, s, stageId, bank, focus }: { lang: LangId; s: Save; stageId?: string; bank: boolean; focus?: string }) {
   // 路線只看大綱（有哪些單元、幾課），不用等題目下載
   const course = OUTLINE[lang];
   const stage = course.stages.find((x) => x.id === stageId) ?? currentStage(s, course);
@@ -312,17 +328,19 @@ function LearnArea({ lang, s, stageId, bank }: { lang: LangId; s: Save; stageId?
   useEffect(() => {
     if (upUnit) prefetch(lang, { units: [upUnit] });
   }, [lang, upUnit]);
-  // 打開路線時，下一課如果在畫面下方看不到，就自動捲過去
+  // 打開路線時，下一課如果在畫面下方看不到，就自動捲過去；從搜尋結果連過來的就捲到那個單元
   useEffect(() => {
-    if (showBank) return;
+    if (showBank && !focus) return;
     const t = setTimeout(() => {
-      const el = document.querySelector('.node.next');
-      if (el && el.getBoundingClientRect().top + window.scrollY > window.innerHeight * 0.8) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      const el = focus ? document.getElementById(`u-${focus}`) : document.querySelector('.node.next');
+      if (el && (focus || el.getBoundingClientRect().top + window.scrollY > window.innerHeight * 0.8)) el.scrollIntoView({ block: 'center', behavior: focus ? 'instant' : 'smooth' });
     }, 120);
     return () => clearTimeout(t);
-  }, [stage.id, showBank]);
+  }, [stage.id, showBank, focus]);
 
   const bs = hasBank ? bankState(s, stage) : null;
+  // 建議程度是這一關的觀念文章
+  const related = course.concepts.filter((c) => c.level === stage.short);
   return (
     <>
       <StageChips lang={lang} s={s} activeId={stage.id} />
@@ -334,6 +352,21 @@ function LearnArea({ lang, s, stageId, bank }: { lang: LangId; s: Save; stageId?
               {stage.title} <small>{stage.subtitle}</small>
             </h2>
             <p className="muted stage-desc">{stage.description}</p>
+            {related.length > 0 && (
+              <div className="stage-concepts">
+                <small className="muted">💡 相關觀念</small>
+                {related.slice(0, RELATED_SHOWN).map((c) => (
+                  <a key={c.id} className="chip" href={href(`/l/${lang}/concept/${c.id}`)}>
+                    <span aria-hidden>{c.icon}</span> {c.title.split('：')[0]}
+                  </a>
+                ))}
+                {related.length > RELATED_SHOWN && (
+                  <a className="chip" href={href(`/l/${lang}/concepts`)}>
+                    還有 {related.length - RELATED_SHOWN} 篇 ›
+                  </a>
+                )}
+              </div>
+            )}
           </div>
           {ss.ready && (
             <div className="stage-prog">
@@ -362,7 +395,7 @@ function LearnArea({ lang, s, stageId, bank }: { lang: LangId; s: Save; stageId?
         )}
 
         {showBank ? (
-          <BankSection lang={lang} stage={stage} s={s} />
+          <BankSection lang={lang} stage={stage} s={s} focus={focus} />
         ) : (
           <>
             <TabGuide tab="path" lang={lang} />
@@ -371,7 +404,7 @@ function LearnArea({ lang, s, stageId, bank }: { lang: LangId; s: Save; stageId?
                 <TownStage lang={lang} stageId={stage.id} s={s} />
               </CourseGate>
             ) : (
-              stage.units.map((u, ui) => (u.bank ? null : <UnitRow key={u.id} lang={lang} stage={stage} ui={ui} s={s} nextId={up?.lesson.id} />))
+              stage.units.map((u, ui) => (u.bank ? null : <UnitRow key={u.id} lang={lang} stage={stage} ui={ui} s={s} nextId={up?.lesson.id} focus={u.id === focus} />))
             )}
 
             {stage.planned.length > 0 && (
@@ -421,6 +454,12 @@ function TabGuide({ tab, lang }: { tab: LangTab; lang: LangId }) {
           </ul>
         </GuideTip>
       );
+    case 'mistakes':
+      return (
+        <GuideTip id="tab:mistakes" title="錯題本怎麼用？" icon="📕">
+          <p>上課、複習、玩遊戲時答錯的字都會收進來，最常錯、最不熟的排最前面。按「🎯 弱點特訓」專練前面的字；練到「精通」就會自動從錯題本畢業。</p>
+        </GuideTip>
+      );
     case 'mock':
       return (
         <GuideTip id="tab:mock" title="模擬考是什麼？" icon="📝">
@@ -465,7 +504,7 @@ function TabGuide({ tab, lang }: { tab: LangTab; lang: LangId }) {
 
 // ───────── 頁面 ─────────
 
-export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; stageId?: string }) {
+export function LangPage({ lang, tab, stageId, focus }: { lang: LangId; tab: LangTab; stageId?: string; focus?: string }) {
   const s = useSave();
   const meta = META[lang];
   const area = AREA_OF[tab];
@@ -474,9 +513,11 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
 
   const practiceTabs: SubTab[] = [
     { id: 'arcade', icon: '🎮', label: '遊樂場', to: `/l/${lang}/arcade`, badge: quickStats(s, lang).due },
+    { id: 'mistakes', icon: '📕', label: '錯題本', to: `/l/${lang}/mistakes` },
     { id: 'mock', icon: '📝', label: '模擬考', to: `/l/${lang}/mock` },
   ];
   const lookupTabs: SubTab[] = [
+    { id: 'search', icon: '🔎', label: '搜尋', to: `/l/${lang}/search` },
     { id: 'dex', icon: '📖', label: '圖鑑', to: `/l/${lang}/dex` },
     { id: 'concepts', icon: '💡', label: '觀念', to: `/l/${lang}/concepts` },
     ...(lang !== 'en' ? [{ id: 'chart' as const, icon: lang === 'ja' ? 'あ' : '가', label: lang === 'ja' ? '五十音表' : '字母表', to: `/l/${lang}/chart` }] : []),
@@ -496,7 +537,8 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
         <RankLine xp={s.xp[lang]} size={40} compact />
       </section>
 
-      {area === 'learn' && <LearnArea lang={lang} s={s} stageId={stageId} bank={tab === 'bank'} />}
+      {/* 換到另一個要打開的單元時整個重來，展開的單元才會跟著換 */}
+      {area === 'learn' && <LearnArea key={focus ?? ''} lang={lang} s={s} stageId={stageId} bank={tab === 'bank'} focus={focus} />}
 
       {area === 'practice' && (
         <>
@@ -506,6 +548,11 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
           {tab === 'arcade' && (
             <CourseGate lang={lang} need="active" compact>
               <ArcadeTab lang={lang} s={s} />
+            </CourseGate>
+          )}
+          {tab === 'mistakes' && (
+            <CourseGate lang={lang} need="active" compact>
+              <MistakesTab lang={lang} s={s} />
             </CourseGate>
           )}
           {tab === 'mock' && (
@@ -520,6 +567,11 @@ export function LangPage({ lang, tab, stageId }: { lang: LangId; tab: LangTab; s
         <>
           <SubTabs items={lookupTabs} active={tab} />
           <TabGuide tab={tab} lang={lang} />
+          {tab === 'search' && (
+            <CourseGate lang={lang} need={['search', 'concepts']} compact>
+              <SearchTab lang={lang} s={s} />
+            </CourseGate>
+          )}
           {tab === 'dex' && (
             <CourseGate lang={lang} need="active" compact>
               <DexTab lang={lang} s={s} />

@@ -1,9 +1,10 @@
-// 用 Session 流程跑的練習：課程（含單元測驗）、今天的學習、複習、聽力特訓、打字特訓
+// 用 Session 流程跑的練習：課程（含單元測驗）、今天的學習、複習、弱點特訓、聽力特訓、打字特訓
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { ResultData } from '../components/Result';
 import { Session } from '../components/Session';
 import { Empty } from '../components/ui';
 import { courseIndex, META, OUTLINE, stageOutline } from '../content';
+import { mistakesOf, WEAK_BATCH } from '../core/mistakes';
 import { dueItems, learnedItems, learnedVocab, nextBankLesson, nextUp, UNLOCK, weakestItems } from '../core/progress';
 import { sample, shuffle } from '../core/rng';
 import { BOSS_PASS, finishGame, finishLesson, getSave, type SessionStats } from '../core/store';
@@ -233,6 +234,73 @@ export function ReviewPage({ lang }: { lang: LangId }) {
       exercises={plan.exercises}
       // 只有到期的複習才會拉長記憶間隔
       mode={plan.isDue ? 'review' : 'game'}
+      exitTo={back}
+      onFinish={onFinish}
+    />
+  );
+}
+
+// ───────── 弱點特訓 ─────────
+
+/** 錯題本最前面的字（最常錯、最不熟的）抽 WEAK_BATCH 個來練 */
+export function WeakPage({ lang }: { lang: LangId }) {
+  const build = () => {
+    const s = getSave();
+    const idx = courseIndex(lang).items;
+    // 題目下架的舊字找不到，跳過
+    const ids = mistakesOf(s, lang).ids.filter((id) => idx.has(id));
+    // 從前 2 倍裡抽，每一輪練的字不完全一樣
+    const entries = shuffle(ids.slice(0, WEAK_BATCH * 2))
+      .slice(0, WEAK_BATCH)
+      .map((id) => {
+        const ref = idx.get(id)!;
+        return { item: ref.item, strength: s.items[id].s, pool: ref.unit.items };
+      });
+    return { total: ids.length, exercises: shuffle(buildReview(entries, ctxOf(lang))) };
+  };
+  const [{ run, plan }, setGame] = useState(() => ({ run: 0, plan: build() }));
+
+  const back = `/l/${lang}/mistakes`;
+  if (!plan.exercises.length) {
+    return (
+      <Blocked lang={lang} icon="🎯" title="錯題本是空的" back={`/l/${lang}/arcade`}>
+        還沒有答錯過、需要加強的字。答錯的字會自動收進錯題本，之後就能在這裡專心練。
+      </Blocked>
+    );
+  }
+
+  const onFinish = (stats: SessionStats): ResultData => {
+    const outcome = finishGame({
+      lang,
+      game: 'review',
+      parts: [
+        ['完成弱點特訓', 5],
+        ['答對題數', stats.correct],
+      ],
+      count: stats.graded,
+      maxCombo: stats.maxCombo,
+    });
+    const left = mistakesOf(getSave(), lang).ids.length;
+    return {
+      emoji: '🎯',
+      headline: '弱點特訓完成！',
+      sub: left > 0 ? `錯題本還有 ${left} 個字。在每天的複習答對、熟練度升到「精通」就會畢業。` : '錯題本清空了，常錯的字都克服了！',
+      outcome,
+      lines: statLines(stats),
+      back,
+      backLabel: '回到錯題本',
+      again: left > 0 ? { label: '再練一輪', run: () => setGame((g) => ({ run: g.run + 1, plan: build() })) } : undefined,
+    };
+  };
+
+  return (
+    <Session
+      key={run}
+      lang={lang}
+      title="弱點特訓"
+      exercises={plan.exercises}
+      // 和加強練習一樣：答對不拉長複習間隔，答錯會排進今天的複習
+      mode="game"
       exitTo={back}
       onFinish={onFinish}
     />

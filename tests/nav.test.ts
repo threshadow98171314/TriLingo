@@ -9,8 +9,8 @@ describe('導覽區域', () => {
     expect(sectionOf([])).toBe('today');
     expect(sectionOf(parts('/l/ja/today'))).toBe('today');
     for (const p of ['/l/ja', '/l/ja/s/ja.n5', '/l/ja/lesson/ja.n5.greet#1', '/l/ko/bank']) expect(sectionOf(parts(p)), p).toBe('learn');
-    for (const p of ['/l/en/arcade', '/l/en/mock', '/l/en/mock/x', '/l/en/play/wordle', '/l/en/review']) expect(sectionOf(parts(p)), p).toBe('practice');
-    for (const p of ['/l/ja/dex', '/l/ja/concepts', '/l/ja/concept/x', '/l/ja/chart', '/l/ja/songs', '/l/ja/song/x', '/l/ko/typing-guide']) expect(sectionOf(parts(p)), p).toBe('lookup');
+    for (const p of ['/l/en/arcade', '/l/en/mistakes', '/l/en/weak', '/l/en/mock', '/l/en/mock/x', '/l/en/play/wordle', '/l/en/review']) expect(sectionOf(parts(p)), p).toBe('practice');
+    for (const p of ['/l/ja/search', '/l/ja/dex', '/l/ja/concepts', '/l/ja/concept/x', '/l/ja/chart', '/l/ja/songs', '/l/ja/song/x', '/l/ko/typing-guide']) expect(sectionOf(parts(p)), p).toBe('lookup');
     for (const p of ['/me', '/profile', '/shop', '/settings', '/help']) expect(sectionOf(parts(p)), p).toBe('me');
     expect(sectionOf(parts('/nowhere'))).toBeNull();
   });
@@ -19,7 +19,7 @@ describe('導覽區域', () => {
     expect(sectionPath('today', 'ko')).toBe('/');
     expect(sectionPath('learn', 'ko')).toBe('/l/ko');
     expect(sectionPath('practice', 'ko')).toBe('/l/ko/arcade');
-    expect(sectionPath('lookup', 'ko')).toBe('/l/ko/dex');
+    expect(sectionPath('lookup', 'ko')).toBe('/l/ko/search');
     expect(sectionPath('me', 'ko')).toBe('/me');
   });
 
@@ -31,6 +31,9 @@ describe('導覽區域', () => {
     expect(switchLangPath(parts('/l/ja/chart'), 'en')).toBe('/l/en/dex');
     expect(switchLangPath(parts('/l/ja/songs'), 'ko')).toBe('/l/ko/dex');
     expect(switchLangPath(parts('/l/ko/dex'), 'ja')).toBe('/l/ja/dex');
+    expect(switchLangPath(parts('/l/ko/search'), 'en')).toBe('/l/en/search');
+    expect(switchLangPath(parts('/l/ko/mistakes'), 'ja')).toBe('/l/ja/mistakes');
+    expect(switchLangPath(parts('/l/ko/weak'), 'ja')).toBe('/l/ja/mistakes');
     expect(switchLangPath(parts('/me'), 'ja')).toBeNull();
     expect(switchLangPath([], 'ja')).toBeNull();
   });

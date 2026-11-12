@@ -51,6 +51,7 @@ const P = {
   Today: page(() => import('./pages/Practice'), 'TodayPage'),
   TrueFalse: page(() => import('./pages/TrueFalse'), 'TrueFalsePage'),
   Typing: page(() => import('./pages/Practice'), 'TypingPage'),
+  Weak: page(() => import('./pages/Practice'), 'WeakPage'),
   TypingGuide: page(() => import('./pages/TypingGuide'), 'TypingGuidePage'),
   WordChain: page(() => import('./pages/WordChain'), 'WordChainPage'),
   Wordle: page(() => import('./pages/Wordle'), 'WordlePage'),
@@ -91,17 +92,22 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
     switch (p[2]) {
       case undefined:
         return view(<LangPage lang={lang} tab="path" />);
+      // ?u=單元 id：打開那個單元（搜尋結果連過來）
       case 's':
-        return view(<LangPage lang={lang} tab="path" stageId={p[3]} />);
+        return view(<LangPage lang={lang} tab="path" stageId={p[3]} focus={route.query.get('u') ?? undefined} />);
       case 'bank':
-        return view(<LangPage lang={lang} tab="bank" stageId={p[3]} />);
+        return view(<LangPage lang={lang} tab="bank" stageId={p[3]} focus={route.query.get('u') ?? undefined} />);
       case 'today':
         // 今天的學習：先複習到期的字，再上下一堂新課（兩部分的題目都先下載好）
         return gated(<P.Today lang={lang} />, ['active', 'next']);
       case 'arcade':
+      case 'mistakes':
+      case 'search':
       case 'dex':
       case 'concepts':
         return view(<LangPage lang={lang} tab={p[2]} />);
+      case 'weak':
+        return gated(<P.Weak lang={lang} />);
       case 'songs':
         return view(<LangPage lang={lang} tab={lang === 'ja' ? 'songs' : 'dex'} />);
       case 'song':

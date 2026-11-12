@@ -2,17 +2,18 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Bar, Coin, Empty, Modal, Tx } from '../components/ui';
 import { CourseGate } from '../components/CourseGate';
-import { loadedCourse, META, requireExtra, stageOutline } from '../content';
+import { loadedCourse, META, OUTLINE, requireExtra, stageOutline } from '../content';
 import { fx } from '../core/fx';
+import { mistakesOf } from '../core/mistakes';
 import { stageState } from '../core/progress';
 import type { Save } from '../core/save';
 import { sfx } from '../core/sfx';
 import { finishMock, useSave, type Outcome } from '../core/store';
 import { canSpeak, speakScript, stopSpeaking, useVoices } from '../core/tts';
-import type { LangId, MockExam } from '../core/types';
+import type { LangId, MockExam, MockSection } from '../core/types';
 import { cx, fmtTime } from '../core/util';
 import { LANG_NAME } from '../engine/exercises';
-import { buildPaper, paperSections, parseLine, scorePaper, type MockScore, type Paper, type PaperQ } from '../engine/mock';
+import { buildPaper, paperSections, parseLine, scorePaper, weakSkills, type MockScore, type MockSkill, type Paper, type PaperQ } from '../engine/mock';
 import { href, nav } from '../router';
 
 const mockPath = (lang: LangId, id?: string) => (id ? `/l/${lang}/mock/${encodeURIComponent(id)}` : `/l/${lang}/mock`);
@@ -534,6 +535,8 @@ function MockResult({ lang, data, onRetry }: { lang: LangId; data: Done; onRetry
         </ul>
       </section>
 
+      <NextSteps lang={lang} exam={exam} score={score} />
+
       <div className="result-actions">
         <button type="button" className="btn" onClick={() => nav(mockPath(lang))}>
           回到模擬考
@@ -566,6 +569,81 @@ function MockResult({ lang, data, onRetry }: { lang: LangId; data: Done; onRetry
         })}
       </section>
     </div>
+  );
+}
+
+const SKILL: Record<MockSkill, { icon: string; label: string }> = {
+  vocab: { icon: '📒', label: '單字' },
+  grammar: { icon: '🧩', label: '文法' },
+  reading: { icon: '📖', label: '閱讀' },
+  listening: { icon: '🎧', label: '聽力' },
+};
+
+/** 觀念文章的短標題（「：」前面那段） */
+const shortTitle = (t: string) => t.split('：')[0];
+
+/** 多益模擬考的大題 → 那個 Part 的解題技巧文章 */
+const PART_CONCEPT: Record<string, string> = { p1: 'en.c.part1', p2: 'en.c.part2', p3: 'en.c.part34', p4: 'en.c.part34', p5: 'en.c.part5', p6: 'en.c.part6', p7: 'en.c.part7' };
+
+interface StepLink {
+  icon: string;
+  label: string;
+  to: string;
+}
+
+/** 依這次比較弱的大題，建議接下來去哪裡練（建議關卡的單字庫、學習路線、相關觀念、聽力特訓…） */
+function NextSteps({ lang, exam, score }: { lang: LangId; exam: MockExam; score: MockScore }) {
+  const s = useSave();
+  const weak = weakSkills(score, exam.pass);
+  if (!weak.length) return null;
+  const course = OUTLINE[lang];
+  const stage = exam.after ? stageOutline(exam.after) : undefined;
+  const hasMistakes = mistakesOf(s, lang).ids.length > 0;
+
+  const linksOf = (skill: MockSkill, secs: MockSection[]): StepLink[] => {
+    const out: StepLink[] = [];
+    if (skill === 'vocab') {
+      if (stage?.units.some((u) => u.bank)) out.push({ icon: '📒', label: `${stage.short} 單字庫`, to: `/l/${lang}/bank/${stage.id}` });
+      if (hasMistakes) out.push({ icon: '🎯', label: '弱點特訓', to: `/l/${lang}/weak` });
+      out.push({ icon: '🧠', label: '今日複習', to: `/l/${lang}/review` });
+    } else if (skill === 'listening') {
+      out.push({ icon: '🎧', label: '聽力特訓', to: `/l/${lang}/play/listen` });
+    } else if (stage) {
+      out.push({ icon: '📚', label: `${stage.short} 學習路線`, to: `/l/${lang}/s/${stage.id}` });
+    }
+    // 相關的觀念文章：多益看是哪個 Part，其他語言的文法看建議關卡
+    const ids = new Set(secs.map((x) => PART_CONCEPT[x.id]));
+    const related = course.concepts.filter((c) => (lang === 'en' ? ids.has(c.id) : skill === 'grammar' && c.level === stage?.short));
+    return [...out, ...related.slice(0, 3).map((c) => ({ icon: c.icon, label: shortTitle(c.title), to: `/l/${lang}/concept/${c.id}` }))];
+  };
+
+  return (
+    <section className="card panel mock-next">
+      <header className="panel-head">
+        <h2>接下來這樣練</h2>
+        <small className="muted">依這次沒到合格線的大題建議</small>
+      </header>
+      <ul className="mock-next-list">
+        {weak.map(([skill, secs]) => (
+          <li key={skill}>
+            <span className="mock-next-icon" aria-hidden>
+              {SKILL[skill].icon}
+            </span>
+            <div className="grow">
+              <b>{SKILL[skill].label}要加強</b>
+              <small className="muted">{secs.map((x) => x.title).join('、')}</small>
+              <div className="mock-next-links">
+                {linksOf(skill, secs).map((l) => (
+                  <a key={l.to} className="chip" href={href(l.to)}>
+                    <span aria-hidden>{l.icon}</span> {l.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

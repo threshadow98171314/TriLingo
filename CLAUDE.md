@@ -17,7 +17,7 @@
 - 內容在 `src/content/`，用 `dsl.ts` 的工具撰寫；寫法見 README「新增內容」。
 - 題目按關卡分「包」、用到才下載：各關卡有哪些包、在哪些檔案寫在 `parts.ts`（新檔案要在這裡加一行）。「今天」頁、學習路線只用大綱 `OUTLINE`（`gen/outline-*.json`，由 `npm run outline` 從題目自動產生，隨主程式載入）。
   - App 程式不要直接 import 題目檔、`all.ts` 或 `outline-build.ts`（會把題目打包回主程式）。
-  - 需要題目的畫面用 `<CourseGate need={…}>` 包起來（`{ units }`／`{ stages }`／`'active'`＝學過的字／`'next'`＝下一堂新課／`'all'`／`'mocks'`／`'concepts'`／`'wordle'`，可以用陣列合併），裡面再用 `courseIndex`、`loadedCourse`、`requireExtra` 取用；只看進度的地方（解鎖、星星、下一課）傳大綱給 `core/progress.ts` 就好。
+  - 需要題目的畫面用 `<CourseGate need={…}>` 包起來（`{ units }`／`{ stages }`／`'active'`＝學過的字／`'next'`＝下一堂新課／`'all'`／`'mocks'`／`'concepts'`／`'wordle'`／`'search'`＝搜尋索引，可以用陣列合併），裡面再用 `courseIndex`、`loadedCourse`、`requireExtra` 取用；只看進度的地方（解鎖、星星、下一課）傳大綱給 `core/progress.ts` 就好。
   - `src/content/gen/` 是產生的檔案，不要手改；改了題目要讓它重新產生（`npm test`、`npm run build` 會自動跑，開發伺服器開著時也會自動更新），並一起提交。
   - 頁面元件在 `App.tsx` 用 `lazy` 載入；語言頁的分頁在 `pages/tabs/`。
 - 導覽列分成今天／學習／練功／查詢／我的五個區域（`core/nav.ts`）：新增頁面時要讓 `sectionOf` 認得它的網址（導覽列才會亮對），換語言時去哪一頁寫在 `switchLangPath`，並補 `tests/nav.test.ts`。目前的語言存在這台裝置（`core/currentLang.ts`）。

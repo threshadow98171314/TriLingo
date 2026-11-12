@@ -6,6 +6,7 @@
 // - 新增內容：在既有的題目檔裡加單元就好；開新檔案時在下面對應的關卡加一行。
 // - 一個關卡裡各包接起來的順序，就是單元在畫面上的順序。已上線的單元不要搬到別的關卡。
 // - 改完跑 `npm run outline` 更新大綱（npm test／npm run build 會自動跑；開發伺服器開著時會自動更新）。
+import type { SearchEntry } from '../core/search';
 import type { Concept, LangId, MockExam, Unit } from '../core/types';
 import { attachMore } from './dsl';
 
@@ -134,4 +135,11 @@ export const WORDLE: Record<LangId, () => Promise<string[]>> = {
   en: () => import('./gen/wordle-en.json').then((m) => m.default),
   ja: () => import('./gen/wordle-ja.json').then((m) => m.default),
   ko: () => import('./gen/wordle-ko.json').then((m) => m.default),
+};
+
+/** 查詢的搜尋索引（npm run outline 產生） */
+export const SEARCH: Record<LangId, () => Promise<SearchEntry[]>> = {
+  en: () => import('./gen/search-en.json').then((m) => m.default as SearchEntry[]),
+  ja: () => import('./gen/search-ja.json').then((m) => m.default as SearchEntry[]),
+  ko: () => import('./gen/search-ko.json').then((m) => m.default as SearchEntry[]),
 };

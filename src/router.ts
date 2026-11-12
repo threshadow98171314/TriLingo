@@ -51,6 +51,11 @@ export function nav(to: string, replace = false) {
   else location.hash = to;
 }
 
+/** 只改網址、不換頁也不捲動（例如搜尋框的字記在網址上，從結果按「上一頁」回來時還在） */
+export function replaceUrl(to: string) {
+  history.replaceState(history.state, '', `#${to}`);
+}
+
 /** 產生連結用的 href */
 export const href = (to: string) => `#${to}`;
 

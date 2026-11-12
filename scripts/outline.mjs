@@ -1,4 +1,4 @@
-// 產生 src/content/gen/ 裡的檔案（內容見 src/content/outline-build.ts）：課程大綱、依關卡拆開的補充例句表、
+// 產生 src/content/gen/ 裡的檔案（內容見 src/content/outline-build.ts）：課程大綱、依關卡拆開的補充例句表、搜尋索引、
 // 猜詞的每日候選字。App 靠大綱畫出首頁和學習路線，題目等上課時才下載，所以新增或修改題目後要跟著更新。
 // `npm test`、`npm run build` 會先自動跑一次；開發伺服器（npm run dev）開著的時候，改題目檔也會自動更新。
 import { mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';

@@ -272,6 +272,7 @@ const NEWS_SHOWN = 3;
 
 /** 這次更新了什麼：已經在用的人才顯示，按「知道了」就收起來（跟著雲端同步） */
 function NewsCard({ s }: { s: Save }) {
+  const lang = useCurrentLang();
   const [all, setAll] = useState(false);
   if (NEWS.version !== APP_MINOR || !s.stats.answers) return null;
   const items = all ? NEWS.items : NEWS.items.slice(0, NEWS_SHOWN);
@@ -291,7 +292,7 @@ function NewsCard({ s }: { s: Save }) {
               )}
             </>
           );
-          return <li key={n.text}>{n.to ? <a href={href(n.to)}>{row}</a> : <div>{row}</div>}</li>;
+          return <li key={n.text}>{n.to ? <a href={href(n.to.replace('{lang}', lang))}>{row}</a> : <div>{row}</div>}</li>;
         })}
       </ul>
       {!all && NEWS.items.length > NEWS_SHOWN && (
@@ -346,7 +347,7 @@ export function Home() {
         <ul>
           <li>「▶ 開始今天的學習」會先複習到期的字，再上下一堂新課；上方三個字可以換語言。</li>
           <li>右上的圓圈是今天的目標 XP，達成就能延續連勝 🔥。</li>
-          <li>下方導覽列：學習（路線、單字庫）、練功（遊戲、模擬考）、查詢（圖鑑、觀念）、我的（外觀、成就、商店、設定）。</li>
+          <li>下方導覽列：學習（路線、單字庫）、練功（遊戲、錯題本、模擬考）、查詢（搜尋、圖鑑、觀念）、我的（外觀、成就、商店、設定）。</li>
         </ul>
       </GuideTip>
 

@@ -7,15 +7,15 @@ export type Section = 'today' | 'learn' | 'practice' | 'lookup' | 'me';
 export const SECTIONS: { id: Section; icon: string; label: string; desc: string }[] = [
   { id: 'today', icon: '☀️', label: '今天', desc: '今天的學習、每日任務、三種語言的進度' },
   { id: 'learn', icon: '📚', label: '學習', desc: '學習路線和單字庫：一課一課往前走' },
-  { id: 'practice', icon: '🎮', label: '練功', desc: '複習、小遊戲、專屬特訓、模擬考' },
-  { id: 'lookup', icon: '🔍', label: '查詢', desc: '圖鑑、觀念講堂、五十音表／字母表、日文歌' },
+  { id: 'practice', icon: '🎮', label: '練功', desc: '複習、小遊戲、錯題本、模擬考' },
+  { id: 'lookup', icon: '🔍', label: '查詢', desc: '搜尋、圖鑑、觀念講堂、五十音表／字母表、日文歌' },
   { id: 'me', icon: '', label: '我的', desc: '名片與外觀、成就、商店、設定' },
 ];
 
 const ME = new Set(['me', 'profile', 'shop', 'settings', 'help', 'art']);
 const LEARN = new Set(['s', 'lesson', 'bank']);
-const PRACTICE = new Set(['arcade', 'mock', 'play', 'review']);
-const LOOKUP = new Set(['dex', 'concepts', 'concept', 'chart', 'songs', 'song', 'typing-guide']);
+const PRACTICE = new Set(['arcade', 'mistakes', 'weak', 'mock', 'play', 'review']);
+const LOOKUP = new Set(['search', 'dex', 'concepts', 'concept', 'chart', 'songs', 'song', 'typing-guide']);
 
 /** 網址屬於哪個區域（找不到的頁面回傳 null） */
 export function sectionOf(parts: string[]): Section | null {
@@ -40,7 +40,7 @@ export function sectionPath(sec: Section, lang: LangId): string {
     case 'practice':
       return `/l/${lang}/arcade`;
     case 'lookup':
-      return `/l/${lang}/dex`;
+      return `/l/${lang}/search`;
     case 'me':
       return '/me';
   }
@@ -58,6 +58,9 @@ export function switchLangPath(parts: string[], to: LangId): string | null {
     case 'play':
     case 'review':
       return `${base}/arcade`;
+    case 'mistakes':
+    case 'weak':
+      return `${base}/mistakes`;
     case 'mock':
       return `${base}/mock`;
     case 'concepts':
@@ -70,8 +73,9 @@ export function switchLangPath(parts: string[], to: LangId): string | null {
     case 'songs':
     case 'song':
       return to === 'ja' ? `${base}/songs` : `${base}/dex`;
+    case 'search':
     case 'dex':
-      return `${base}/dex`;
+      return `${base}/${parts[2]}`;
     case 'bank':
       return `${base}/bank`;
     default:

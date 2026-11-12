@@ -218,10 +218,21 @@ export interface StageOutline extends StageMeta {
   units: UnitOutline[];
 }
 
+/** 大綱裡的觀念文章（只有標題，文章本身打開時才下載） */
+export interface ConceptRef {
+  id: string;
+  icon: string;
+  title: string;
+  /** 建議程度：關卡的簡稱（例如 N4、綠色、初級 1） */
+  level?: string;
+}
+
 export interface CourseOutline extends Omit<CourseMeta, 'stages'> {
   stages: StageOutline[];
   /** 這個語言全部的項目數 */
   total: number;
+  /** 觀念講堂的文章 */
+  concepts: ConceptRef[];
 }
 
 // ───────── 實戰模擬考 ─────────

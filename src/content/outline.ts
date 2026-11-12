@@ -1,7 +1,7 @@
 // 大綱：每個關卡有哪些單元、幾課、幾個字，不含題目。
 // 由題目自動產生（npm run outline → gen/outline-*.json），隨主程式載入；App 靠大綱就能畫出首頁和學習路線，
 // 題目等上課時再下載。大綱檔的欄位名稱縮短、能推算的不存（課的 id 是「單元 id#第幾課」），檔案才小。
-import type { Course, CourseOutline, LangId, LessonOutline, Unit, UnitKind, UnitOutline } from '../core/types';
+import type { Concept, Course, CourseOutline, LangId, LessonOutline, Unit, UnitKind, UnitOutline } from '../core/types';
 import { META } from './meta';
 
 /** 大綱檔裡的一個單元 */
@@ -28,10 +28,15 @@ export interface RawUnit {
   c?: 1;
 }
 
+/** 大綱檔裡的一篇觀念文章：[id, 圖示, 標題, 建議程度（關卡的簡稱，例如 N4、綠色）] */
+export type RawConcept = [id: string, icon: string, title: string, level?: string];
+
 export interface RawOutline {
   lang: LangId;
   total: number;
   stages: Record<string, RawUnit[]>;
+  /** 觀念講堂的文章：學習路線、模擬考結果可以直接連到相關的觀念，不用先下載文章 */
+  concepts?: RawConcept[];
 }
 
 const BOSS_TITLE = '單元測驗';
@@ -79,8 +84,8 @@ export function decodeUnit(r: RawUnit): UnitOutline {
   return u;
 }
 
-/** 完整的課程 → 大綱檔。parts 是每個關卡各包的單元（content/all.ts 的 PART_UNITS） */
-export function encodeOutline(course: Course, parts: Record<string, Unit[][]>): RawOutline {
+/** 完整的課程 → 大綱檔。parts 是每個關卡各包的單元（content/all.ts 的 PART_UNITS），concepts 是觀念文章 */
+export function encodeOutline(course: Course, parts: Record<string, Unit[][]>, concepts: Concept[] = []): RawOutline {
   const stages: Record<string, RawUnit[]> = {};
   let total = 0;
   for (const st of course.stages) {
@@ -89,20 +94,29 @@ export function encodeOutline(course: Course, parts: Record<string, Unit[][]>): 
     if (list.length) stages[st.id] = list;
     total += list.reduce((a, u) => a + u.n, 0);
   }
-  return { lang: course.id, total, stages };
+  const raw: RawOutline = { lang: course.id, total, stages };
+  if (concepts.length) raw.concepts = concepts.map((c) => (c.level ? [c.id, c.icon, c.title, c.level] : [c.id, c.icon, c.title]));
+  return raw;
 }
 
 /** 大綱檔 → App 用的大綱（補上 meta.ts 的關卡資料） */
 export function decodeOutline(raw: RawOutline): CourseOutline {
   const meta = META[raw.lang];
-  return { ...meta, total: raw.total, stages: meta.stages.map((s) => ({ ...s, units: (raw.stages[s.id] ?? []).map(decodeUnit) })) };
+  return {
+    ...meta,
+    total: raw.total,
+    stages: meta.stages.map((s) => ({ ...s, units: (raw.stages[s.id] ?? []).map(decodeUnit) })),
+    concepts: (raw.concepts ?? []).map(([id, icon, title, level]) => (level ? { id, icon, title, level } : { id, icon, title })),
+  };
 }
 
 /** 完整的課程 → 大綱（測試和工具用，不經過檔案） */
-export const outlineOf = (course: Course, parts: Record<string, Unit[][]>): CourseOutline => decodeOutline(encodeOutline(course, parts));
+export const outlineOf = (course: Course, parts: Record<string, Unit[][]>, concepts: Concept[] = []): CourseOutline =>
+  decodeOutline(encodeOutline(course, parts, concepts));
 
 /** 大綱檔的文字：一個單元一行，改了哪個單元在 git 上一眼看得出來 */
 export function formatOutline(raw: RawOutline): string {
   const stages = Object.entries(raw.stages).map(([id, units]) => `${JSON.stringify(id)}:[\n${units.map((u) => JSON.stringify(u)).join(',\n')}\n]`);
-  return `{"lang":${JSON.stringify(raw.lang)},"total":${raw.total},"stages":{\n${stages.join(',\n')}\n}}\n`;
+  const concepts = raw.concepts ? `,\n"concepts":[\n${raw.concepts.map((c) => JSON.stringify(c)).join(',\n')}\n]` : '';
+  return `{"lang":${JSON.stringify(raw.lang)},"total":${raw.total},"stages":{\n${stages.join(',\n')}\n}${concepts}}\n`;
 }

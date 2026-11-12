@@ -3,7 +3,7 @@ import { useState, type CSSProperties } from 'react';
 import type { ResultData } from '../components/Result';
 import { Session } from '../components/Session';
 import { Empty, Ruby, SpeakBtn, Stars, Tx } from '../components/ui';
-import { META, requireExtra } from '../content';
+import { META, OUTLINE, requireExtra } from '../content';
 import { starsOf } from '../core/progress';
 import type { Save } from '../core/save';
 import { finishConcept, type SessionStats } from '../core/store';
@@ -88,6 +88,8 @@ export function ConceptPage({ lang, id }: { lang: LangId; id: string }) {
   }
   const { c, prev, next } = found;
   const tl = (s: string) => <Ruby s={s} />;
+  // 建議程度對到的關卡：連回學習路線
+  const stage = c.level ? OUTLINE[lang].stages.find((x) => x.short === c.level) : undefined;
   return (
     <div className="page narrow concept-page" style={{ '--lang': META[lang].color } as CSSProperties}>
       <a className="back-link" href={href(`/l/${lang}/concepts`)}>
@@ -98,7 +100,12 @@ export function ConceptPage({ lang, id }: { lang: LangId; id: string }) {
         <div className="grow">
           <small className="muted">
             {c.cat}
-            {c.level && `・建議程度：${c.level}`}
+            {c.level && !stage && `・建議程度：${c.level}`}
+            {stage && (
+              <>
+                ・建議程度：<a href={href(`/l/${lang}/s/${stage.id}`)}>{c.level} 學習路線 ›</a>
+              </>
+            )}
           </small>
           <h1>{tl(c.title)}</h1>
           <p className="muted">{tl(c.summary)}</p>
