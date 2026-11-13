@@ -3,12 +3,12 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { ResultData } from '../components/Result';
 import { Session } from '../components/Session';
 import { Empty } from '../components/ui';
-import { courseIndex, META, OUTLINE, stageOutline } from '../content';
+import { courseIndex, META, stageOutline } from '../content';
 import { mistakesOf, WEAK_BATCH } from '../core/mistakes';
-import { dueItems, learnedItems, learnedVocab, nextBankLesson, nextUp, UNLOCK, weakestItems } from '../core/progress';
+import { dueItems, learnedItems, learnedVocab, nextBankLesson, stageState, UNLOCK, weakestItems } from '../core/progress';
 import { sample, shuffle } from '../core/rng';
-import { BOSS_PASS, finishGame, finishLesson, getSave, type SessionStats } from '../core/store';
-import { TODAY_REVIEW } from '../core/today';
+import { BOSS_PASS, finishGame, finishLesson, getSave, markCert, type SessionStats } from '../core/store';
+import { TODAY_REVIEW, todayLesson } from '../core/today';
 import { canSpeak, listenMuted, unmuteListening, useVoices } from '../core/tts';
 import type { LangId, VocabItem } from '../core/types';
 import { fmtTime } from '../core/util';
@@ -67,8 +67,8 @@ export function LessonPage({ lang, lessonId, today = false }: { lang: LangId; le
 
   const onFinish = (stats: SessionStats): ResultData => {
     const res = lessonResult(stats);
-    // 今天的學習：複習和新課都做完了，主要按鈕回到「今天」頁
-    return today && res.outcome.passed ? { ...res, emoji: '☀️', next: { label: '完成！回到今天', to: '/' } } : res;
+    // 今天的學習：複習和新課都做完了，主要按鈕回到「今天」頁（剛完成整條學習路線的話，先看證書）
+    return today && res.outcome.passed && !res.next?.to.endsWith('?cert=1') ? { ...res, emoji: '☀️', next: { label: '完成！回到今天', to: '/' } } : res;
   };
 
   const lessonResult = (stats: SessionStats): ResultData => {
@@ -96,6 +96,18 @@ export function LessonPage({ lang, lessonId, today = false }: { lang: LangId; le
           headline: '這組單字完成！',
           sub: `「${unit.title}」的 ${unit.items.length} 個字都學會了，之後會自動排進複習。`,
           next: nb ? { label: `下一組：${nb.unit.title}`, to: lessonPath(lang, nb.lesson.id) } : undefined,
+        };
+      }
+      // 這個測驗讓整條學習路線完成了：記下結業證書，主要按鈕去看證書
+      const so = stageOutline(stage.id);
+      if (outcome.first && so && stageState(getSave(), so).complete) {
+        markCert(stage.id);
+        return {
+          ...base,
+          emoji: '🎓',
+          headline: `${so.title} 完成！`,
+          sub: `「${unit.title}」通過，整條學習路線都完成了。你的結業證書已經準備好了。`,
+          next: { label: '🎓 看結業證書', to: `${stagePath(lang, stage.id)}?cert=1` },
         };
       }
       return {
@@ -142,7 +154,7 @@ export function TodayPage({ lang }: { lang: LangId }) {
     const entries = dueItems(s, lang)
       .slice(0, TODAY_REVIEW)
       .map((item) => ({ item, strength: s.items[item.id].s, pool: idx.get(item.id)!.unit.items }));
-    const up = nextUp(s, OUTLINE[lang]);
+    const up = todayLesson(s, lang);
     return { exercises: shuffle(buildReview(entries, ctxOf(lang))), up };
   });
   const lessonTo = plan.up ? `${lessonPath(lang, plan.up.lesson.id)}?today=1` : null;

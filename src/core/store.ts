@@ -396,6 +396,8 @@ export function finishLesson(a: { lang: LangId; unit: Unit; lesson: Lesson; stat
     }
 
     const log = dayLog(d);
+    // 這個單元原本完成了幾課（每週計畫只算第一次完成的課，重上不算）
+    const doneBefore = a.unit.lessons.filter((l) => d.lessons[l.id]?.stars).length;
     d.lessons[a.lesson.id] = { stars: Math.max(prev?.stars ?? 0, stars), plays: (prev?.plays ?? 0) + 1 };
     if (passed) {
       log.lessons++;
@@ -423,6 +425,8 @@ export function finishLesson(a: { lang: LangId; unit: Unit; lesson: Lesson; stat
         log.words++;
       }
     }
+    const newlyDone = a.unit.lessons.filter((l) => d.lessons[l.id]?.stars).length - doneBefore;
+    if (newlyDone > 0) log.lessonsBy = { ...log.lessonsBy, [a.lang]: (log.lessonsBy?.[a.lang] ?? 0) + newlyDone };
     log.combo = Math.max(log.combo, maxCombo);
     d.stats.maxCombo = Math.max(d.stats.maxCombo, maxCombo);
 
@@ -1031,6 +1035,21 @@ export function setStage(lang: LangId, stageId: string) {
   if (save.stage[lang] === stageId) return;
   mutate((d) => {
     d.stage[lang] = stageId;
+  });
+}
+
+/** 設定學習目標：在 by（YYYY-MM-DD）之前完成 stageId；stageId 給空字串就是取消目標 */
+export function setGoal(lang: LangId, stageId: string, by: string) {
+  mutate((d) => {
+    d.goals[lang] = { stage: stageId, by, at: nowMs() };
+  });
+}
+
+/** 學習路線完成：記下結業證書的日期（已經有的不改） */
+export function markCert(stageId: string) {
+  if (save.certs[stageId]) return;
+  mutate((d) => {
+    d.certs[stageId] ??= today();
   });
 }
 

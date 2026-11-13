@@ -1,23 +1,25 @@
 // 「今天」頁：連勝與每日目標、一鍵開始今天的學習（先複習、再上新課）、三種語言的進度、每日任務。
-// 只看存檔和大綱，不用下載題目。小知識、諺語、一週紀錄在「我的」頁。
+// 只看存檔和大綱，不用下載題目。小知識、諺語、一週紀錄在「我的」頁。學習目標的每週計畫也在今天的卡片上。
 import { useRef, useState, type CSSProperties } from 'react';
+import { GoalModal } from '../components/GoalModal';
 import { GuideTip } from '../components/Guide';
 import { Mascot } from '../components/Mascot';
 import { RankEmblem } from '../components/RankEmblem';
 import { Bar, Coin, flameTier, flyCoins, LangBadge, Modal } from '../components/ui';
-import { META, META_LIST } from '../content';
+import { META, META_LIST, OUTLINE } from '../content';
 import { APP_MINOR, NEWS, newsSeenKey } from '../content/news';
 import { setCurrentLang, useCurrentLang } from '../core/currentLang';
 import { fx } from '../core/fx';
-import { nowMs, today } from '../core/date';
-import { quickStats } from '../core/progress';
+import { nowMs, slashDate, today } from '../core/date';
+import { goalPlan, type GoalPlan } from '../core/goals';
+import { quickStats, stageState } from '../core/progress';
 import { questsFor } from '../core/quests';
 import { rankOf, TIERS } from '../core/ranks';
 import { emptyDay, type Save } from '../core/save';
 import { sfx } from '../core/sfx';
 import { claimChest, claimQuest, useSave } from '../core/store';
 import { todayPlan } from '../core/today';
-import { cx, sum } from '../core/util';
+import { cx, sum, zhJoin } from '../core/util';
 import { href, lessonPath } from '../router';
 
 function GoalRing({ value, goal }: { value: number; goal: number }) {
@@ -40,11 +42,50 @@ function GoalRing({ value, goal }: { value: number; goal: number }) {
   );
 }
 
+/** 學習目標：這週要上幾課、上了幾課；點一下調整目標 */
+function GoalRow({ plan, onOpen }: { plan: GoalPlan; onOpen: () => void }) {
+  const { stage, goal } = plan;
+  const weekDone = plan.thisWeek >= plan.weekly;
+  return (
+    <button type="button" className={cx('today-goal', plan.status)} onClick={onOpen}>
+      <span className="today-goal-icon" aria-hidden>
+        {plan.status === 'done' ? '🏆' : '🎯'}
+      </span>
+      <span className="grow">
+        <b>
+          {plan.status === 'done'
+            ? zhJoin('目標達成：', stage.short, '完成了！')
+            : plan.status === 'late'
+              ? zhJoin('目標', stage.short, `的日期（${slashDate(goal.by)}）過了`)
+              : zhJoin(slashDate(goal.by), '前完成', stage.short)}
+        </b>
+        {plan.status === 'active' ? (
+          <>
+            <small>
+              這週 {plan.thisWeek} / {plan.weekly} 課{weekDone ? '・這週的份量完成了 ✓' : ''}・還剩 {plan.remaining} 課
+            </small>
+            <Bar v={plan.weekly ? Math.min(1, plan.thisWeek / plan.weekly) : 1} color={weekDone ? 'var(--ok)' : undefined} />
+          </>
+        ) : (
+          <small>{plan.status === 'done' ? '點這裡設定下一個目標' : `還剩 ${plan.remaining} 課，點這裡調整目標日期`}</small>
+        )}
+      </span>
+      <span className="today-goal-go" aria-hidden>
+        ›
+      </span>
+    </button>
+  );
+}
+
 /** 今天的學習：目前的語言先複習到期的字、再上下一堂新課，一個按鈕開始 */
 function TodayCard({ s }: { s: Save }) {
   const lang = useCurrentLang();
   const meta = META[lang];
   const plan = todayPlan(s, lang);
+  const goal = goalPlan(s, OUTLINE[lang]);
+  const [goalOpen, setGoalOpen] = useState(false);
+  // 還沒設目標：用第一個還沒完成的主路線關卡當例子
+  const suggest = OUTLINE[lang].stages.find((st) => st.group === 'main' && st.units.length && !stageState(s, st).complete)?.short;
   const start = plan.review > 0 ? `/l/${lang}/today` : plan.lesson ? `${lessonPath(lang, plan.lesson.id)}?today=1` : `/l/${lang}/arcade`;
   // 今天的目標已經達成：還想多學就再來一輪
   const goalMet = sum(s.days[today()]?.xp ?? {}) >= s.settings.dailyGoal;
@@ -105,9 +146,17 @@ function TodayCard({ s }: { s: Save }) {
           </li>
         )}
       </ol>
+      {goal ? (
+        <GoalRow plan={goal} onOpen={() => setGoalOpen(true)} />
+      ) : (
+        <button type="button" className="link-btn today-goal-set" onClick={() => setGoalOpen(true)}>
+          🎯 設定學習目標{suggest ? `（例如${zhJoin('三個月內完成', suggest)}）` : ''}
+        </button>
+      )}
       <a className="btn primary wide today-go" href={href(start)}>
         {label}
       </a>
+      {goalOpen && <GoalModal lang={lang} onClose={() => setGoalOpen(false)} />}
     </section>
   );
 }

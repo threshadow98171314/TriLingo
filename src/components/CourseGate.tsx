@@ -6,8 +6,9 @@
 // 頁面的程式也是用到才下載（React.lazy），CourseGate 裡面順便等程式下載完成。
 // 下載通常一瞬間就好（之後瀏覽器會快取），所以稍微延遲才出現載入畫面，避免閃一下。
 import { Suspense, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
-import { META, OUTLINE, useContent, type Need } from '../content';
-import { activeNeed, nextUp } from '../core/progress';
+import { META, useContent, type Need } from '../content';
+import { activeNeed } from '../core/progress';
+import { todayLesson } from '../core/today';
 import { getSave } from '../core/store';
 import type { LangId } from '../core/types';
 import { Empty, LangBadge } from './ui';
@@ -18,7 +19,7 @@ export type GateNeed = GateItem | GateItem[];
 function resolve(lang: LangId, need: GateNeed): Need {
   if (need === 'active') return activeNeed(getSave(), lang);
   if (need === 'next') {
-    const up = nextUp(getSave(), OUTLINE[lang]);
+    const up = todayLesson(getSave(), lang);
     return { units: up ? [up.unit.id] : [] };
   }
   if (Array.isArray(need)) return need.map((n) => resolve(lang, n));

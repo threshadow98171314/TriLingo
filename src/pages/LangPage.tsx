@@ -4,6 +4,7 @@
 // - 查詢：搜尋、圖鑑、觀念、五十音表／字母表、日文歌
 // 語言在上方導覽列切換。
 import { lazy, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { CertificateModal } from '../components/Certificate';
 import { CourseGate } from '../components/CourseGate';
 import { GuideTip } from '../components/Guide';
 import { RankLine } from '../components/RankEmblem';
@@ -12,7 +13,8 @@ import { loadedCourse, META, OUTLINE, prefetch } from '../content';
 import { APP_MINOR, stageIsNew, stageSeenKey } from '../content/news';
 import { bankState, currentStage, learnedIn, lessonState, nextBankLesson, nextInStage, quickStats, stageState, starsOf, unitState } from '../core/progress';
 import type { Save } from '../core/save';
-import { markGuide, setStage, useSave } from '../core/store';
+import { today } from '../core/date';
+import { markCert, markGuide, setStage, useSave } from '../core/store';
 import type { LangId, StageOutline } from '../core/types';
 import { cx } from '../core/util';
 import { href, lessonPath, stagePath } from '../router';
@@ -93,6 +95,11 @@ function StageChip({ lang, stage, s, active }: { lang: LangId; stage: StageOutli
       </b>
       <small>{!ss.ready ? '準備中' : ss.complete ? '完成 ✓' : `${Math.round(ss.pct * 100)}%`}</small>
       {stageIsNew(stage, s.guide) && <i className="new-tag">NEW</i>}
+      {s.goals[lang]?.stage === stage.id && (
+        <i className="goal-tag" title="學習目標" aria-label="學習目標">
+          🎯
+        </i>
+      )}
     </a>
   );
 }
@@ -309,7 +316,7 @@ function TownStage({ lang, stageId, s }: { lang: LangId; stageId: string; s: Sav
 const RELATED_SHOWN = 3;
 
 /** 學習：上方是關卡標籤，下面是這一關的路線或單字庫。focus：要打開並捲過去的單元（搜尋結果連過來） */
-function LearnArea({ lang, s, stageId, bank, focus }: { lang: LangId; s: Save; stageId?: string; bank: boolean; focus?: string }) {
+function LearnArea({ lang, s, stageId, bank, focus, cert }: { lang: LangId; s: Save; stageId?: string; bank: boolean; focus?: string; cert?: boolean }) {
   // 路線只看大綱（有哪些單元、幾課），不用等題目下載
   const course = OUTLINE[lang];
   const stage = course.stages.find((x) => x.id === stageId) ?? currentStage(s, course);
@@ -321,6 +328,11 @@ function LearnArea({ lang, s, stageId, bank, focus }: { lang: LangId; s: Save; s
 
   const ss = stageState(s, stage);
   const up = nextInStage(s, stage);
+  // 完成整條學習路線就有結業證書（以前就完成的，第一次打開時補記日期）
+  const [certOpen, setCertOpen] = useState(!!cert && ss.complete);
+  useEffect(() => {
+    if (ss.complete) markCert(stage.id);
+  }, [ss.complete, stage.id]);
   const hasBank = stage.units.some((u) => u.bank);
   const showBank = bank && hasBank;
   // 趁空檔先下載下一堂課的題目，點進去就不用等
@@ -382,7 +394,13 @@ function LearnArea({ lang, s, stageId, bank, focus }: { lang: LangId; s: Save; s
               {ss.done ? '繼續' : '開始'}：{up.unit.title}
             </a>
           )}
+          {ss.complete && (
+            <button type="button" className="btn gold" onClick={() => setCertOpen(true)}>
+              🎓 結業證書
+            </button>
+          )}
         </header>
+        {certOpen && <CertificateModal info={{ lang, stage, name: s.name, date: s.certs[stage.id] ?? today() }} onClose={() => setCertOpen(false)} />}
 
         {bs && (
           <SubTabs
@@ -504,7 +522,7 @@ function TabGuide({ tab, lang }: { tab: LangTab; lang: LangId }) {
 
 // ───────── 頁面 ─────────
 
-export function LangPage({ lang, tab, stageId, focus }: { lang: LangId; tab: LangTab; stageId?: string; focus?: string }) {
+export function LangPage({ lang, tab, stageId, focus, cert }: { lang: LangId; tab: LangTab; stageId?: string; focus?: string; cert?: boolean }) {
   const s = useSave();
   const meta = META[lang];
   const area = AREA_OF[tab];
@@ -538,7 +556,7 @@ export function LangPage({ lang, tab, stageId, focus }: { lang: LangId; tab: Lan
       </section>
 
       {/* 換到另一個要打開的單元時整個重來，展開的單元才會跟著換 */}
-      {area === 'learn' && <LearnArea key={focus ?? ''} lang={lang} s={s} stageId={stageId} bank={tab === 'bank'} focus={focus} />}
+      {area === 'learn' && <LearnArea key={focus ?? ''} lang={lang} s={s} stageId={stageId} bank={tab === 'bank'} focus={focus} cert={cert} />}
 
       {area === 'practice' && (
         <>

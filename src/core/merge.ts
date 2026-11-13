@@ -5,7 +5,7 @@
 // 限制：兩台裝置在「都沒連網」的情況下各自學習，XP 取的是較大值而不是相加，
 // 其中一台離線期間多拿的 XP 會少算。平常開 App 就會同步，實際上很少發生。
 import type { ItemProg, StreakState } from './logic';
-import type { DayLog, LessonRec, MockRec, MysteryState, Save } from './save';
+import type { DayLog, Goal, LessonRec, MockRec, MysteryState, Save } from './save';
 import type { CustomSong, SongLyrics } from './songs';
 import { LANGS } from './types';
 
@@ -48,8 +48,15 @@ function mergeDay(a: DayLog, b: DayLog): DayLog {
   if (Object.keys(wd).length) out.dailyWordle = wd;
   const claimed = union(a.claimed, b.claimed);
   if (claimed.length) out.claimed = claimed;
+  if (a.lessonsBy || b.lessonsBy) out.lessonsBy = maxKeys(a.lessonsBy ?? {}, b.lessonsBy ?? {});
   return out;
 }
+
+/** 學習目標：每個語言取最後設定（或取消）的那一份 */
+const pickGoal = (x: Goal, y: Goal): Goal => (y.at > x.at ? y : x);
+
+/** 證書日期：取比較早的那天 */
+const earlier = (x: string, y: string) => (y < x ? y : x);
 
 /** 單字熟練度：取最後作答的那一份 */
 const pickItem = (x: ItemProg, y: ItemProg) => (y.t > x.t || (y.t === x.t && y.ok + y.ng > x.ok + x.ng) ? y : x);
@@ -147,5 +154,7 @@ export function mergeSaves(a: Save, b: Save): Save {
     mystery: mergeMystery(a.mystery, b.mystery),
     songs: mergeRecord(a.songs, b.songs, pickLyrics),
     customSongs: mergeCustomSongs(a.customSongs, b.customSongs),
+    goals: mergeRecord(a.goals as Record<string, Goal>, b.goals as Record<string, Goal>, pickGoal),
+    certs: mergeRecord(a.certs, b.certs, earlier),
   };
 }

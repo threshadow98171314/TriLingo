@@ -6967,3 +6967,192 @@ p.small {
 .mock-next-links .chip:hover {
   border-color: var(--lang);
 }
+
+/* ───────── 學習目標 ───────── */
+.today-goal {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed color-mix(in srgb, var(--lang) 55%, var(--line));
+  background: color-mix(in srgb, var(--lang) 8%, var(--card));
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.today-goal:hover {
+  border-style: solid;
+}
+.today-goal .grow {
+  display: grid;
+  gap: 4px;
+}
+.today-goal small {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.today-goal .bar {
+  height: 7px;
+}
+.today-goal.done {
+  border-color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 10%, var(--card));
+}
+.today-goal.late {
+  border-color: var(--warn);
+}
+.today-goal-icon {
+  flex: none;
+  width: 30px;
+  text-align: center;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+.today-goal-go {
+  flex: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--muted);
+}
+.today-goal-set {
+  justify-self: start;
+  padding-left: 0;
+  font-size: 0.88rem;
+}
+
+.goal-modal {
+  text-align: left;
+}
+.goal-field {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+}
+.goal-field select,
+.goal-field input {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--card-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  color-scheme: light dark;
+}
+.goal-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: -4px;
+}
+.goal-presets .chip {
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.goal-presets .chip:hover {
+  border-color: var(--accent);
+}
+.goal-preview {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--card-2);
+  line-height: 1.5;
+}
+.goal-preview small {
+  font-size: 0.82rem;
+}
+/* 學習路線的關卡標籤：目標關卡標上 🎯 */
+.stage-chip .goal-tag {
+  position: absolute;
+  top: -9px;
+  left: -6px;
+  font-size: 0.85rem;
+  font-style: normal;
+  line-height: 1;
+}
+
+/* ───────── 結業證書 ───────── */
+.modal.cert-modal {
+  width: min(100%, 720px);
+}
+.cert-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+.cert-msg {
+  margin: -4px 0 0;
+  font-size: 0.85rem;
+}
+.cert-list ul {
+  display: grid;
+  gap: 6px;
+}
+.cert-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--card-2);
+}
+.cert-list li .grow {
+  display: grid;
+  gap: 1px;
+}
+
+/* ───────── 模擬考挑戰 ───────── */
+.mock-challenge {
+  margin: 4px 0 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--line));
+  background: color-mix(in srgb, var(--gold) 12%, var(--card));
+  line-height: 1.6;
+}
+.mock-versus {
+  margin: 4px 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  background: var(--card-2);
+}
+.mock-versus.win {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 14%, var(--card));
+}
+.mock-versus.lose {
+  color: var(--warn);
+}
+.mock-share {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+.mock-share .grow {
+  flex: 1 1 240px;
+  display: grid;
+  gap: 3px;
+}
+.mock-share small {
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+.mock-share-msg {
+  color: var(--ok);
+  overflow-wrap: anywhere;
+}

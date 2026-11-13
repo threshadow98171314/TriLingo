@@ -4,7 +4,7 @@ import { COURSE_LIST, COURSES } from '../src/content/all';
 import { mulberry32 } from '../src/core/rng';
 import type { MockExam } from '../src/core/types';
 import { furiKana, furiPlain } from '../src/engine/furigana';
-import { buildPaper, kanjiReadingGroups, levelOf, paperSections, parseLine, scorePaper, skillOf, weakSkills } from '../src/engine/mock';
+import { buildPaper, challengeQuery, kanjiReadingGroups, levelOf, newSeed, paperSections, parseChallenge, parseLine, scorePaper, skillOf, weakSkills } from '../src/engine/mock';
 import { expectedCount } from '../src/pages/Mock';
 
 const exams = COURSE_LIST.flatMap((c) => c.mocks.map((m) => ({ lang: c.id, m })));
@@ -181,6 +181,25 @@ describe('組卷與計分', () => {
       ['listening', ['sokuji', 'kaiwa']],
     ]);
     expect(weakSkills(scorePaper(p, p.qs.map((q) => q.answer)), m.pass)).toEqual([]);
+  });
+
+  it('挑戰連結：同一個種子是同一份考卷；網址格式不對就不算挑戰', () => {
+    const m = COURSES.ja.mocks[0];
+    const sig = (seed: number) => buildPaper(m, COURSES.ja, mulberry32(seed)).qs.map((q) => `${q.q.id}:${q.options.join('|')}`);
+    expect(sig(123456)).toEqual(sig(123456));
+    expect(sig(654321)).not.toEqual(sig(123456));
+
+    const q = (s: string) => new URLSearchParams(s);
+    const ch = { seed: 123456, vs: 72, by: '小明 Ming' };
+    expect(parseChallenge(q(challengeQuery(ch)))).toEqual(ch);
+    expect(parseChallenge(q('seed=1&vs=100'))).toEqual({ seed: 1, vs: 100, by: '朋友' });
+    for (const bad of ['', 'seed=0&vs=5', 'seed=abc&vs=5', 'seed=5&vs=101', 'seed=5', 'seed=1.5&vs=3', 'seed=4294967296&vs=3']) expect(parseChallenge(q(bad)), bad).toBeNull();
+    // 暱稱去掉控制字元、最多 20 個字
+    expect(parseChallenge(q(`seed=9&vs=9&by=${encodeURIComponent(`a\u0007b${'x'.repeat(30)}`)}`))!.by).toBe(`ab${'x'.repeat(18)}`);
+    for (let i = 0; i < 50; i++) {
+      const s = newSeed();
+      expect(Number.isInteger(s) && s >= 1 && s <= 0xffffffff).toBe(true);
+    }
   });
 
   it('聽力稿的說話者', () => {

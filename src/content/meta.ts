@@ -196,7 +196,7 @@ const JA: CourseMeta = {
     }),
     stage({
       id: 'ja.n1',
-      fresh: '0.13',
+      fresh: '0.14',
       short: 'N1',
       title: 'JLPT N1',
       subtitle: '高級',
@@ -324,7 +324,7 @@ const KO: CourseMeta = {
     }),
     stage({
       id: 'ko.k4',
-      fresh: '0.13',
+      fresh: '0.14',
       short: '中級 2',
       title: '中級 2',
       subtitle: 'TOPIK 4 級',

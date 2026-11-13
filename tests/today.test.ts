@@ -46,6 +46,17 @@ describe('今天的學習', () => {
     expect(p.lesson?.label.endsWith('・單元測驗')).toBe(true);
   });
 
+  it('有學習目標時，新課從目標範圍裡找；目標範圍都上完了就接著目前的關卡', () => {
+    const s = defaultSave(Date.now());
+    s.stage.ja = 'ja.n1';
+    const n1First = OUTLINE.ja.stages.find((x) => x.id === 'ja.n1')!.units[0].lessons[0];
+    expect(todayPlan(s, 'ja').lesson?.id).toBe(n1First.id);
+    s.goals.ja = { stage: 'ja.n5', by: '2099-01-01', at: 1 };
+    expect(todayPlan(s, 'ja').lesson?.id).toBe(OUTLINE.ja.stages[0].units[0].lessons[0].id);
+    for (const st of OUTLINE.ja.stages.slice(0, 2)) for (const u of st.units) for (const l of u.lessons) s.lessons[l.id] = { stars: 1, plays: 1 };
+    expect(todayPlan(s, 'ja').lesson?.id).toBe(n1First.id);
+  });
+
   it('學習路線全部上完：沒有新課', () => {
     const s = defaultSave(Date.now());
     for (const st of OUTLINE.en.stages) for (const u of st.units) for (const l of u.lessons) s.lessons[l.id] = { stars: 3, plays: 1 };

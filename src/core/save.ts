@@ -50,6 +50,18 @@ export interface DayLog {
   /** 已領取獎勵的任務 id */
   claimed?: string[];
   chest?: boolean;
+  /** 各語言這天第一次完成的課數（重上不算；學習目標的每週計畫用） */
+  lessonsBy?: Partial<Record<LangId, number>>;
+}
+
+/** 學習目標：在某天之前完成某個關卡 */
+export interface Goal {
+  /** 目標關卡（空字串＝取消了目標，雲端合併時才知道是後來取消的） */
+  stage: string;
+  /** 目標日期 YYYY-MM-DD */
+  by: string;
+  /** 設定的時間（毫秒）：兩台裝置都改過時取比較新的 */
+  at: number;
 }
 
 export interface LessonRec {
@@ -266,6 +278,10 @@ export interface Save {
   songs: Record<string, SongLyrics>;
   /** 使用者自己加的歌 */
   customSongs: CustomSong[];
+  /** 學習目標：語言 → 目標 */
+  goals: Partial<Record<LangId, Goal>>;
+  /** 結業證書：關卡 id → 完成學習路線的日期（YYYY-MM-DD） */
+  certs: Record<string, string>;
 }
 
 export const FREE_AVATARS = ['🐣', '🐱', '🐶', '🦊'];
@@ -357,6 +373,8 @@ export function defaultSave(now: number): Save {
     mystery: { day: '' },
     songs: {},
     customSongs: [],
+    goals: {},
+    certs: {},
   };
 }
 
@@ -404,5 +422,7 @@ export function migrate(raw: unknown, now: number): Save {
     mystery: migrateMystery(x.mystery),
     songs: x.songs ?? {},
     customSongs: x.customSongs ?? [],
+    goals: x.goals ?? {},
+    certs: x.certs ?? {},
   };
 }

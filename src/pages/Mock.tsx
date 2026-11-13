@@ -1,4 +1,5 @@
 // 實戰模擬考：考前說明 → 計時作答（可跳題、標記、重播聽力）→ 交卷看成績與逐題檢討。
+// 交卷後可以把「同一份考卷」的挑戰連結傳給朋友（網址帶抽題種子、分數和暱稱），朋友考完會比較分數。
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Bar, Coin, Empty, Modal, Tx } from '../components/ui';
 import { CourseGate } from '../components/CourseGate';
@@ -11,10 +12,25 @@ import { sfx } from '../core/sfx';
 import { finishMock, useSave, type Outcome } from '../core/store';
 import { canSpeak, speakScript, stopSpeaking, useVoices } from '../core/tts';
 import type { LangId, MockExam, MockSection } from '../core/types';
+import { mulberry32 } from '../core/rng';
 import { cx, fmtTime } from '../core/util';
 import { LANG_NAME } from '../engine/exercises';
-import { buildPaper, paperSections, parseLine, scorePaper, weakSkills, type MockScore, type MockSkill, type Paper, type PaperQ } from '../engine/mock';
-import { href, nav } from '../router';
+import {
+  buildPaper,
+  challengeQuery,
+  newSeed,
+  paperSections,
+  parseChallenge,
+  parseLine,
+  scorePaper,
+  weakSkills,
+  type Challenge,
+  type MockScore,
+  type MockSkill,
+  type Paper,
+  type PaperQ,
+} from '../engine/mock';
+import { href, nav, useRoute } from '../router';
 
 const mockPath = (lang: LangId, id?: string) => (id ? `/l/${lang}/mock/${encodeURIComponent(id)}` : `/l/${lang}/mock`);
 
@@ -130,6 +146,8 @@ export function MockTab({ lang, s }: { lang: LangId; s: Save }) {
 
 interface Done {
   paper: Paper;
+  /** 這份考卷的抽題種子（挑戰連結用） */
+  seed: number;
   picks: (number | null)[];
   score: MockScore;
   outcome: Outcome;
@@ -159,16 +177,20 @@ export function MockPage({ lang, examId }: { lang: LangId; examId: string }) {
 }
 
 function MockExamPage({ lang, exam }: { lang: LangId; exam: MockExam }) {
-  const [run, setRun] = useState<{ paper: Paper; key: number } | null>(null);
+  // 從挑戰連結進來：用對方的種子出同一份考卷
+  const query = useRoute().query;
+  const [challenge] = useState(() => parseChallenge(query));
+  const [run, setRun] = useState<{ paper: Paper; seed: number; key: number } | null>(null);
   const [done, setDone] = useState<Done | null>(null);
 
   const start = () => {
     setDone(null);
-    setRun((r) => ({ paper: buildPaper(exam, loadedCourse(lang)), key: (r?.key ?? 0) + 1 }));
+    const seed = challenge?.seed ?? newSeed();
+    setRun((r) => ({ paper: buildPaper(exam, loadedCourse(lang), mulberry32(seed)), seed, key: (r?.key ?? 0) + 1 }));
   };
 
-  if (done) return <MockResult lang={lang} data={done} onRetry={start} />;
-  if (!run) return <MockIntro lang={lang} exam={exam} onStart={start} />;
+  if (done) return <MockResult lang={lang} data={done} challenge={challenge} onRetry={start} />;
+  if (!run) return <MockIntro lang={lang} exam={exam} challenge={challenge} onStart={start} />;
   return (
     <MockRunner
       key={run.key}
@@ -178,13 +200,13 @@ function MockExamPage({ lang, exam }: { lang: LangId; exam: MockExam }) {
         stopSpeaking();
         const score = scorePaper(run.paper, picks);
         const outcome = finishMock({ lang, examId: exam.id, correct: score.correct, total: score.total });
-        setDone({ paper: run.paper, picks, score, outcome, seconds });
+        setDone({ paper: run.paper, seed: run.seed, picks, score, outcome, seconds });
       }}
     />
   );
 }
 
-function MockIntro({ lang, exam, onStart }: { lang: LangId; exam: MockExam; onStart: () => void }) {
+function MockIntro({ lang, exam, challenge, onStart }: { lang: LangId; exam: MockExam; challenge: Challenge | null; onStart: () => void }) {
   useVoices();
   const s = useSave();
   const rec = s.mocks[exam.id];
@@ -194,6 +216,11 @@ function MockIntro({ lang, exam, onStart }: { lang: LangId; exam: MockExam; onSt
       <section className="card">
         <p className="eyebrow">{META[lang].name}實戰模擬考</p>
         <h1>{exam.title}</h1>
+        {challenge && (
+          <p className="mock-challenge">
+            ⚔️ <b>{challenge.by}</b> 用這份考卷考了 <b>{challenge.vs}%</b>。題目和對方的一模一樣，考看看能不能超越！
+          </p>
+        )}
         <p className="muted">{exam.about}</p>
         <div className="mock-facts big">
           <span>⏱ 限時 {exam.minutes} 分鐘</span>
@@ -226,7 +253,7 @@ function MockIntro({ lang, exam, onStart }: { lang: LangId; exam: MockExam; onSt
             返回
           </a>
           <button type="button" className="btn primary" onClick={onStart} autoFocus>
-            開始作答
+            {challenge ? '接受挑戰' : '開始作答'}
           </button>
         </div>
       </section>
@@ -470,7 +497,43 @@ function MockRunner({ lang, paper, onSubmit }: { lang: LangId; paper: Paper; onS
 
 // ───────── 成績與檢討 ─────────
 
-function MockResult({ lang, data, onRetry }: { lang: LangId; data: Done; onRetry: () => void }) {
+/** 把同一份考卷的挑戰傳給朋友：手機用系統的分享，電腦複製連結 */
+function ChallengeShare({ lang, exam, seed, pct }: { lang: LangId; exam: MockExam; seed: number; pct: number }) {
+  const name = useSave().name;
+  const [msg, setMsg] = useState('');
+  const url = `${location.origin}${location.pathname}#${mockPath(lang, exam.id)}?${challengeQuery({ seed, vs: pct, by: name })}`;
+  const text = `我在 TriLingo 的「${exam.title}」考了 ${pct}%，用同一份考卷挑戰看看！`;
+  const share = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: exam.title, text, url });
+        return;
+      } catch (e) {
+        if ((e as Error).name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      setMsg('已經複製挑戰連結，貼給朋友吧！');
+    } catch {
+      setMsg(url);
+    }
+  };
+  return (
+    <section className="card mock-share">
+      <div className="grow">
+        <b>⚔️ 挑戰朋友</b>
+        <small className="muted">朋友打開連結會考同一份考卷，考完比分數。連結裡有你的暱稱和這次的分數。</small>
+        {msg && <small className="mock-share-msg">{msg}</small>}
+      </div>
+      <button type="button" className="btn" onClick={share}>
+        分享挑戰
+      </button>
+    </section>
+  );
+}
+
+function MockResult({ lang, data, challenge, onRetry }: { lang: LangId; data: Done; challenge: Challenge | null; onRetry: () => void }) {
   const { paper, picks, score, outcome, seconds } = data;
   const exam = paper.exam;
   const [onlyWrong, setOnlyWrong] = useState(score.correct < score.total);
@@ -498,6 +561,11 @@ function MockResult({ lang, data, onRetry }: { lang: LangId; data: Done; onRetry
           {pct}
           <small>%</small>
         </div>
+        {challenge && (
+          <p className={cx('mock-versus', pct > challenge.vs ? 'win' : pct === challenge.vs ? 'tie' : 'lose')}>
+            你 {pct}% vs {challenge.by} {challenge.vs}%：{pct > challenge.vs ? '你贏了！🎉' : pct === challenge.vs ? '平手！' : '差一點，再挑戰一次！'}
+          </p>
+        )}
         <p className="muted">
           答對 {score.correct} / {score.total} 題・用時 {fmtTime(seconds)}・合格線 {Math.round(exam.pass * 100)}%
         </p>
@@ -537,12 +605,14 @@ function MockResult({ lang, data, onRetry }: { lang: LangId; data: Done; onRetry
 
       <NextSteps lang={lang} exam={exam} score={score} />
 
+      <ChallengeShare lang={lang} exam={exam} seed={data.seed} pct={pct} />
+
       <div className="result-actions">
         <button type="button" className="btn" onClick={() => nav(mockPath(lang))}>
           回到模擬考
         </button>
         <button type="button" className="btn primary" onClick={onRetry}>
-          再考一次（重新抽題）
+          {challenge ? '再挑戰一次（同一份考卷）' : '再考一次（重新抽題）'}
         </button>
       </div>
 

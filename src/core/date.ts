@@ -27,6 +27,9 @@ export function dayNum(s: string): number {
   return Math.round(Date.UTC(y, m - 1, d) / DAY);
 }
 
+/** 2027-03-05 → 2027/3/5 */
+export const slashDate = (day: string) => day.split('-').map(Number).join('/');
+
 export function addDays(s: string, n: number): string {
   const [y, m, d] = s.split('-').map(Number);
   return dateStr(new Date(y, m - 1, d + n));

@@ -1,11 +1,50 @@
-// 成就頁：成就與彩蛋收藏冊（名片、外觀切換、學習紀錄在「我的」頁）
-import { Bar, Coin } from '../components/ui';
+// 成就頁：結業證書、成就與彩蛋收藏冊（名片、外觀切換、學習紀錄在「我的」頁）
+import { useState } from 'react';
+import { CertificateModal, type CertInfo } from '../components/Certificate';
+import { Bar, Coin, LangBadge } from '../components/ui';
+import { META, OUTLINE_LIST } from '../content';
 import { ACHIEVEMENTS } from '../core/achievements';
+import { slashDate } from '../core/date';
 import { EGGS } from '../core/eggData';
 import type { Save } from '../core/save';
 import { useSave } from '../core/store';
 import { cx } from '../core/util';
 import { href } from '../router';
+
+/** 結業證書：完成一整條學習路線的關卡，照完成的日期排 */
+function CertList({ s }: { s: Save }) {
+  const [open, setOpen] = useState<CertInfo | null>(null);
+  const list: CertInfo[] = OUTLINE_LIST.flatMap((c) => c.stages.filter((st) => s.certs[st.id]).map((st) => ({ lang: c.id, stage: st, name: s.name, date: s.certs[st.id] }))).sort(
+    (a, b) => a.date.localeCompare(b.date),
+  );
+  return (
+    <section className="card panel cert-list">
+      <header className="panel-head">
+        <h2>🎓 結業證書</h2>
+        <small className="muted">完成一整條學習路線就能拿到</small>
+      </header>
+      {list.length === 0 ? (
+        <p className="muted">還沒有證書。先把一個關卡的學習路線走完吧！</p>
+      ) : (
+        <ul>
+          {list.map((c) => (
+            <li key={c.stage.id}>
+              <LangBadge course={META[c.lang]} size="sm" />
+              <span className="grow">
+                <b>{c.stage.title}</b>
+                <small className="muted">{slashDate(c.date)} 完成</small>
+              </span>
+              <button type="button" className="btn small" onClick={() => setOpen(c)}>
+                查看
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {open && <CertificateModal info={open} onClose={() => setOpen(null)} />}
+    </section>
+  );
+}
 
 /** 彩蛋收藏冊：發現過的彩蛋會亮起來，沒發現的只看得到提示 */
 function EggBook({ s }: { s: Save }) {
@@ -108,6 +147,8 @@ export function ProfilePage() {
       <p className="muted small ach-note">
         頭像、名片、外觀切換與學習紀錄都在 <a href={href('/me')}>「我的」頁</a>。
       </p>
+
+      <CertList s={s} />
 
       {/* 手機上頁面很長：提供快速跳到各區塊 */}
       <nav className="jump-bar" aria-label="跳到">

@@ -94,6 +94,33 @@ export interface MockScore {
   sections: { section: MockSection; title: string; correct: number; total: number }[];
 }
 
+/** 挑戰連結：朋友用同一份考卷（同一個抽題種子）比答對率。只放在網址上，沒有伺服器 */
+export interface Challenge {
+  /** 抽題種子（同一個種子、同一版題庫就是同一份考卷） */
+  seed: number;
+  /** 對方的答對率 0–100 */
+  vs: number;
+  /** 對方的暱稱 */
+  by: string;
+}
+
+/** 新的抽題種子（1 到 2³²−1） */
+export const newSeed = (rng: Rng = Math.random) => Math.floor(rng() * 0xfffffffe) + 1;
+
+/** 網址的 ?seed=…&vs=…&by=… → 挑戰；格式不對就當作沒有挑戰 */
+export function parseChallenge(q: URLSearchParams): Challenge | null {
+  // 沒給的參數不能當成 0
+  const seed = Number(q.get('seed') || NaN);
+  const vs = Number(q.get('vs') || NaN);
+  if (!Number.isInteger(seed) || seed < 1 || seed > 0xffffffff) return null;
+  if (!Number.isInteger(vs) || vs < 0 || vs > 100) return null;
+  // 暱稱：去掉控制字元、最多 20 個字
+  const by = [...(q.get('by') ?? '').replace(/\p{Cc}/gu, '').trim()].slice(0, 20).join('') || '朋友';
+  return { seed, vs, by };
+}
+
+export const challengeQuery = (c: Challenge) => `seed=${c.seed}&vs=${c.vs}&by=${encodeURIComponent(c.by)}`;
+
 /** 大題考的是哪一種能力（模擬考結果依弱項建議接下來怎麼練） */
 export type MockSkill = 'vocab' | 'grammar' | 'reading' | 'listening';
 

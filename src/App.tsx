@@ -92,9 +92,9 @@ function resolve(route: Route): { page: ReactNode; focus: boolean } {
     switch (p[2]) {
       case undefined:
         return view(<LangPage lang={lang} tab="path" />);
-      // ?u=單元 id：打開那個單元（搜尋結果連過來）
+      // ?u=單元 id：打開那個單元（搜尋結果連過來）；?cert=1：打開結業證書
       case 's':
-        return view(<LangPage lang={lang} tab="path" stageId={p[3]} focus={route.query.get('u') ?? undefined} />);
+        return view(<LangPage lang={lang} tab="path" stageId={p[3]} focus={route.query.get('u') ?? undefined} cert={route.query.get('cert') === '1'} />);
       case 'bank':
         return view(<LangPage lang={lang} tab="bank" stageId={p[3]} focus={route.query.get('u') ?? undefined} />);
       case 'today':
